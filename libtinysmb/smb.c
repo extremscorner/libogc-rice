@@ -50,7 +50,6 @@
 #include <fcntl.h>
 #include <smb.h>
 
-#define IOS_O_NONBLOCK				0x04
 #define RECV_TIMEOUT				3000  // in ms
 #define CONN_TIMEOUT				6000
 

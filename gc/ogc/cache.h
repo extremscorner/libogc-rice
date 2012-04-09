@@ -40,9 +40,6 @@ distribution.
 
 #include <gctypes.h>
 
-#define LC_BASEPREFIX		0xe000
-#define LC_BASE				(LC_BASEPREFIX<<16)
-
 #ifdef __cplusplus
    extern "C" {
 #endif /* __cplusplus */
@@ -197,16 +194,6 @@ void DCZeroRange(void *startaddress,u32 len);
 void DCTouchRange(void *startaddress,u32 len);
 
 
-/*!
- * \fn void ICSync()
- * \brief Performs an instruction cache synchronization.
- *
- *        This ensures that all instructions preceding this instruction have completed before this instruction completes.
- *
- * \return none
- */
-void ICSync();
-
 
 /*!
  * \fn void ICFlashInvalidate()
@@ -263,19 +250,6 @@ void ICUnfreeze();
 
 
 /*!
- * \fn void ICBlockInvalidate(void *startaddress)
- * \brief Invalidates a block in the i-cache.
- *
- *        If the block hits in the i-cache, the corresponding block will be invalidated.
- *
- * \param[in] startaddress pointer to the startaddress of the memory block to invalidate. <b><i>NOTE:</i></b> Has to be aligned on a 32byte boundery
- *
- *\return none
- */
-void ICBlockInvalidate(void *startaddress);
-
-
-/*!
  * \fn void ICInvalidateRange(void *startaddress,u32 len)
  * \brief Invalidate a range in the L1 i-cache.
  *
@@ -288,37 +262,6 @@ void ICBlockInvalidate(void *startaddress);
  */
 void ICInvalidateRange(void *startaddress,u32 len);
 
-/*!
- * \fn void L2Enhance()
- * \brief Turn on extra L2 cache features
- *
- *        Sets the following bits in the HID4 register which affect the L2 cache:
- *          - L2FM=01 (64-byte fetch mode)
- *          - BCO=1 (dual 64-byte castout buffers)
- *          - L2MUM=1 (configured as 2-deep miss-under-miss cache)
- *        Since these features can't be enabled safely, any HID4 writes in the HBC stub will be removed.
- *
- * \return none
- */
-#ifdef HW_RVL
-void L2Enhance();
-#endif
-
-void LCEnable();
-void LCDisable();
-void LCLoadBlocks(void *,void *,u32);
-void LCStoreBlocks(void *,void *,u32);
-u32 LCLoadData(void *,void *,u32);
-u32 LCStoreData(void *,void *,u32);
-u32 LCQueueLength();
-u32 LCQueueWait(u32);
-void LCFlushQueue();
-void LCAlloc(void *,u32);
-void LCAllocNoInvalidate(void *,u32);
-void LCAllocOneTag(BOOL,void *);
-void LCAllocTags(BOOL,void *,u32);
-
-#define LCGetBase()		((void*)LC_BASE)
 #ifdef __cplusplus
    }
 #endif /* __cplusplus */

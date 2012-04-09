@@ -103,6 +103,7 @@ GXRModeObj TVNtsc240Ds =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -137,6 +138,7 @@ GXRModeObj TVNtsc240DsAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -171,6 +173,7 @@ GXRModeObj TVNtsc240Int =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_TRUE,         // field_rendering
     GX_FALSE,        // aa
 
@@ -205,6 +208,7 @@ GXRModeObj TVNtsc240IntAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_TRUE,         // field_rendering
     GX_TRUE,         // aa
 
@@ -239,6 +243,7 @@ GXRModeObj TVNtsc480Int =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -273,6 +278,7 @@ GXRModeObj TVNtsc480IntDf =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -307,6 +313,7 @@ GXRModeObj TVNtsc480IntAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -342,6 +349,7 @@ GXRModeObj TVNtsc480Prog =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -376,6 +384,7 @@ GXRModeObj TVNtsc480ProgSoft =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -410,6 +419,7 @@ GXRModeObj TVNtsc480ProgAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,        // aa
 
@@ -444,6 +454,7 @@ GXRModeObj TVMpal240Ds =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -478,6 +489,7 @@ GXRModeObj TVMpal240DsAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -512,6 +524,7 @@ GXRModeObj TVMpal480IntDf =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -546,6 +559,7 @@ GXRModeObj TVMpal480IntAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -580,6 +594,7 @@ GXRModeObj TVMpal480Prog =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -614,6 +629,7 @@ GXRModeObj TVPal264Ds =
     640,             // viWidth
     528,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -648,6 +664,7 @@ GXRModeObj TVPal264DsAa =
     640,             // viWidth
     528,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -682,6 +699,7 @@ GXRModeObj TVPal264Int =
     640,             // viWidth
     528,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
     GX_TRUE,         // field_rendering
     GX_FALSE,        // aa
 
@@ -716,6 +734,7 @@ GXRModeObj TVPal264IntAa =
     640,             // viWidth
     528,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
     GX_TRUE,         // field_rendering
     GX_TRUE,         // aa
 
@@ -750,6 +769,7 @@ GXRModeObj TVPal524IntAa =
 	640,
 	524,
 	VI_XFBMODE_DF,
+    VI_FIELD_BELOW,
 	GX_FALSE,
 	GX_TRUE,
 
@@ -784,6 +804,7 @@ GXRModeObj TVPal528Int =
     640,             // viWidth
     528,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -818,6 +839,7 @@ GXRModeObj TVPal528IntDf =
     640,             // viWidth
     528,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -851,6 +873,7 @@ GXRModeObj TVPal576IntDfScale =
     640,             // viWidth
     576,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -884,6 +907,7 @@ GXRModeObj TVPal576ProgScale =
     640,             // viWidth
     576,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -917,6 +941,7 @@ GXRModeObj TVEurgb60Hz240Ds =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -950,6 +975,7 @@ GXRModeObj TVEurgb60Hz240DsAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,        // aa
 
@@ -983,6 +1009,7 @@ GXRModeObj TVEurgb60Hz240Int =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_TRUE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1016,6 +1043,7 @@ GXRModeObj TVEurgb60Hz240IntAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_TRUE,        // field_rendering
     GX_TRUE,        // aa
 
@@ -1049,6 +1077,7 @@ GXRModeObj TVEurgb60Hz480Int =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1082,6 +1111,7 @@ GXRModeObj TVEurgb60Hz480IntDf =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1115,6 +1145,7 @@ GXRModeObj TVEurgb60Hz480IntAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -1148,6 +1179,7 @@ GXRModeObj TVEurgb60Hz480Prog =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1181,6 +1213,7 @@ GXRModeObj TVEurgb60Hz480ProgSoft =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1214,6 +1247,7 @@ GXRModeObj TVEurgb60Hz480ProgAa =
     640,             // viWidth
     480,             // viHeight
     VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
     GX_FALSE,        // field_rendering
     GX_TRUE,        // aa
 
@@ -1362,6 +1396,7 @@ static vu16* const _viReg = (u16*)0xCC002000;
 extern syssram* __SYS_LockSram();
 extern u32 __SYS_UnlockSram(u32 write);
 
+extern void __exception_setstride(int w, int l);
 extern void __VIClearFramebuffer(void*,u32,u32);
 
 extern void udelay(int us);
@@ -1434,19 +1469,6 @@ static void printDebugCalculations()
 	}
 }
 #endif
-
-static __inline__ u32 cntlzd(u64 bit)
-{
-	u32 hi,lo,value = 0;
-
-	hi = (u32)(bit>>32);
-	lo = (u32)(bit&-1);
-
-	value = cntlzw(hi);
-	if(value>=32) value += cntlzw(lo);
-
-	return value;
-}
 
 static const struct _timing* __gettiming(u32 vimode)
 {
@@ -1969,6 +1991,11 @@ static void __VIWriteI2CRegisterBuf(u8 reg, int size, u8 *data)
 	udelay(2);
 }
 
+static void __VISetVolume(u8 left, u8 right)
+{
+	__VIWriteI2CRegister16(0x71, (left<<8)|right);
+}
+
 static void __VISetYUVSEL(u8 dtvstatus)
 {
 	if(currTvMode==VI_NTSC) vdacFlagRegion = 0x0000;
@@ -1982,6 +2009,11 @@ static void __VISetYUVSEL(u8 dtvstatus)
 static void __VISetFilterEURGB60(u8 enable)
 {
 	__VIWriteI2CRegister8(0x6e, enable);
+}
+
+static void __VISetTrapFilter(u8 enable)
+{
+	__VIWriteI2CRegister8(0x03, enable);
 }
 
 static void __VISetupEncoder(void)
@@ -2010,7 +2042,7 @@ static void __VISetupEncoder(void)
 	__VIWriteI2CRegister8(0x65, 1);
 	__VISetYUVSEL(dtv);
 	__VIWriteI2CRegister8(0x00, 0);
-	__VIWriteI2CRegister16(0x71, 0x8e8e);
+	__VISetVolume(0x8e, 0x8e);
 	__VIWriteI2CRegister8(0x02, 7);
 	__VIWriteI2CRegister16(0x05, 0x0000);
 	__VIWriteI2CRegister16(0x08, 0x0000);
@@ -2022,7 +2054,7 @@ static void __VISetupEncoder(void)
 	// Sometimes 1 in RGB mode? (reg 1 == 3)
 	__VIWriteI2CRegister8(0x0A, 0);
 
-	__VIWriteI2CRegister8(0x03, 1);
+	__VISetTrapFilter(1);
 
 	__VIWriteI2CRegisterBuf(0x10, sizeof(gamma), gamma);
 
@@ -2415,6 +2447,7 @@ void VIDEO_Configure(GXRModeObj *rmode)
 #ifdef _VIDEO_DEBUG
 	printDebugCalculations();
 #endif
+	__exception_setstride(rmode->fbWidth, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
 	_CPU_ISR_Restore(level);
 }
 
@@ -2525,6 +2558,17 @@ u32 VIDEO_GetNextField()
 	_CPU_ISR_Restore(level);
 
 	return nextfield^(HorVer.adjustedDispPosY&0x0001);	//if the YOrigin is at an odd position we've to swap it again, since the Fb registers are set swapped if this rule applies
+}
+
+u32 VIDEO_GetCurrentField()
+{
+	u32 level,currfield;
+
+	_CPU_ISR_Disable(level);
+	currfield = __getCurrentFieldEvenOdd();
+	_CPU_ISR_Restore(level);
+
+	return currfield^(HorVer.adjustedDispPosY&0x0001);
 }
 
 u32 VIDEO_GetCurrentTvMode()
@@ -2670,10 +2714,7 @@ u32 VIDEO_GetFrameBufferSize(GXRModeObj *rmode) {
 	u16 w, h;
 
 	w = VIDEO_PadFramebufferWidth(rmode->fbWidth);
-	h = rmode->xfbHeight;
-
-	if (rmode->aa)
-		h += 4;
+	h = rmode->xfbHeight + 4;
 
 	return w * h * VI_DISPLAY_PIX_SZ;
 }
@@ -2687,3 +2728,10 @@ u32 VIDEO_HaveComponentCable(void)
 {
 	return (_viReg[55]&0x01);
 }
+
+#if defined(HW_RVL)
+void VIDEO_SetTrapFilter(bool filter)
+{
+	__VISetTrapFilter(!filter);
+}
+#endif

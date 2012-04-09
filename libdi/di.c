@@ -49,7 +49,6 @@ distribution.
 #define MOUNT_TIMEOUT		15000 // 15 seconds
 
 int di_fd = -1;
-static bool load_dvdx = false;
 static bool use_dvd_cache = true;
 static int have_ahbprot = 0;
 static int state = DVD_INIT | DVD_NO_DISC;
@@ -249,7 +248,7 @@ Initialize the DI interface, should always be called first!
 */
 
 u32 __di_check_ahbprot(void) {
-	return ((*(vu32*)0xcd800064 == 0xFFFFFFFF) ? 1 : 0);
+	return ((*(vu32*)0xCD800064 == 0xFFFFFFFF) ? 1 : 0);
 }
 
 int DI_Init() {
@@ -258,9 +257,6 @@ int DI_Init() {
 
 	state = DVD_INIT | DVD_NO_DISC;
 	have_ahbprot = __di_check_ahbprot();
-
-	if(have_ahbprot == 0)
-		return 0;
 
 	if (di_fd < 0)
 		di_fd = IOS_Open(di_path, 2);
@@ -275,10 +271,6 @@ int DI_Init() {
 		CreateDVDCache();
 
 	return 0;
-}
-
-void DI_LoadDVDX(bool load) {
-	load_dvdx = load;
 }
 
 void DI_UseCache(bool use) {
@@ -617,7 +609,7 @@ int DI_ReadDVDCopyright(uint32_t* copyright){
 	return (ret == 1)? 0 : -ret;
 }
 
-int DI_Read_BCA(void *outbuf)
+int DI_ReadBCA(void *outbuf)
 {
 	if(di_fd < 0)
 		return -ENXIO;
@@ -625,6 +617,8 @@ int DI_Read_BCA(void *outbuf)
 	if(!outbuf)
 		return -EINVAL;
 
+	LWP_MutexLock(bufferMutex);
+	
 	memset(dic, 0, sizeof(dic));
 	dic[0] = DVD_READ_BCA << 24;
 

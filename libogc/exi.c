@@ -34,7 +34,7 @@ distribution.
 #include "asm.h"
 #include "irq.h"
 #include "processor.h"
-#include "spinlock.h"
+#include "lwp_threads.h"
 #include "exi.h"
 
 //#define _EXI_DEBUG

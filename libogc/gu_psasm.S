@@ -37,16 +37,17 @@
 #define W2_XY		fr12
 #define W2_Z		fr13
 
+	.section	.text.ps_guMtxConcat,"ax",@progbits
 	.globl	ps_guMtxConcat
 	//r3 = mtxA, r4 = mtxB, r5 = mtxAB
 ps_guMtxConcat:
-	stwu		r1,-64(r1)
+	stwu		sp,-32(sp)
 	psq_l		A00_A01,0(r3),0,0
-	stfd		fr14,8(r1)
+	stfd		fr14,8(sp)
 	psq_l		B00_B01,0(r4),0,0
 	psq_l		B02_B03,8(r4),0,0
-	stfd		fr15,16(r1)
-	stfd		fr31,40(r1)
+	stfd		fr15,16(sp)
+	stfd		fr31,24(sp)
 	psq_l		B10_B11,16(r4),0,0
 	ps_muls0	D00_D01,B00_B01,A00_A01
 	psq_l		A10_A11,16(r3),0,0
@@ -79,18 +80,19 @@ ps_guMtxConcat:
 	ps_madds1	D20_D21,B10_B11,A20_A21,D20_D21
 	ps_madds1	D22_D23,B12_B13,A20_A21,D22_D23
 	ps_madds0	D20_D21,B20_B21,A22_A23,D20_D21
-	lfd		fr14,8(r1)
+	lfd		fr14,8(sp)
 	psq_st		D12_D13,24(r5),0,0
 	ps_madds0	D22_D23,B22_B23,A22_A23,D22_D23
 	psq_st		D20_D21,32(r5),0,0
 	ps_madds1	D22_D23,UNIT01,A22_A23,D22_D23
-	lfd		fr15,16(r1)
+	lfd		fr15,16(sp)
 	psq_st		D22_D23,40(r5),0,0
-	lfd		fr31,40(r1)
-	addi		r1,r1,64
+	lfd		fr31,24(sp)
+	addi		sp,sp,32
 	blr
 
-	.globl ps_guMtxIdentity
+	.section	.text.ps_guMtxIdentity,"ax",@progbits
+	.globl	ps_guMtxIdentity
 	//r3 == mtx
 ps_guMtxIdentity:
 	lfs		fr0,Unit01@sdarel(r13)
@@ -105,7 +107,8 @@ ps_guMtxIdentity:
 	psq_st		fr3,40(r3),0,0
 	blr
 
-	.globl ps_guMtxCopy
+	.section	.text.ps_guMtxCopy,"ax",@progbits
+	.globl	ps_guMtxCopy
 	//r3 = src, r4 = dst
 ps_guMtxCopy:
 	psq_l		fr0,0(r3),0,0
@@ -122,7 +125,8 @@ ps_guMtxCopy:
 	psq_st		fr5,40(r4),0,0
 	blr
 
-	.globl ps_guMtxTranspose
+	.section	.text.ps_guMtxTranspose,"ax",@progbits
+	.globl	ps_guMtxTranspose
 	//r3 = src, r4 = xpose
 ps_guMtxTranspose:
 	lfs		fr0,Unit01@sdarel(r13)
@@ -146,7 +150,8 @@ ps_guMtxTranspose:
 	stfs		fr3,40(r4)
 	blr
 
-	.globl ps_guMtxInverse
+	.section	.text.ps_guMtxInverse,"ax",@progbits
+	.globl	ps_guMtxInverse
 	//r3 = src, r4 = inv
 ps_guMtxInverse:
 	psq_l		fr0,0(r3),1,0
@@ -213,7 +218,8 @@ ps_guMtxInverse:
 	psq_st		fr7,44(r4),1,0
 	blr
 
-	.globl ps_guMtxInvXpose
+	.section	.text.ps_guMtxInvXpose,"ax",@progbits
+	.globl	ps_guMtxInvXpose
 	//r3 = src, r4 = invx
 ps_guMtxInvXpose:
 	psq_l       fr0, 0(r3), 1, 0
@@ -268,7 +274,8 @@ ps_guMtxInvXpose:
 	psq_st      fr8,   40(r4), 1, 0
 	blr
 
-	.globl ps_guMtxScale
+	.section	.text.ps_guMtxScale,"ax",@progbits
+	.globl	ps_guMtxScale
 	//r3 = mtx,fr1 = xS,fr2 = yS,fr3 = zS
 ps_guMtxScale:
 	lfs		fr0,Unit01@sdarel(r13)
@@ -282,14 +289,12 @@ ps_guMtxScale:
 	stfs		fr0,44(r3)
 	blr
 
-	.globl ps_guMtxScaleApply
+	.section	.text.ps_guMtxScaleApply,"ax",@progbits
+	.globl	ps_guMtxScaleApply
 	//r3 = src,r4 = dst,fr1 = xS,fr2 = yS,fr3 = zS
 ps_guMtxScaleApply:
-	frsp		fr1,fr1
 	psq_l		fr4,0(r3),0,0
-	frsp		fr2,fr2
 	psq_l		fr5,8(r3),0,0
-	frsp		fr3,fr3
 	ps_muls0	fr4,fr4,fr1
 	psq_l		fr6,16(r3),0,0
 	ps_muls0	fr5,fr5,fr1
@@ -308,15 +313,13 @@ ps_guMtxScaleApply:
 	psq_st		fr2,40(r4),0,0
 	blr
 
-	.globl ps_guMtxApplyScale
+	.section	.text.ps_guMtxApplyScale,"ax",@progbits
+	.globl	ps_guMtxApplyScale
 	//r3 = src,r4 = dst,fr1 = xS,fr2 = yS,fr3 = zS
 ps_guMtxApplyScale:
 	lfs		fr6,Unit01+4@sdarel(r13)
-	frsp		fr1,fr1
 	psq_l		fr4,0(r3),0,0
-	frsp		fr2,fr2
 	psq_l		fr5,8(r3),0,0
-	frsp		fr3,fr3
 	ps_merge00	fr10,fr1,fr2
 	ps_merge00	fr11,fr3,fr6
 	ps_mul		fr4,fr4,fr10
@@ -337,7 +340,8 @@ ps_guMtxApplyScale:
 	psq_st		fr2,40(r4),0,0
 	blr
 
-	.globl ps_guMtxTrans
+	.section	.text.ps_guMtxTrans,"ax",@progbits
+	.globl	ps_guMtxTrans
 	//r3 = mtx,fr1 = xT,fr2 = yT,fr3 = zT
 ps_guMtxTrans:
 	lfs		fr4,Unit01@sdarel(r13)
@@ -354,15 +358,13 @@ ps_guMtxTrans:
 	stfs		fr5,0(r3)
 	blr
 
-	.globl ps_guMtxTransApply
+	.section	.text.ps_guMtxTransApply,"ax",@progbits
+	.globl	ps_guMtxTransApply
 	//r3 = src,r4 = dst,fr1 = xT,fr2 = yT,fr3 = zT
 ps_guMtxTransApply:
 	psq_l		fr4,0(r3),0,0
-	frsp		fr1,fr1
 	psq_l		fr5,8(r3),0,0
-	frsp		fr2,fr2
 	psq_l		fr7,24(r3),0,0
-	frsp		fr3,fr3
 	psq_l		fr8,40(r3),0,0
 	ps_sum1		fr5,fr1,fr5,fr5
 	psq_l		fr6,16(r3),0,0
@@ -377,17 +379,15 @@ ps_guMtxTransApply:
 	psq_st		fr8,40(r4),0,0
 	blr
 
-	.globl ps_guMtxApplyTrans
+	.section	.text.ps_guMtxApplyTrans,"ax",@progbits
+	.globl	ps_guMtxApplyTrans
 	//r3 = src,r4 = dst,fr1 = xT,fr2 = yT,fr3 = zT
 ps_guMtxApplyTrans:
 	lfs		fr6,Unit01+4@sdarel(r13)
 	psq_l		fr4,0(r3),0,0
-	frsp		fr1,fr1
 	psq_l		fr5,8(r3),0,0
-	frsp		fr2,fr2
 	ps_merge00	fr10,fr1,fr2
 	psq_l		fr7,24(r3),0,0
-	frsp		fr3,fr3
 	ps_mul		fr1,fr4,fr10
 	ps_merge00	fr11,fr3,fr6
 	psq_l		fr8,40(r3),0,0
@@ -412,12 +412,11 @@ ps_guMtxApplyTrans:
 	psq_st		fr3,44(r4),1,0
 	blr
 
-	.globl ps_guMtxRotTrig
+	.section	.text.ps_guMtxRotTrig,"ax",@progbits
+	.globl	ps_guMtxRotTrig
 	//r3 = mt,r4 = axis,fr1 = sinA,fr2 = cosA
 ps_guMtxRotTrig:
-	frsp		fr1,fr1
 	lfs		fr3,Unit01@sdarel(r13)
-	frsp		fr2,fr2
 	lfs		fr4,Unit01+4@sdarel(r13)
 	ori		r4,r4,0x20
 	ps_neg		fr5,fr1
@@ -464,14 +463,13 @@ ps_guMtxRotTrig:
 3:
 	blr
 
-	.globl __ps_guMtxRotAxisRadInternal
+	.section	.text.__ps_guMtxRotAxisRadInternal,"ax",@progbits
+	.globl	__ps_guMtxRotAxisRadInternal
 	//r3 = mtx, r4 = vec, fr1 = sT, fr2 = cT
 __ps_guMtxRotAxisRadInternal:
-	stwu		r1,-64(r1)
-	frsp		fr2,fr2
+	stwu		sp,-16(sp)
 	psq_l		fr3,0(r4),0,0
-	frsp		fr1,fr1
-	stfd		fr14,8(r1)
+	stfd		fr14,8(sp)
 	lfs		fr11,NrmData+4@sdarel(r13)
 	lfs		fr12,NrmData@sdarel(r13)
 	ps_mul		fr5,fr3,fr3
@@ -512,11 +510,12 @@ __ps_guMtxRotAxisRadInternal:
 	ps_sum0		fr8,fr8,fr14,fr2
 	psq_st		fr7,32(r3),0,0
 	psq_st		fr8,40(r3),0,0
-	lfd			fr14,8(r1)
-	addi		r1,r1,64
+	lfd			fr14,8(sp)
+	addi		sp,sp,16
 	blr
 
-	.globl ps_guMtxReflect
+	.section	.text.ps_guMtxReflect,"ax",@progbits
+	.globl	ps_guMtxReflect
 	//r3 = mtx,r4 = vec1,r5 = vec2
 ps_guMtxReflect:
 	lfs		fr0,Unit01+4@sdarel(r13)
@@ -548,7 +547,8 @@ ps_guMtxReflect:
 	psq_st		fr12,40(r3),0,0
 	blr
 
-	.globl ps_guVecAdd
+	.section	.text.ps_guVecAdd,"ax",@progbits
+	.globl	ps_guVecAdd
 	//r3 = v1,r4 = v2,r5 = dst
 ps_guVecAdd:
 	psq_l		V1_XY,0(r3),0,0
@@ -561,7 +561,8 @@ ps_guVecAdd:
 	psq_st		D1_Z,8(r5),1,0
 	blr
 
-	.globl ps_guVecSub
+	.section	.text.ps_guVecSub,"ax",@progbits
+	.globl	ps_guVecSub
 	//r3 = v1,r4 = v2,r5 = dst
 ps_guVecSub:
 	psq_l		V1_XY,0(r3),0,0
@@ -574,7 +575,8 @@ ps_guVecSub:
 	psq_st		D1_Z,8(r5),1,0
 	blr
 
-	.globl ps_guVecScale
+	.section	.text.ps_guVecScale,"ax",@progbits
+	.globl	ps_guVecScale
 	//r3 = src,r4 = dst,fr1 = S
 ps_guVecScale:
 	psq_l		fr2,0(r3),0,0
@@ -585,6 +587,7 @@ ps_guVecScale:
 	psq_st		fr4,8(r4),1,0	
 	blr
 
+	.section	.text.ps_guVecNormalize,"ax",@progbits
 	.globl	ps_guVecNormalize
 	//r3 = v
 ps_guVecNormalize:
@@ -606,7 +609,8 @@ ps_guVecNormalize:
 	psq_st		fr3,8(r3),1,0
 	blr
 
-	.globl ps_guVecCross
+	.section	.text.ps_guVecCross,"ax",@progbits
+	.globl	ps_guVecCross
 	//r3 = v1,r4 = v2,r5 = v12
 ps_guVecCross:
 	psq_l		fr1,0(r4),0,0
@@ -625,7 +629,8 @@ ps_guVecCross:
 	psq_st		fr10,4(r5),0,0	
 	blr
 
-	.globl ps_guVecDotProduct
+	.section	.text.ps_guVecDotProduct,"ax",@progbits
+	.globl	ps_guVecDotProduct
 	//r3 = vec1,r4 = vec2
 ps_guVecDotProduct:
 	psq_l		fr2,4(r3),0,0
@@ -637,7 +642,8 @@ ps_guVecDotProduct:
 	ps_sum0		fr1,fr3,fr2,fr2
 	blr
 
-	.globl ps_guVecMultiply
+	.section	.text.ps_guVecMultiply,"ax",@progbits
+	.globl	ps_guVecMultiply
 ps_guVecMultiply:
 	psq_l		fr0,0(r4),0,0
 	psq_l		fr2,0(r3),0,0
@@ -661,7 +667,8 @@ ps_guVecMultiply:
 	psq_st		fr6,8(r5),1,0
 	blr
 
-	.globl ps_guVecMultiplySR
+	.section	.text.ps_guVecMultiplySR,"ax",@progbits
+	.globl	ps_guVecMultiplySR
 	// r3 = mt, r4 = src, r5 = dst
 ps_guVecMultiplySR:
     psq_l		fr0,0(r3),0,0    // m[0][0], m[0][1] GQR0 = 0
@@ -687,10 +694,11 @@ ps_guVecMultiplySR:
     ps_madd		fr11,fr3,fr7,fr10
     psq_st		fr11,4(r5),1,0      // store Y  
     ps_madd		fr13,fr5,fr7,fr12
-    psq_st		fr13,8(r5),1,0      //  sore Z
+    psq_st		fr13,8(r5),1,0      // store Z
 	blr
 
-	.globl ps_quQuatScale
+	.section	.text.ps_quQuatScale,"ax",@progbits
+	.globl	ps_quQuatScale
 	//r3 = q,r4 = r, fr1 = scale
 ps_guQuatScale:
 	psq_l		fr4,0(r3),0,0
@@ -701,7 +709,8 @@ ps_guQuatScale:
 	psq_st		fr5,8(r4),0,0
 	blr
 
-	.globl ps_guQuatDotProduct
+	.section	.text.ps_guQuatDotProduct,"ax",@progbits
+	.globl	ps_guQuatDotProduct
 	//r3 = p, r4 = q ; fr1 = res
 ps_guQuatDotProduct:
 	psq_l		fr2,0(r3),0,0
@@ -713,10 +722,8 @@ ps_guQuatDotProduct:
 	ps_sum0		fr1,fr1,fr1,fr1
 	blr
 
-	.section .sdata
-	.balign 4
-QuatEpsilon:
-	.float	0.00001
+	.section	.sdata,"aw",@progbits
+	.balign	4
 Unit01:
 	.float	0.0, 1.0
 NrmData:

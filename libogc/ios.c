@@ -186,8 +186,7 @@ s32 IOS_GetVersion()
 {
 	u32 vercode;
 	u16 version;
-	DCInvalidateRange((void*)0x80003140,8);
-	vercode = *((u32*)0x80003140);
+	vercode = read32(0x80003140);
 	version = vercode >> 16;
 	if(version == 0) return IOS_EBADVERSION;
 	if(version > 0xff) return IOS_EBADVERSION;
@@ -198,8 +197,7 @@ s32 IOS_GetRevision()
 {
 	u32 vercode;
 	u16 rev;
-	DCInvalidateRange((void*)0x80003140,8);
-	vercode = *((u32*)0x80003140);
+	vercode = read32(0x80003140);
 	rev = vercode & 0xFFFF;
 	if(vercode == 0 || rev == 0) return IOS_EBADVERSION;
 	return rev;
@@ -324,32 +322,6 @@ s32 __IOS_LaunchNewIOS(int version)
 	}
 
 	return version;
-}
-
-s32 __attribute__((weak)) __IOS_LoadStartupIOS()
-{
-#if 0
-	int version;
-	int res;
-
-	res = __ES_Init();
-	if(res < 0) return res;
-	version = IOS_GetPreferredVersion();
-	if(version < 0) {
-#ifdef DEBUG_IOS
-		printf("GetPreferredVersion failed: %d\n",version);
-#endif
-		__ES_Close();
-		return version;
-	}
-#ifdef DEBUG_IOS
-	printf("Loading startup IOS: %d\n",version);
-#endif
-	res = __IOS_LaunchNewIOS(version);
-	if(res < 0) return res;
-#endif
-
-	return 0;
 }
 
 s32 IOS_ReloadIOS(int version)

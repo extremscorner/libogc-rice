@@ -1,6 +1,8 @@
 #ifndef __EXCONTEXT_H__
 #define __EXCONTEXT_H__
 
+#include <gctypes.h>
+
 #define NUM_EXCEPTIONS		15
 
 #define EX_SYS_RESET		 0
@@ -19,23 +21,16 @@
 #define EX_RESV				13
 #define EX_THERM			14
 
-#ifndef _LANGUAGE_ASSEMBLY
-
-#include <gctypes.h>
-
 #ifdef __cplusplus
    extern "C" {
 #endif /* __cplusplus */
 
 typedef struct _excption_frame {
+	u32 SP, LRSAVE;
 	u32 EXCPT_Number;
-	u32 SRR0,SRR1;
+	u32 SRR0, SRR1;
 	u32 GPR[32];
-	u32 GQR[8];
-	u32 CR, LR, CTR, XER, MSR, DAR;
-
-	u16	state;		//used to determine whether to restore the fpu context or not
-	u16 mode;		//unused
+	u32 CR, LR, CTR, XER, MSR;
 
 	f64 FPR[32];
 	u64	FPSCR;
@@ -45,7 +40,5 @@ typedef struct _excption_frame {
 #ifdef __cplusplus
    }
 #endif /* __cplusplus */
-
-#endif		//!_LANGUAGE_ASSEMBLY
 
 #endif

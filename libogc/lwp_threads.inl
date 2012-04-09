@@ -1,6 +1,13 @@
 #ifndef __LWP_INL__
 #define __LWP_INL__
 
+static __inline__ u32 __lwp_isr_in_progress()
+{
+	register u32 isr_nest_level;
+	isr_nest_level = mfspr(SPRG0);
+	return isr_nest_level;
+}
+
 static __inline__ u32 __lwp_thread_isexec(lwp_cntrl *thethread)
 {
 	return (thethread==_thr_executing);
@@ -67,7 +74,6 @@ static __inline__ void __lwp_thread_setlibcreent(void **libc_reent)
 
 static __inline__ bool __lwp_thread_isswitchwant()
 {
-
 	return _context_switch_want;
 }
 

@@ -84,8 +84,7 @@ INCLUDES	:=	$(DEFINCS) -I$(BASEDIR)/gc/netif -I$(BASEDIR)/gc/ipv4 \
 				-I$(BASEDIR)/gc/sdcard -I$(BASEDIR)/gc/wiiuse \
 				-I$(BASEDIR)/gc/di
 
-MACHDEP		:= -DBIGENDIAN -DGEKKO -mcpu=750 -meabi -msdata=eabi -mhard-float -fmodulo-sched -ffunction-sections -fdata-sections
-
+MACHDEP		:= -DBIGENDIAN -DGEKKO
 
 ifeq ($(PLATFORM),wii)
 MACHDEP		+=	-DHW_RVL
@@ -95,8 +94,8 @@ ifeq ($(PLATFORM),cube)
 MACHDEP		+=	-DHW_DOL
 endif
 
-CFLAGS		:= -DLIBOGC_INTERNAL -g -Os -mregnames -Wall $(MACHDEP)  -fno-strict-aliasing $(INCLUDES)
-ASFLAGS		:=	$(MACHDEP) -mregnames -D_LANGUAGE_ASSEMBLY $(INCLUDES)
+CFLAGS		:= -DLIBOGC_INTERNAL -g -Os -Wall $(MACHDEP) -fno-signed-zeros -fno-strict-aliasing $(INCLUDES)
+ASFLAGS		:=	$(MACHDEP) -D_LANGUAGE_ASSEMBLY $(INCLUDES)
 
 #---------------------------------------------------------------------------------
 VPATH :=	$(LWIPDIR)				\
@@ -124,7 +123,7 @@ VPATH :=	$(LWIPDIR)				\
 
 
 #---------------------------------------------------------------------------------
-LWIPOBJ		:=	network.o netio.o gcif.o	\
+LWIPOBJ		:=	network.o gcif.o			\
 			inet.o mem.o dhcp.o raw.o		\
 			memp.o netif.o pbuf.o stats.o	\
 			sys.o tcp.o tcp_in.o tcp_out.o	\
@@ -133,15 +132,14 @@ LWIPOBJ		:=	network.o netio.o gcif.o	\
 
 #---------------------------------------------------------------------------------
 OGCOBJ		:=	\
-			console.o  lwp_priority.o lwp_queue.o lwp_threadq.o lwp_threads.o lwp_sema.o	\
-			lwp_messages.o lwp.o lwp_handler.o lwp_stack.o lwp_mutex.o 	\
+			ogc_crt0.o system_asm.o system.o cache_asm.o console.o \
+			lwp_priority.o lwp_queue.o lwp_threadq.o lwp_threads.o lwp_sema.o \
+			lwp_messages.o lwp.o lwp_handler.o lwp_stack.o lwp_mutex.o \
 			lwp_watchdog.o lwp_wkspace.o lwp_objmgr.o lwp_heap.o sys_state.o \
-			exception_handler.o exception.o irq.o irq_handler.o semaphore.o \
-			video_asm.o video.o pad.o dvd.o exi.o mutex.o arqueue.o	arqmgr.o	\
-			cache_asm.o system.o system_asm.o cond.o			\
-			gx.o gu.o gu_psasm.o audio.o cache.o decrementer.o			\
-			message.o card.o aram.o depackrnc.o decrementer_handler.o	\
-			depackrnc1.o dsp.o si.o tpl.o ipc.o ogc_crt0.o \
+			exception.o exception_handler.o irq.o irq_handler.o semaphore.o \
+			video_asm.o video.o pad.o dvd.o exi.o mutex.o arqueue.o arqmgr.o \
+			cond.o gx.o gu.o gu_psasm.o audio.o decrementer.o decrementer_handler.o \
+			message.o card.o aram.o depackrnc.o depackrnc1.o dsp.o si.o tpl.o ipc.o \
 			console_font_8x16.o timesupp.o lock_supp.o newlibc.o usbgecko.o usbmouse.o \
 			sbrk.o malloc_lock.o kprintf.o stm.o ios.o es.o isfs.o usb.o network_common.o \
 			sdgecko_io.o sdgecko_buf.o gcsd.o argv.o network_wii.o wiisd.o conf.o usbstorage.o \

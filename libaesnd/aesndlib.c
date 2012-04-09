@@ -424,7 +424,7 @@ void AESND_Init()
 	ARQ_Init();
 #endif
 	DSP_Init();
-	AUDIO_Init(NULL);
+	AUDIO_Init();
 	AUDIO_StopDMA();
 	AUDIO_SetDSPSampleRate(AI_SAMPLERATE_48KHZ);
 

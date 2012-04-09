@@ -11,8 +11,9 @@
 													type *name = (type*)(((u32)(_al__##name)) + ((alignment) - (((u32)(_al__##name))&((alignment)-1))))
 
 #define _sync() asm volatile("sync")
+#define _isync() asm volatile("isync")
 #define _nop() asm volatile("nop")
-#define ppcsync() asm volatile("sc")
+#define ppcsync() _isync(); _sync()
 #define ppchalt() ({					\
 	asm volatile("sync");				\
 	while(1) {							\
@@ -89,8 +90,12 @@
 #define __stwbrx(base,index,value)	\
 	__asm__ volatile ("stwbrx	%0,%1,%2" : : "r"(value), "b%"(index), "r"(base) : "memory")
 
-#define cntlzw(_val) ({register u32 _rval; \
-					  asm volatile("cntlzw %0, %1" : "=r"((_rval)) : "r"((_val))); _rval;})
+#define bswap16(_val)	__builtin_bswap16(_val)
+#define bswap32(_val)	__builtin_bswap32(_val)
+#define bswap64(_val)	__builtin_bswap64(_val)
+
+#define cntlzw(_val)	__builtin_clz(_val)
+#define cntlzd(_val)	__builtin_clzll(_val)
 
 #define _CPU_MSR_GET( _msr_value ) \
   do { \
@@ -169,32 +174,6 @@
 #ifdef __cplusplus
    extern "C" {
 #endif /* __cplusplus */
-
-static inline u16 bswap16(u16 val)
-{
-	u16 tmp = val;
-	return __lhbrx(&tmp,0);
-}
-
-static inline u32 bswap32(u32 val)
-{
-	u32 tmp = val;
-	return __lwbrx(&tmp,0);
-}
-
-static inline u64 bswap64(u64 val)
-{
-	union ullc {
-		u64 ull;
-		u32 ul[2];
-	} outv;
-	u64 tmp = val;
-
-	outv.ul[0] = __lwbrx(&tmp,4);
-	outv.ul[1] = __lwbrx(&tmp,0);
-
-	return outv.ull;
-}
 
 // Basic I/O
 

@@ -103,8 +103,6 @@ static t_sound_data sound_data_dma ATTRIBUTE_ALIGN(32);
 static s16 mute_buf[SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
 static s16 audio_buf[2][SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
 
-extern u32 gettick();
-
 static __inline__ char* snd_set0b( char *p, int n)
 {
 	while(n>0) {*p++=0;n--;}
@@ -353,7 +351,7 @@ void ASND_Init()
 	u32 i,level;
 
 	DSP_Init();
-	AUDIO_Init(NULL);
+	AUDIO_Init();
 	AUDIO_StopDMA(); // in case audio was previously inited and a DMA callback set
 	AUDIO_SetDSPSampleRate(AI_SAMPLERATE_48KHZ);
 

@@ -46,6 +46,7 @@ distribution.
 #include "conf.h"
 #include "wiilaunch.h"
 #endif
+#include "color.h"
 #include "cache.h"
 #include "video.h"
 #include "system.h"
@@ -58,10 +59,6 @@ distribution.
 #include "lwp_config.h"
 #include "libversion.h"
 
-#define SYSMEM1_SIZE				0x01800000
-#if defined(HW_RVL)
-#define SYSMEM2_SIZE				0x04000000
-#endif
 #define KERNEL_HEAP					(1*1024*1024)
 
 // DSPCR bits
@@ -123,7 +120,6 @@ static u8 *sys_fontimage = NULL;
 static sys_fontheader *sys_fontdata = NULL;
 
 static lwp_queue sys_reset_func_queue;
-static u32 system_initialized = 0;
 static lwp_objinfo sys_alarm_objects;
 
 static void *__sysarena1lo = NULL;
@@ -132,8 +128,6 @@ static void *__sysarena1hi = NULL;
 #if defined(HW_RVL)
 static void *__sysarena2lo = NULL;
 static void *__sysarena2hi = NULL;
-static void *__ipcbufferlo = NULL;
-static void *__ipcbufferhi = NULL;
 #endif
 
 static void __RSWDefaultHandler();
@@ -141,8 +135,6 @@ static resetcallback __RSWCallback = NULL;
 #if defined(HW_RVL)
 static void __POWDefaultHandler();
 static powercallback __POWCallback = NULL;
-
-static u32 __sys_resetdown = 0;
 #endif
 
 static vu16* const _viReg = (u16*)0xCC002000;
@@ -151,7 +143,6 @@ static vu16* const _memReg = (u16*)0xCC004000;
 static vu16* const _dspReg = (u16*)0xCC005000;
 
 void __SYS_ReadROM(void *buf,u32 len,u32 offset);
-void* SYS_AllocArena1MemLo(u32 size,u32 align);
 
 static s32 __sram_sync(void);
 static s32 __sram_writecallback(s32 chn,s32 dev);
@@ -162,8 +153,6 @@ extern void	__lwp_sysinit(void);
 extern void __heap_init(void);
 extern void __exception_init(void);
 extern void __exception_closeall(void);
-extern void __systemcall_init(void);
-extern void __decrementer_init(void);
 extern void __lwp_mutex_init(void);
 extern void __lwp_cond_init(void);
 extern void __lwp_mqbox_init(void);
@@ -179,24 +168,8 @@ extern void __libc_init(int);
 extern void __libogc_malloc_lock( struct _reent *ptr );
 extern void __libogc_malloc_unlock( struct _reent *ptr );
 
-extern void __exception_console(void);
-extern void __exception_printf(const char *str, ...);
-
-extern void __realmode(void*);
-extern void __configMEM1_24Mb(void);
-extern void __configMEM1_48Mb(void);
-extern void __configMEM2_64Mb(void);
-extern void __configMEM2_128Mb(void);
-extern void __reset(u32 reset_code);
-
 extern u32 __IPC_ClntInit(void);
-extern u32 __PADDisableRecalibration(s32 disable);
-
-extern void __console_init_ex(void *conbuffer,int tgt_xstart,int tgt_ystart,int tgt_stride,int con_xres,int con_yres,int con_stride);
-
-extern int clock_gettime(struct timespec *tp);
-extern void timespec_subtract(const struct timespec *tp_start,const struct timespec *tp_end,struct timespec *result);
-
+extern void __VIClearFramebuffer(void*,u32,u32);
 
 extern int __libogc_lock_init(int *lock,int recursive);
 extern int __libogc_lock_close(int *lock);
@@ -206,18 +179,12 @@ extern void __libogc_exit(int status);
 extern void * __libogc_sbrk_r(struct _reent *ptr, ptrdiff_t incr);
 extern int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz);
 
-extern u8 __gxregs[];
-extern u8 __text_start[];
-extern u8 __isIPL[];
 extern u8 __Arena1Lo[], __Arena1Hi[];
 #if defined(HW_RVL)
 extern u8 __Arena2Lo[], __Arena2Hi[];
-extern u8 __ipcbufferLo[], __ipcbufferHi[];
 #endif
 
 u8 *__argvArena1Lo = (u8*)0xdeadbeef;
-
-static u32 __sys_inIPL = (u32)__isIPL;
 
 static u32 _dsp_initcode[] =
 {
@@ -237,9 +204,6 @@ static sys_resetinfo mem_resetinfo = {
 	127
 };
 
-static const char *__sys_versiondate;
-static const char *__sys_versionbuild;
-
 static __inline__ alarm_st* __lwp_syswd_open(syswd_t wd)
 {
 	LWP_CHECK_SYSWD(wd);
@@ -258,7 +222,7 @@ void __reload() { SOFTRESET_ADR=0; }
 
 void __libogc_exit(int status)
 {
-	SYS_ResetSystem(SYS_SHUTDOWN,0,0);
+	SYS_ResetSystem(SYS_SHUTDOWN);
 	__lwp_thread_stopmultitasking(__reload);
 }
 #else
@@ -278,16 +242,16 @@ void __reload()
 		__exception_closeall();
 		reload();
 	}
-	SYS_ResetSystem(SYS_RETURNTOMENU, 0, 0);
+	SYS_ResetSystem(SYS_RETURNTOMENU);
 }
 
 void __libogc_exit(int status)
 {
 	if(__stub_found()) {
-		SYS_ResetSystem(SYS_SHUTDOWN,0,0);
+		SYS_ResetSystem(SYS_SHUTDOWN);
 		__lwp_thread_stopmultitasking(reload);
 	}
-	SYS_ResetSystem(SYS_RETURNTOMENU, 0, 0);
+	SYS_ResetSystem(SYS_RETURNTOMENU);
 }
 
 #endif
@@ -302,7 +266,6 @@ static void __init_syscall_array() {
 	__syscalls.malloc_unlock = __libogc_malloc_unlock;
 	__syscalls.exit = __libogc_exit;
 	__syscalls.gettod_r = __libogc_gettod_r;
-
 }
 
 static alarm_st* __lwp_syswd_allocate()
@@ -344,18 +307,6 @@ static void __sys_alarmhandler(void *arg)
 	__lwp_thread_dispatchunnest();
 }
 
-#if defined(HW_DOL)
-static void __dohotreset(u32 resetcode)
-{
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-	_viReg[1] = 0;
-	ICFlashInvalidate();
-	__reset(resetcode<<3);
-}
-#endif
-
 static s32 __call_resetfuncs(s32 final)
 {
 	s32 ret;
@@ -373,19 +324,6 @@ static s32 __call_resetfuncs(s32 final)
 	if(ret&~0x01) return 0;
 	return 1;
 }
-
-#if defined(HW_DOL)
-static void __doreboot(u32 resetcode,s32 force_menu)
-{
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
-	*((u32*)0x817ffffc) = 0;
-	*((u32*)0x817ffff8) = 0;
-	*((u32*)0x800030e2) = 1;
-}
-#endif
 
 static void __MEMInterruptHandler()
 {
@@ -436,7 +374,6 @@ static void __STMEventHandler(u32 event)
 		ret = SYS_ResetButtonDown();
 		if(ret) {
 			_CPU_ISR_Disable(level);
-			__sys_resetdown = 1;
 			__RSWCallback();
 			_CPU_ISR_Restore(level);
 		}
@@ -455,69 +392,20 @@ void * __attribute__ ((weak)) __myArena1Hi = 0;
 
 static void __lowmem_init()
 {
-	u32 *_gx = (u32*)__gxregs;
-
-#if defined(HW_DOL)
-	void *ram_start = (void*)0x80000000;
-	void *ram_end = (void*)(0x80000000|SYSMEM1_SIZE);
-	void *arena_start = (void*)0x80003000;
-#elif defined(HW_RVL)
-	void *arena_start = (void*)0x80003F00;
-#endif
-
-	memset(_gx,0,2048);
-	memset(arena_start,0,0x100);
 	if ( __argvArena1Lo == (u8*)0xdeadbeef ) __argvArena1Lo = __Arena1Lo;
 	if (__myArena1Lo == 0) __myArena1Lo = __argvArena1Lo;
 	if (__myArena1Hi == 0) __myArena1Hi = __Arena1Hi;
 
-#if defined(HW_DOL)
-	memset(ram_start,0,0x100);
-	*((u32*)(ram_start+0x20))	= 0x0d15ea5e;   // magic word "disease"
-	*((u32*)(ram_start+0x24))	= 1;            // version
-	*((u32*)(ram_start+0x28))	= SYSMEM1_SIZE;	// physical memory size
-	*((u32*)(ram_start+0x2C))	= 1 + ((*(u32*)0xCC00302c)>>28);
-
-	*((u32*)(ram_start+0x30))	= (u32)__myArena1Lo;
-	*((u32*)(ram_start+0x34))	= (u32)__myArena1Hi;
-
-	*((u32*)(ram_start+0xEC))	= (u32)ram_end;	// ram_end (??)
-	*((u32*)(ram_start+0xF0))	= SYSMEM1_SIZE;	// simulated memory size
-	*((u32*)(ram_start+0xF8))	= TB_BUS_CLOCK;	// bus speed: 162 MHz
-	*((u32*)(ram_start+0xFC))	= TB_CORE_CLOCK;	// cpu speed: 486 Mhz
-
-	*((u16*)(arena_start+0xE0))	= 6; // production pads
-	*((u32*)(arena_start+0xE4))	= 0xC0008000;
-
-	DCFlushRangeNoSync(ram_start, 0x100);
-#endif
-
-	DCFlushRangeNoSync(arena_start, 0x100);
-	DCFlushRangeNoSync(_gx, 2048);
-	_sync();
-
-	SYS_SetArenaLo((void*)__myArena1Lo);
-	SYS_SetArenaHi((void*)__myArena1Hi);
+	__sysarena1lo = (void*)__myArena1Lo;
+	__sysarena1hi = (void*)__myArena1Hi;
 #if defined(HW_RVL)
-	SYS_SetArena2Lo((void*)__Arena2Lo);
-	SYS_SetArena2Hi((void*)__Arena2Hi);
+	__sysarena2lo = (void*)__Arena2Lo;
+	__sysarena2hi = (void*)__Arena2Hi;
 #endif
 }
-
-#if defined(HW_RVL)
-static void __ipcbuffer_init()
-{
-	__ipcbufferlo = (void*)__ipcbufferLo;
-	__ipcbufferhi = (void*)__ipcbufferHi;
-}
-#endif
 
 static void __memprotect_init()
 {
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
 	__MaskIrq((IM_MEM0|IM_MEM1|IM_MEM2|IM_MEM3));
 
 	_memReg[16] = 0;
@@ -531,8 +419,6 @@ static void __memprotect_init()
 
 	SYS_RegisterResetFunc(&mem_resetinfo);
 	__UnmaskIrq(IM_MEMADDRESS);		//only enable memaddress irq atm
-
-	_CPU_ISR_Restore(level);
 }
 
 static __inline__ u32 __get_fontsize(void *buffer)
@@ -666,11 +552,6 @@ void __sram_init()
 	sramcntrl.offset = 64;
 }
 
-static void DisableWriteGatherPipe()
-{
-	mtspr(920,(mfspr(920)&~0x40000000));
-}
-
 static void __buildchecksum(u16 *buffer,u16 *c1,u16 *c2)
 {
 	u32 i;
@@ -762,7 +643,6 @@ static void __dsp_bootstrap()
 	u16 status;
 	u32 tick;
 
-	memcpy(SYS_GetArenaHi()-128,(void*)0x81000000,128);
 	memcpy((void*)0x81000000,_dsp_initcode,128);
 	DCFlushRange((void*)0x81000000,128);
 
@@ -805,7 +685,6 @@ static void __dsp_bootstrap()
 	_dspReg[5] |= DSPCR_RES;
 	while(_dspReg[5]&DSPCR_RES);
 
-	memcpy((void*)0x81000000,SYS_GetArenaHi()-128,128);
 #ifdef _SYS_DEBUG
 	printf("__audiosystem_init(finish)\n");
 #endif
@@ -938,45 +817,6 @@ u32 __SYS_GetRTC(u32 *gctime)
 	return 0;
 }
 
-void __SYS_SetTime(s64 time)
-{
-	u32 level;
-	s64 now;
-	s64 *pBootTime = (s64*)0x800030d8;
-
-	_CPU_ISR_Disable(level);
-	now = gettime();
-	now -= time;
-	now += *pBootTime;
-	*pBootTime = now;
-	settime(now);
-	EXI_ProbeReset();
-	_CPU_ISR_Restore(level);
-}
-
-s64 __SYS_GetSystemTime()
-{
-	u32 level;
-	s64 now;
-	s64 *pBootTime = (s64*)0x800030d8;
-
-	_CPU_ISR_Disable(level);
-	now = gettime();
-	now += *pBootTime;
-	_CPU_ISR_Restore(level);
-	return now;
-}
-
-void __SYS_SetBootTime()
-{
-	u32 gctime;
-
-	__SYS_LockSram();
-	__SYS_GetRTC(&gctime);
-	__SYS_SetTime(secs_to_ticks(gctime));
-	__SYS_UnlockSram(0);
-}
-
 u32 __SYS_LoadFont(void *src,void *dest)
 {
 	if(__read_font(src)==0) return 0;
@@ -990,22 +830,6 @@ u32 __SYS_LoadFont(void *src,void *dest)
 	/* TODO: implement SJIS handling */
 	return 1;
 }
-
-#if defined(HW_RVL)
-void* __SYS_GetIPCBufferLo()
-{
-	return __ipcbufferlo;
-}
-
-void* __SYS_GetIPCBufferHi()
-{
-	return __ipcbufferhi;
-}
-
-#endif
-
-void _V_EXPORTNAME(void)
-{ __sys_versionbuild = _V_STRING; __sys_versiondate = _V_DATE_; }
 
 #if defined(HW_RVL)
 void __SYS_DoPowerCB(void)
@@ -1025,34 +849,14 @@ void __SYS_InitCallbacks()
 {
 #if defined(HW_RVL)
 	__POWCallback = __POWDefaultHandler;
-	__sys_resetdown = 0;
 #endif
 	__RSWCallback = __RSWDefaultHandler;
 }
 
-void __attribute__((weak)) __SYS_PreInit()
-{
-
-}
-
 void SYS_Init()
 {
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
-	__SYS_PreInit();
-
-	if(system_initialized) return;
-	system_initialized = 1;
-
-	_V_EXPORTNAME();
-
 	__init_syscall_array();
 	__lowmem_init();
-#if defined(HW_RVL)
-	__ipcbuffer_init();
-#endif
 	__lwp_wkspace_init(KERNEL_HEAP);
 	__lwp_queue_init_empty(&sys_reset_func_queue);
 	__lwp_objmgr_initinfo(&sys_alarm_objects,LWP_MAX_WATCHDOGS,sizeof(alarm_st));
@@ -1060,8 +864,6 @@ void SYS_Init()
 	__lwp_priority_init();
 	__lwp_watchdog_init();
 	__exception_init();
-	__systemcall_init();
-	__decrementer_init();
 	__irq_init();
 	__exi_init();
 	__sram_init();
@@ -1075,14 +877,8 @@ void SYS_Init()
 	__lwp_cond_init();
 	__timesystem_init();
 	__dsp_bootstrap();
+	__memprotect_init();
 
-	if(!__sys_inIPL)
-		__memprotect_init();
-
-#ifdef SDLOADER_FIX
-	__SYS_SetBootTime();
-#endif
-	DisableWriteGatherPipe();
 	__SYS_InitCallbacks();
 #if defined(HW_RVL)
 	__IPC_ClntInit();
@@ -1092,7 +888,6 @@ void SYS_Init()
 #endif
 	__libc_init(1);
 	__lwp_thread_startmultitasking();
-	_CPU_ISR_Restore(level);
 }
 
 // This function gets called inside the main thread, prior to the application's main() function
@@ -1104,7 +899,6 @@ void SYS_PreMain()
 	for (i = 0; i < 32; ++i)
 		IOS_Close(i);
 
-	__IOS_LoadStartupIOS();
 	__IOS_InitializeSubsystems();
 	STM_RegisterEventHandler(__STMEventHandler);
 	CONF_Init();
@@ -1118,64 +912,27 @@ u32 SYS_ResetButtonDown()
 }
 
 #if defined(HW_DOL)
-void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu)
+void SYS_ResetSystem(s32 reset)
 {
-	u32 ret = 0;
-	syssram *sram;
-
 	__dsp_shutdown();
 
-	if(reset==SYS_SHUTDOWN) {
-		ret = __PADDisableRecalibration(TRUE);
-	}
-
 	while(__call_resetfuncs(FALSE)==0);
-
-	if(reset==SYS_HOTRESET && force_menu==TRUE) {
-		sram = __SYS_LockSram();
-		sram->flags |= 0x40;
-		__SYS_UnlockSram(TRUE);
-		while(!__SYS_SyncSram());
-	}
 
 	__exception_closeall();
 	__call_resetfuncs(TRUE);
 
-	LCDisable();
-
 	__lwp_thread_dispatchdisable();
-	if(reset==SYS_HOTRESET) {
-		__dohotreset(reset_code);
-	} else if(reset==SYS_RESTART) {
-		__lwp_thread_closeall();
-		__lwp_thread_dispatchunnest();
-		__doreboot(reset_code,force_menu);
-	}
-
 	__lwp_thread_closeall();
-
-	memset((void*)0x80000040,0,140);
-	memset((void*)0x800000D4,0,20);
-	memset((void*)0x800000F4,0,4);
-	memset((void*)0x80003000,0,192);
-	memset((void*)0x800030C8,0,12);
-	memset((void*)0x800030E2,0,1);
-
-	__PADDisableRecalibration(ret);
 }
 #endif
 
 #if defined(HW_RVL)
 
-void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu)
+void SYS_ResetSystem(s32 reset)
 {
 	u32 ret = 0;
 
 	__dsp_shutdown();
-
-	if(reset==SYS_SHUTDOWN) {
-		ret = __PADDisableRecalibration(TRUE);
-	}
 
 	while(__call_resetfuncs(FALSE)==0);
 
@@ -1205,27 +962,13 @@ void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu)
 			break;
 	}
 
-	//TODO: implement SYS_HOTRESET
-	// either restart failed or this is SYS_SHUTDOWN
-
 	__IOS_ShutdownSubsystems();
 
 	__exception_closeall();
 	__call_resetfuncs(TRUE);
 
-	LCDisable();
-
 	__lwp_thread_dispatchdisable();
 	__lwp_thread_closeall();
-
-	memset((void*)0x80000040,0,140);
-	memset((void*)0x800000D4,0,20);
-	memset((void*)0x800000F4,0,4);
-	memset((void*)0x80003000,0,192);
-	memset((void*)0x800030C8,0,12);
-	memset((void*)0x800030E2,0,1);
-
-	__PADDisableRecalibration(ret);
 }
 #endif
 
@@ -1310,13 +1053,29 @@ u32 SYS_GetArena1Size()
 
 void* SYS_AllocArena1MemLo(u32 size,u32 align)
 {
-	u32 mem1lo;
+	u32 level,mem1lo;
 	void *ptr = NULL;
 
-	mem1lo = (u32)SYS_GetArena1Lo();
+	_CPU_ISR_Disable(level);
+	mem1lo = (u32)__sysarena1lo;
 	ptr = (void*)((mem1lo+(align-1))&~(align-1));
 	mem1lo = ((((u32)ptr+size+align)-1)&~(align-1));
-	SYS_SetArena1Lo((void*)mem1lo);
+	__sysarena1lo = (void*)mem1lo;
+	_CPU_ISR_Restore(level);
+
+	return ptr;
+}
+
+void* SYS_AllocArena1MemHi(u32 size,u32 align)
+{
+	u32 level,mem1hi;
+	void *ptr = NULL;
+
+	_CPU_ISR_Disable(level);
+	mem1hi = (u32)__sysarena1hi;
+	ptr = (void*)((mem1hi-size-(align-1))&~(align-1));
+	__sysarena1hi = ptr;
+	_CPU_ISR_Restore(level);
 
 	return ptr;
 }
@@ -1377,13 +1136,29 @@ u32 SYS_GetArena2Size()
 
 void* SYS_AllocArena2MemLo(u32 size,u32 align)
 {
-	u32 mem2lo;
+	u32 level,mem2lo;
 	void *ptr = NULL;
 
-	mem2lo = (u32)SYS_GetArena2Lo();
+	_CPU_ISR_Disable(level);
+	mem2lo = (u32)__sysarena2lo;
 	ptr = (void*)((mem2lo+(align-1))&~(align-1));
 	mem2lo = ((((u32)ptr+size+align)-1)&~(align-1));
-	SYS_SetArena2Lo((void*)mem2lo);
+	__sysarena2lo = (void*)mem2lo;
+	_CPU_ISR_Restore(level);
+
+	return ptr;
+}
+
+void* SYS_AllocArena2MemHi(u32 size,u32 align)
+{
+	u32 level,mem2hi;
+	void *ptr = NULL;
+
+	_CPU_ISR_Disable(level);
+	mem2hi = (u32)__sysarena2hi;
+	ptr = (void*)((mem2hi-size-(align-1))&~(align-1));
+	__sysarena2hi = ptr;
+	_CPU_ISR_Restore(level);
 
 	return ptr;
 }
@@ -1412,14 +1187,22 @@ void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl)
 		if(cntrl==SYS_PROTECTRDWR)
 			__MaskIrq(IRQMASK(chan));
 
-
 		_CPU_ISR_Restore(level);
 	}
 }
 
 void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
 {
-	return memalign(32, VIDEO_GetFrameBufferSize(rmode));
+	u32 size = VIDEO_GetFrameBufferSize(rmode);
+	void *ptr = memalign(PPC_CACHE_ALIGNMENT,size);
+	
+	if(ptr) {
+		DCInvalidateRange(ptr,size);
+		ptr = MEM_K0_TO_K1(ptr);
+		__VIClearFramebuffer(ptr,size,COLOR_BLACK);
+	}
+	
+	return ptr;
 }
 
 u32 SYS_GetFontEncoding()
@@ -1700,8 +1483,7 @@ u32 SYS_GetWirelessID(u32 chan)
 u32 SYS_GetHollywoodRevision()
 {
 	u32 rev;
-	DCInvalidateRange((void*)0x80003138,8);
-	rev = *((u32*)0x80003138);
+	rev = read32(0x80003138);
 	return rev;
 }
 #endif

@@ -392,7 +392,6 @@ end_check:
 #ifdef _AR_DEBUG
 	printf("__ARCheckSize(%d)\n",arsize);
 #endif
-	*(u32*)0x800000d0 = arsize;
 	__ARSize = arsize;
 }
 

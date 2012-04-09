@@ -58,7 +58,6 @@
 
 #define XY(x, y)   (((y) << 10) | (x))
 
-#define GX_DEFAULT_BG	{64,64,64,255}
 #define BLACK			{0,0,0,0}
 #define WHITE			{255,255,255,255}
 
@@ -121,7 +120,7 @@ static u32 _gxtexregionaddrtable[48] =
 #endif
 
 
-extern u8 __gxregs[];
+static u8 __gxregs[STRUCT_REGDEF_SIZE] ATTRIBUTE_ALIGN(32);
 static struct __gx_regdef *__gx = (struct __gx_regdef*)__gxregs;
 static u8 _gx_saved_data[STRUCT_REGDEF_SIZE] ATTRIBUTE_ALIGN(32);
 
@@ -140,11 +139,6 @@ extern int printk(const char *fmt,...);
 static __inline__ BOOL IsWriteGatherBufferEmpty()
 {
 	return !(mfwpar()&1);
-}
-
-static __inline__ void DisableWriteGatherPipe()
-{
-	mthid2((mfhid2()&~0x40000000));
 }
 
 static __inline__ void EnableWriteGatherPipe()
@@ -587,7 +581,6 @@ static GXTlutRegion* __GXDefTlutRegionCallback(u32 tlut_name)
 static void __GX_InitGX()
 {
 	s32 i;
-	u32 flag;
 	GXRModeObj *rmode;
 	Mtx identity_matrix =
 	{
@@ -598,7 +591,7 @@ static void __GX_InitGX()
 
 	rmode = VIDEO_GetPreferredMode(NULL);
 
-	GX_SetCopyClear((GXColor)BLACK,0xffffff);
+	GX_SetCopyClear((GXColor)BLACK,GX_MAX_Z24);
 	GX_SetTexCoordGen(GX_TEXCOORD0,GX_TG_MTX2x4,GX_TG_TEX0,GX_IDENTITY);
 	GX_SetTexCoordGen(GX_TEXCOORD1,GX_TG_MTX2x4,GX_TG_TEX1,GX_IDENTITY);
 	GX_SetTexCoordGen(GX_TEXCOORD2,GX_TG_MTX2x4,GX_TG_TEX2,GX_IDENTITY);
@@ -704,12 +697,8 @@ static void __GX_InitGX()
 	GX_SetPixelFmt(GX_PF_RGB8_Z24,GX_ZC_LINEAR);
 
 	GX_SetFieldMask(GX_ENABLE,GX_ENABLE);
+	GX_SetFieldMode(GX_FALSE,GX_DISABLE);
 
-	flag = 0;
-	if(rmode->viHeight==(rmode->xfbHeight<<1)) flag = 1;
-	GX_SetFieldMode(rmode->field_rendering,flag);
-
-	GX_SetCopyClear((GXColor)GX_DEFAULT_BG,0x00ffffff);
 	GX_SetDispCopySrc(0,0,rmode->fbWidth,rmode->efbHeight);
 	GX_SetDispCopyDst(rmode->fbWidth,rmode->efbHeight);
 	GX_SetDispCopyYScale(1.0);
@@ -829,6 +818,9 @@ static void __GX_SetVAT()
 			GX_LOAD_CP_REG((0x90+(i&7)),__gx->VAT2reg[i]);
 		}
 	}
+#if defined(HW_RVL)
+	wgPipe->U8 = 0;
+#endif
 	__gx->VATTable = 0;
 }
 
@@ -1533,7 +1525,7 @@ volatile void* GX_RedirectWriteGatherPipe(void *ptr)
 	_piReg[3] = 0;
 	_piReg[4] = 0x04000000;
 	_piReg[5] = (((u32)ptr&0x3FFFFFE0)&~0x04000000);
-	_sync();
+	ppcsync();
 
 	_CPU_ISR_Restore(level);
 
@@ -1672,6 +1664,7 @@ void GX_WaitDrawDone()
 	_CPU_ISR_Disable(level);
 	while(!_gxfinished)
 		LWP_ThreadSleep(_gxwaitfinish);
+	_gxfinished = 0;
 	_CPU_ISR_Restore(level);
 }
 
@@ -1688,6 +1681,7 @@ void GX_DrawDone()
 
 	while(!_gxfinished)
 		LWP_ThreadSleep(_gxwaitfinish);
+	_gxfinished = 0;
 	_CPU_ISR_Restore(level);
 }
 

@@ -3,9 +3,6 @@
 #ifndef REENTRANT_SYSCALLS_PROVIDED
 #include <reent.h>
 #endif
-#include <errno.h>
-#undef errno
-extern int errno;
 
 #include "asm.h"
 #include "processor.h"

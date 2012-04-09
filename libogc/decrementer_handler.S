@@ -31,137 +31,74 @@ distribution.
 
 #include <asm.h>
 
-#define EXCEPTION_PROLOG			\
-	mfspr    r0,912;				\
-	stw      r0,GQR0_OFFSET(sp);    \
-	mfspr    r0,913;				\
-	stw      r0,GQR1_OFFSET(sp);    \
-	mfspr    r0,914;				\
-	stw      r0,GQR2_OFFSET(sp);    \
-	mfspr    r0,915;				\
-	stw      r0,GQR3_OFFSET(sp);    \
-	mfspr    r0,916;				\
-	stw      r0,GQR4_OFFSET(sp);    \
-	mfspr    r0,917;				\
-	stw      r0,GQR5_OFFSET(sp);    \
-	mfspr    r0,918;				\
-	stw      r0,GQR6_OFFSET(sp);    \
-	mfspr    r0,919;				\
-	stw      r0,GQR7_OFFSET(sp);	\
-	stw      r6,GPR6_OFFSET(sp);	\
-	stw      r7,GPR7_OFFSET(sp);	\
-	stw      r8,GPR8_OFFSET(sp);	\
-	stw      r9,GPR9_OFFSET(sp);	\
-	stw      r10,GPR10_OFFSET(sp);	\
-	stw      r11,GPR11_OFFSET(sp);	\
-	stw      r12,GPR12_OFFSET(sp);	\
-	stw      r13,GPR13_OFFSET(sp);	\
-	stw      r14,GPR14_OFFSET(sp);	\
-	stw      r15,GPR15_OFFSET(sp)
-	
-#define EXCEPTION_EPILOG			\
-	lwz		r4,GQR0_OFFSET(sp);		\
-	mtspr	912,r4;					\
-	lwz		r4,GQR1_OFFSET(sp);		\
-	mtspr	913,r4;					\
-	lwz		r4,GQR2_OFFSET(sp);		\
-	mtspr	914,r4;					\
-	lwz		r4,GQR3_OFFSET(sp);		\
-	mtspr	915,r4;					\
-	lwz		r4,GQR4_OFFSET(sp);		\
-	mtspr	916,r4;					\
-	lwz		r4,GQR5_OFFSET(sp);		\
-	mtspr	917,r4;					\
-	lwz		r4,GQR6_OFFSET(sp);		\
-	mtspr	918,r4;					\
-	lwz		r4,GQR7_OFFSET(sp);		\
-	mtspr	919,r4;					\
-	lwz		r15,GPR15_OFFSET(sp);	\
-	lwz		r14,GPR14_OFFSET(sp);	\
-	lwz		r13,GPR13_OFFSET(sp);	\
-	lwz		r12,GPR12_OFFSET(sp);	\
-	lwz		r11,GPR11_OFFSET(sp);	\
-	lwz		r10,GPR10_OFFSET(sp);	\
-	lwz		r9,GPR9_OFFSET(sp);		\
-	lwz		r8,GPR8_OFFSET(sp);		\
-	lwz		r7,GPR7_OFFSET(sp);		\
-	lwz		r6,GPR6_OFFSET(sp);		\
-	lwz		r5,GPR5_OFFSET(sp)
-
-	.extern c_decrementer_handler
+	.section	.text.dec_exceptionhandler,"ax",@progbits
 	.globl	dec_exceptionhandler
 dec_exceptionhandler:
-	stwu	sp,-EXCEPTION_FRAME_END(sp)		//now we're able to adjust the stackpointer with it's cached address
+	stw		r31,GPR31_OFFSET(sp)
+	mfmsr	r0
+	ori		r0,r0,MSR_RI
+	mtmsr	r0
 
-	EXCEPTION_PROLOG
-
-	mfmsr	r3
-	ori		r3,r3,MSR_RI
-	mtmsr	r3
-	isync
-
-	addi	r14,sp,0
-	lis		r15,_thread_dispatch_disable_level@ha
-	
 	mfspr	r3,SPRG0
+	mr		r31,sp
 	cmpwi	r3,0
-	bne		nested
+	bne		1f
 	mfspr	sp,SPRG1
 
-nested:
+1:	lis		r2,_thread_dispatch_disable_level@ha
+	lwz		r4,_thread_dispatch_disable_level@l(r2)
 	addi	r3,r3,1
-	lwz		r6,_thread_dispatch_disable_level@l(r15)
+	addi	r4,r4,1
+	stw		r4,_thread_dispatch_disable_level@l(r2)
 	mtspr	SPRG0,r3
-	addi	r6,r6,1
-	stw		r6,_thread_dispatch_disable_level@l(r15)
 
-	addi	r3,r14,0x08
-	bl		c_decrementer_handler
-	
-	mfspr	r4,SPRG0
-	lwz		r3,_thread_dispatch_disable_level@l(r15)
-	addi	r4,r4,-1
-	addic.	r3,r3,-1
-	mtspr	SPRG0,r4
-	stw		r3,_thread_dispatch_disable_level@l(r15)
-	addi	sp,r14,0
-	bne		easy_exit
+	bl		c_decrementerhandler
 
-	lis		r4,_context_switch_want@ha
-	lwz		r5,_context_switch_want@l(r4)
-	cmpwi	r5,0
-	beq		easy_exit
+	mfspr	r3,SPRG0
+	mr		sp,r31
+	lis		r2,_thread_dispatch_disable_level@ha
+	lwz		r4,_thread_dispatch_disable_level@l(r2)
+	subi	r3,r3,1
+	subic.	r4,r4,1
+	stw		r4,_thread_dispatch_disable_level@l(r2)
+	mtspr	SPRG0,r3
+	bne		2f
 
-switch:
+	lis		r2,_context_switch_want@ha
+	lwz		r3,_context_switch_want@l(r2)
+	cmpwi	r3,0
+	beq		2f
+
 	bl		__thread_dispatch
 
-easy_exit:
-	lwz		r4,CR_OFFSET(sp)
-	mtcr	r4
-	lwz		r4,LR_OFFSET(sp)
-	mtlr	r4
-	lwz		r4,CTR_OFFSET(sp)
-	mtctr	r4
-	lwz		r4,XER_OFFSET(sp)
-	mtxer	r4
-
-	EXCEPTION_EPILOG
-
-	mfmsr	r4
-	rlwinm	r4,r4,0,31,29
-	mtmsr	r4
-	isync
-
-	lwz		r0,GPR0_OFFSET(sp)
-	lwz		toc,GPR2_OFFSET(sp)
-
-	lwz		r4,SRR0_OFFSET(sp)
-	mtsrr0	r4
-	lwz		r4,SRR1_OFFSET(sp)
-	rlwinm	r4, r4, 0, 19, 17
-	mtsrr1	r4
-
+2:	mfmsr	r0
+	rlwinm	r0,r0,0,31,29
+	mtmsr	r0
+	lwz		r0,CR_OFFSET(sp)
+	mtcr	r0
+	lwz		r0,LR_OFFSET(sp)
+	mtlr	r0
+	lwz		r0,CTR_OFFSET(sp)
+	mtctr	r0
+	lwz		r0,XER_OFFSET(sp)
+	mtxer	r0
+	lwz		r0,SRR0_OFFSET(sp)
+	mtsrr0	r0
+	lwz		r0,SRR1_OFFSET(sp)
+	rlwinm	r0,r0,0,19,17
+	mtsrr1	r0
+	lwz		r31,GPR31_OFFSET(sp)
+	lwz		r12,GPR12_OFFSET(sp)
+	lwz		r11,GPR11_OFFSET(sp)
+	lwz		r10,GPR10_OFFSET(sp)
+	lwz		r9,GPR9_OFFSET(sp)
+	lwz		r8,GPR8_OFFSET(sp)
+	lwz		r7,GPR7_OFFSET(sp)
+	lwz		r6,GPR6_OFFSET(sp)
+	lwz		r5,GPR5_OFFSET(sp)
 	lwz		r4,GPR4_OFFSET(sp)
 	lwz		r3,GPR3_OFFSET(sp)
+	lwz		r2,GPR2_OFFSET(sp)
+	lwz		r0,GPR0_OFFSET(sp)
 	addi	sp,sp,EXCEPTION_FRAME_END
 	rfi

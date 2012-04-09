@@ -30,7 +30,8 @@ distribution.
 
 #include <asm.h>
 
-	.globl __VIClearFramebuffer
+	.section	.text.__VIClearFramebuffer,"ax",@progbits
+	.globl	__VIClearFramebuffer
 	//r3 = dst, r4 = length(bytes),r5 = color
 __VIClearFramebuffer:
 	srwi.	r0,r4,8

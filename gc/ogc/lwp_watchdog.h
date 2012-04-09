@@ -68,7 +68,8 @@ extern u32 _wd_ticks_since_boot;
 
 extern lwp_queue _wd_ticks_queue;
 
-extern u32 gettick();
+#define gettick()   ({register u32 _rval; \
+		asm volatile("mftb %0" : "=r" (_rval)); _rval;})
 extern u64 gettime();
 extern void settime(u64);
 

@@ -463,24 +463,6 @@ static void __pad_samplinghandler(u32 irq,void *ctx)
 {
 }
 
-u32 __PADDisableRecalibration(s32 disable)
-{
-	u32 level,ret;
-	u8 *ram_recaldis = (u8*)0x800030e3;
-
-	_CPU_ISR_Disable(level);
-
-	ret = 0;
-	if(ram_recaldis[0]&0x40) ret = 1;
-
-	ram_recaldis[0] &= 0xbf;
-	if(disable) ram_recaldis[0] |= 0x40;
-
-	_CPU_ISR_Restore(level);
-
-	return ret;
-}
-
 u32 PAD_Init()
 {
 	u32 chan;

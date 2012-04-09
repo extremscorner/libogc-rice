@@ -100,14 +100,12 @@ AISCallback AUDIO_RegisterStreamCallback(AISCallback callback);
 
 
 /*! 
- * \fn void AUDIO_Init(u8 *stack)
+ * \fn void AUDIO_Init()
  * \brief Initialize the AUDIO subsystem
- *
- * \param[in] stack pointer to a memory area to work as stack when calling the callbacks. May be NULL
  *
  * \return none
  */
-void AUDIO_Init(u8 *stack);
+void AUDIO_Init();
 
 
 /*! 

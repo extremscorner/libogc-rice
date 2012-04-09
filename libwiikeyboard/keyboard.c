@@ -48,7 +48,7 @@ distribution.
 #include "wsksymvar.h"
 
 #define KBD_THREAD_STACKSIZE (1024 * 4)
-#define KBD_THREAD_PRIO 64
+#define KBD_THREAD_PRIO (LWP_PRIO_NORMAL)
 #define KBD_THREAD_UDELAY (1000 * 10)
 #define KBD_THREAD_KBD_SCAN_INTERVAL (3 * 100)
 
@@ -558,8 +558,6 @@ s32 KEYBOARD_Init(keyPressCallback keypress_cb)
 	if (!_kbd_thread_running) {
 		// start the keyboard thread
 		_kbd_thread_quit = false;
-
-		memset(_kbd_stack, 0, KBD_THREAD_STACKSIZE);
 
 		s32 res = LWP_CreateThread(&_kbd_thread, _kbd_thread_func, NULL,
 									_kbd_stack, KBD_THREAD_STACKSIZE,

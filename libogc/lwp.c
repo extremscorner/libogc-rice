@@ -125,7 +125,12 @@ static __inline__ void __lwp_tqueue_free(tqueue_st *tq)
 
 static void* idle_func(void *arg)
 {
-	while(1);
+	u32 msr = mfmsr()|MSR_POW;
+	while(1) {
+		_sync();
+		_CPU_MSR_SET(msr);
+		_isync();
+	}
 	return 0;
 }
 
@@ -136,7 +141,7 @@ void __lwp_sysinit()
 
 	// create idle thread, is needed iff all threads are locked on a queue
 	_thr_idle = (lwp_cntrl*)__lwp_objmgr_allocate(&_lwp_thr_objects);
-	__lwp_thread_init(_thr_idle,NULL,0,255,0,TRUE);
+	__lwp_thread_init(_thr_idle,NULL,0,__lwp_priotocore(LWP_PRIO_IDLE));
 	_thr_executing = _thr_heir = _thr_idle;
 	__lwp_thread_start(_thr_idle,idle_func,NULL);
 	__lwp_objmgr_open(&_lwp_thr_objects,&_thr_idle->object);
@@ -144,7 +149,7 @@ void __lwp_sysinit()
 	// create main thread, as this is our entry point
 	// for every GC application.
 	_thr_main = (lwp_cntrl*)__lwp_objmgr_allocate(&_lwp_thr_objects);
-	__lwp_thread_init(_thr_main,__stack_end,((u32)__stack_addr-(u32)__stack_end),191,0,TRUE);
+	__lwp_thread_init(_thr_main,__stack_end,((u32)__stack_addr-(u32)__stack_end),__lwp_priotocore(LWP_PRIO_NORMAL));
 	__lwp_thread_start(_thr_main,(void*)__crtmain,NULL);
 	__lwp_objmgr_open(&_lwp_thr_objects,&_thr_main->object);
 }
@@ -197,7 +202,7 @@ s32 LWP_CreateThread(lwp_t *thethread,void* (*entry)(void *),void *arg,void *sta
 	lwp_thread = __lwp_cntrl_allocate();
 	if(!lwp_thread) return -1;
 
-	status = __lwp_thread_init(lwp_thread,stackbase,stack_size,__lwp_priotocore(prio),0,TRUE);
+	status = __lwp_thread_init(lwp_thread,stackbase,stack_size,__lwp_priotocore(prio));
 	if(!status) {
 		__lwp_cntrl_free(lwp_thread);
 		__lwp_thread_dispatchenable();

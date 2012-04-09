@@ -43,6 +43,7 @@ distribution.
 #include "lwp.h"
 #include "exi.h"
 #include "card.h"
+#include "lwp_watchdog.h"
 
 //#define _CARD_DEBUG
 
@@ -253,8 +254,6 @@ static sys_resetinfo card_resetinfo = {
 	127
 };
 
-extern unsigned long gettick();
-extern long long gettime();
 extern syssram* __SYS_LockSram();
 extern syssramex* __SYS_LockSramEx();
 extern u32 __SYS_UnlockSram(u32 write);

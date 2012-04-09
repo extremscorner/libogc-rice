@@ -46,6 +46,9 @@ distribution.
 #define LWP_NOT_SUSPENDED			2
 
 #define LWP_PRIO_IDLE				0
+#define LWP_PRIO_LOW			   40
+#define LWP_PRIO_NORMAL			   64
+#define LWP_PRIO_HIGH			   80
 #define LWP_PRIO_HIGHEST		  127
 
 #define LWP_THREAD_NULL				0xffffffff

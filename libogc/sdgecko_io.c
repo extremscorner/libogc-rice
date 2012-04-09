@@ -13,6 +13,7 @@
 #include "card_cmn.h"
 //#include "card_fat.h"
 #include "card_io.h"
+#include "lwp_watchdog.h"
 
 //#define _CARDIO_DEBUG
 #ifdef _CARDIO_DEBUG
@@ -87,8 +88,6 @@ static u16 _ioCrc16Table[256];
 // SDHC support
 static u32 _initType[MAX_DRIVE];
 static u32 _ioAddressingType[MAX_DRIVE];
-
-extern unsigned long gettick();
 
 static __inline__ u32 __check_response(s32 drv_no,u8 res)
 {
@@ -1249,7 +1248,11 @@ s32 sdgecko_initIO(s32 drv_no)
 
 	if(_ioCardInserted[drv_no]==TRUE) {
 		_ioWPFlag = 0;
+#if defined(HW_DOL)
+		_ioCardFreq = EXI_SPEED32MHZ;
+#else
 		_ioCardFreq = EXI_SPEED16MHZ;
+#endif
 		_initType[drv_no] = TYPE_SD;
 		_ioFlag[drv_no] = INITIALIZING;
 		_ioAddressingType[drv_no] = BYTE_ADDRESSING;
@@ -1265,8 +1268,6 @@ s32 sdgecko_initIO(s32 drv_no)
 		if((_ioResponse[drv_no][3]==1) && (_ioResponse[drv_no][4]==0xAA)) _initType[drv_no] = TYPE_SDHC;
 
 		if(__card_sendopcond(drv_no)!=0) goto exit;
-		if(__card_readcsd(drv_no)!=0) goto exit;
-		if(__card_readcid(drv_no)!=0) goto exit;
 
 		if(_initType[drv_no]==TYPE_SDHC) {
 			if(__card_sendCMD58(drv_no)!=0) goto exit;

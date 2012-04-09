@@ -59,8 +59,6 @@ distribution.
 
 #define NET_HEAP_SIZE				64*1024
 
-#define IOS_O_NONBLOCK				0x04			//(O_NONBLOCK >> 16) - it's in octal representation, so this shift leads to 0 and hence nonblocking sockets didn't work. changed it to the right value.
-
 #define IOCTL_NWC24_STARTUP			0x06
 
 #define IOCTL_NCD_SETIFCONFIG3		0x03
@@ -246,31 +244,16 @@ static char __manage_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/ncd/manage";
 static char __iptop_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/ip/top";
 static char __kd_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/kd/request";
 
-#define ROUNDDOWN32(v)				(((u32)(v)-0x1f)&~0x1f)
-
 static s32 NetCreateHeap()
 {
-	u32 level;
 	void *net_heap_ptr;
 
-	_CPU_ISR_Disable(level);
-
 	if(__net_heap_inited)
-	{
-		_CPU_ISR_Restore(level);
 		return IPC_OK;
-	}
 
-	net_heap_ptr = (void *)ROUNDDOWN32(((u32)SYS_GetArena2Hi() - NET_HEAP_SIZE));
-	if((u32)net_heap_ptr < (u32)SYS_GetArena2Lo())
-	{
-		_CPU_ISR_Restore(level);
-		return IPC_ENOMEM;
-	}
-	SYS_SetArena2Hi(net_heap_ptr);
+	net_heap_ptr = SYS_AllocArena2MemHi(NET_HEAP_SIZE, 32);
 	__lwp_heap_init(&__net_heap, net_heap_ptr, NET_HEAP_SIZE, 32);
 	__net_heap_inited=1;
-	_CPU_ISR_Restore(level);
 	return IPC_OK;
 }
 
@@ -704,14 +687,14 @@ struct hostent * net_gethostbyname(const char *addrString)
 	memset(ipBuffer, 0, 0x460);
 
 	if (net_ip_top_fd < 0) {
-		errno = -ENXIO;
+		errno = ENXIO;
 		return NULL;
 	}
 
 	len = strlen(addrString) + 1;
 	params = net_malloc(len);
 	if (params==NULL) {
-		errno = IPC_ENOMEM;
+		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -722,7 +705,7 @@ struct hostent * net_gethostbyname(const char *addrString)
 	if(params!=NULL) net_free(params);
 
 	if (ret < 0) {
-		errno = ret;
+		errno = -ret;
 		return NULL;
 	}
 
@@ -742,7 +725,6 @@ struct hostent * net_gethostbyname(const char *addrString)
 		ipData->h_addr_list[i] = MEM_PHYSICAL_TO_K0(ipData->h_addr_list[i]) - addrOffset;
 	}
 
-	errno = 0;
 	return ipData;
 }
 
@@ -1030,8 +1012,8 @@ s32 net_ioctl(s32 s, u32 cmd, void *argp)
 	switch (cmd) {
 		case FIONBIO:
 			flags = net_fcntl(s, F_GETFL, 0);
-			flags &= ~IOS_O_NONBLOCK;
-			if (*intp) flags |= IOS_O_NONBLOCK;
+			flags &= ~O_NONBLOCK;
+			if (*intp) flags |= O_NONBLOCK;
 			return net_fcntl(s, F_SETFL, flags);
 		default:
 			return -EINVAL;
@@ -1046,15 +1028,15 @@ s32 net_fcntl(s32 s, u32 cmd, u32 flags)
 	if (net_ip_top_fd < 0) return -ENXIO;
 	if (cmd != F_GETFL && cmd != F_SETFL) return -EINVAL;
 
-
 	params[0] = s;
 	params[1] = cmd;
-	params[2] = flags;
+	params[2] = flags >> 12;
 
 	ret = _net_convert_error(IOS_Ioctl(net_ip_top_fd, IOCTL_SO_FCNTL, params, 12, NULL, 0));
 
 	debug_printf("net_fcntl(%d, %d, %x)=%d\n", params[0], params[1], params[2], ret);
 
+	if (ret > 0) ret <<= 12;
 	return ret;
 }
 

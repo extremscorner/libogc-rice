@@ -32,6 +32,7 @@ distribution.
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <signal.h>
 #include "asm.h"
 #include "processor.h"
 #include "cache.h"
@@ -40,8 +41,10 @@ distribution.
 
 #include "system.h"
 
+#include "audio.h"
 #include "gx.h"
 #include "pad.h"
+#include "exi.h"
 #include "consol.h"
 #include "console.h"
 #include "lwp_threads.h"
@@ -61,6 +64,9 @@ typedef struct _framerec {
 static void *exception_xfb = (void*)0xC1700000;			//we use a static address above ArenaHi.
 static int reload_timer = -1;
 
+static int stride_width = 640;
+static int stride_length = 1280;
+
 void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*));
 
 extern void udelay(int us);
@@ -71,10 +77,9 @@ extern void default_exceptionhandler();
 extern void VIDEO_SetFramebuffer(void *);
 extern void __reload();
 
-extern s8 exceptionhandler_start[],exceptionhandler_end[],exceptionhandler_patch[];
-extern s8 systemcallhandler_start[],systemcallhandler_end[];
+extern s8 exceptionhandler_start[],exceptionhandler_patch[],exceptionhandler_end[];
 
-void (*_exceptionhandlertable[NUM_EXCEPTIONS])(frame_context*);
+void (*exceptionhandler_table[NUM_EXCEPTIONS])(frame_context*);
 
 static u32 exception_location[NUM_EXCEPTIONS] = {
 		0x00000100, 0x00000200, 0x00000300, 0x00000400,
@@ -88,6 +93,12 @@ static const char *exception_name[NUM_EXCEPTIONS] = {
 		"Decrementer", "System Call", "Trace", "Performance",
 		"IABR", "Reserved", "Thermal"};
 
+static u8 exception_signal[NUM_EXCEPTIONS] = {
+		SIGHUP, SIGSEGV, SIGSEGV, SIGBUS,
+		SIGINT, SIGBUS, SIGTRAP, SIGFPE,
+		SIGALRM, SIGSYS, SIGTRAP, SIGILL,
+		SIGTRAP, SIGFPE, SIGHUP };
+
 void __exception_load(u32 nExc,void *data,u32 len,void *patch)
 {
 	void *pAddr = (void*)(0x80000000|exception_location[nExc]);
@@ -95,14 +106,8 @@ void __exception_load(u32 nExc,void *data,u32 len,void *patch)
 	if(patch)
 		*(u32*)((u32)pAddr+(patch-data)) |= nExc;
 
-	DCFlushRangeNoSync(pAddr,len);
+	DCFlushRange(pAddr,len);
 	ICInvalidateRange(pAddr,len);
-	_sync();
-}
-
-void __systemcall_init()
-{
-	__exception_load(EX_SYS_CALL,systemcallhandler_start,(systemcallhandler_end-systemcallhandler_start),NULL);
 }
 
 void __exception_init()
@@ -122,7 +127,7 @@ void __exception_init()
 	__exception_sethandler(EX_INT,irq_exceptionhandler);
 	__exception_sethandler(EX_DEC,dec_exceptionhandler);
 
-	mtmsr(mfmsr()|MSR_RI);
+	mtmsr(mfmsr()|(MSR_ME|MSR_RI));
 }
 
 void __exception_close(u32 except)
@@ -134,18 +139,15 @@ void __exception_close(u32 except)
 	__exception_sethandler(except,NULL);
 
 	*(u32*)pAdd = 0x4C000064;
-	DCFlushRangeNoSync(pAdd,0x100);
+	DCFlushRange(pAdd,0x100);
 	ICInvalidateRange(pAdd,0x100);
-	_sync();
 	_CPU_ISR_Restore(level);
 }
 
 void __exception_closeall()
 {
 	s32 i;
-
-	mtmsr(mfmsr()&~MSR_EE);
-	mtmsr(mfmsr()|(MSR_FP|MSR_RI));
+	mtmsr((mfmsr()&~MSR_EE)|(MSR_FP|MSR_RI));
 
 	for(i=0;i<NUM_EXCEPTIONS;i++) {
 		__exception_close(i);
@@ -154,7 +156,7 @@ void __exception_closeall()
 
 void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*))
 {
-	_exceptionhandlertable[nExcept] = pHndl;
+	exceptionhandler_table[nExcept] = pHndl;
 }
 
 static void _cpu_print_stack(void *pc,void *lr,void *r1)
@@ -195,10 +197,14 @@ void __exception_setreload(int t)
 	reload_timer = t*50;
 }
 
+void __exception_setstride(int w, int l)
+{
+	stride_width = w;
+	stride_length = l;
+}
+
 static void waitForReload()
 {
-	u32 level;
-
 	PAD_Init();
 	
 	if(reload_timer > 0)
@@ -214,18 +220,13 @@ static void waitForReload()
 			reload_timer == 0 )
 		{
 			kprintf("\n\tReload\n\n\n");
-			_CPU_ISR_Disable(level);
 			__reload ();
 		}
 
 		if ( buttonsDown & PAD_BUTTON_A )
 		{
 			kprintf("\n\tReset\n\n\n");
-#if defined(HW_DOL)
-			SYS_ResetSystem(SYS_HOTRESET,0,FALSE);
-#else
 			__reload ();
-#endif
 		}
 
 		udelay(20000);
@@ -237,10 +238,12 @@ static void waitForReload()
 //just implement core for unrecoverable exceptions.
 void c_default_exceptionhandler(frame_context *pCtx)
 {
+	AUDIO_StopDMA();
 	GX_AbortFrame();
 	VIDEO_SetFramebuffer(exception_xfb);
-	__console_init(exception_xfb,20,20,640,574,1280);
-	CON_EnableGecko(1, true);
+	__console_init(exception_xfb, 0, 0, stride_width, VI_MAX_HEIGHT_PAL, stride_length);
+	CON_EnableGecko(EXI_CHANNEL_1, TRUE);
+	raise(exception_signal[pCtx->EXCPT_Number]);
 
 	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->EXCPT_Number]);
 
@@ -252,7 +255,7 @@ void c_default_exceptionhandler(frame_context *pCtx)
 	kprintf("\tGPR05 %08X GPR13 %08X GPR21 %08X GPR29 %08X\n",pCtx->GPR[5], pCtx->GPR[13], pCtx->GPR[21], pCtx->GPR[29]);
 	kprintf("\tGPR06 %08X GPR14 %08X GPR22 %08X GPR30 %08X\n",pCtx->GPR[6], pCtx->GPR[14], pCtx->GPR[22], pCtx->GPR[30]);
 	kprintf("\tGPR07 %08X GPR15 %08X GPR23 %08X GPR31 %08X\n",pCtx->GPR[7], pCtx->GPR[15], pCtx->GPR[23], pCtx->GPR[31]);
-	kprintf("\tLR %08X SRR0 %08x SRR1 %08x MSR %08x\n", pCtx->LR, pCtx->SRR0, pCtx->SRR1,pCtx->MSR);
+	kprintf("\tLR %08X SRR0 %08x SRR1 %08x MSR %08x\n", pCtx->LR, pCtx->SRR0, pCtx->SRR1, mfmsr());
 	kprintf("\tDAR %08X DSISR %08X\n", mfspr(19), mfspr(18));
 
 	_cpu_print_stack((void*)pCtx->SRR0,(void*)pCtx->LR,(void*)pCtx->GPR[1]);

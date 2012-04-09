@@ -95,6 +95,7 @@ void VIDEO_SetBlack(bool black);
  * \return \ref vi_fielddef "field"
  */
 u32 VIDEO_GetNextField();
+u32 VIDEO_GetCurrentField();
 
 
 /*! 
@@ -198,6 +199,10 @@ VIRetraceCallback VIDEO_SetPostRetraceCallback(VIRetraceCallback callback);
 u32 VIDEO_HaveComponentCable(void);
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode);
+
+#ifdef HW_RVL
+void VIDEO_SetTrapFilter(bool filter);
+#endif
 
 #ifdef __cplusplus
    }

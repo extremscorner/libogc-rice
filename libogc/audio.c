@@ -36,8 +36,6 @@ distribution.
 #include "audio.h"
 #include "lwp_watchdog.h"
 
-#define STACKSIZE			16384
-
 // DSPCR bits
 #define DSPCR_DSPRESET		0x0800        // Reset DSP
 #define DSPCR_DSPDMA		0x0200        // ARAM dma in progress, if set
@@ -82,8 +80,6 @@ static vu16* const _dspReg = (u16*)0xCC005000;
 
 static u32 __AIInitFlag = 0;
 static u32 __AIActive = 0;
-static u8 *__CallbackStack = NULL;
-static u8 *__OldStack = NULL;
 
 static u64 bound_32KHz,bound_48KHz,min_wait,max_wait,buffer;
 
@@ -91,32 +87,6 @@ static u64 bound_32KHz,bound_48KHz,min_wait,max_wait,buffer;
 static AISCallback __AIS_Callback;
 #endif
 static AIDCallback __AID_Callback;
-
-static void __AICallbackStackSwitch(AIDCallback handler)
-{
-	__asm__ __volatile__("mflr	%r0\n\
-						  stw	%r0,4(%r1)\n\
-						  stwu  %r1,-24(%r1)\n\
-						  stw	%r31,20(%r1)\n\
-						  mr	%r31,%r3\n\
-						  lis	%r5,__OldStack@ha\n\
-						  addi	%r5,%r5,__OldStack@l\n\
-						  stw	%r1,0(%r5)\n\
-						  lis	%r5,__CallbackStack@ha\n\
-						  addi	%r5,%r5,__CallbackStack@l\n\
-						  lwz	%r1,0(%r5)\n\
-						  subi	%r1,%r1,8\n\
-						  mtlr	%r31\n\
-						  blrl\n\
-						  lis	%r5,__OldStack@ha\n\
-						  addi	%r5,%r5,__OldStack@l\n\
-						  lwz	%r1,0(%r5)\n\
-						  lwz	%r0,28(%r1)\n\
-						  lwz	%r31,20(%r1)\n\
-						  addi	%r1,%r1,24\n\
-						  mtlr	%r0\n"
-						 );
-}
 
 #if defined(HW_DOL)
 static void __AISHandler(u32 nIrq,void *pCtx)
@@ -133,10 +103,7 @@ static void __AIDHandler(u32 nIrq,void *pCtx)
 	if(__AID_Callback) {
 		if(!__AIActive) {
 			__AIActive = 1;
-			if(__CallbackStack)
-				__AICallbackStackSwitch(__AID_Callback);
-			else
-				__AID_Callback();
+			__AID_Callback();
 			__AIActive = 0;
 		}
 	}
@@ -196,48 +163,7 @@ static void __AISRCINIT()
 	while (diff_ticks(time2, gettime()) < wait) {}
 }
 
-#if 0
-static void __AISetStreamSampleRate(u32 rate)
-{
-	u32 currrate,level;
-	u32 playstate,volright,volleft,dsprate;
-
-	currrate = AUDIO_GetStreamSampleRate();
-	if(currrate!=rate) {
-		playstate = AUDIO_GetStreamPlayState();
-		volleft = AUDIO_GetStreamVolLeft();
-		volright = AUDIO_GetStreamVolRight();
-		AUDIO_SetStreamVolLeft(0);
-		AUDIO_SetStreamVolRight(0);
-		dsprate = _aiReg[AI_CONTROL]&0x40;
-		_aiReg[AI_CONTROL] = _aiReg[AI_CONTROL]&~0x40;
-
-		_CPU_ISR_Disable(level);
-		__AISRCINIT();
-		_aiReg[AI_CONTROL] |= dsprate;
-		_aiReg[AI_CONTROL] = (_aiReg[AI_CONTROL]&~0x20)|0x20;
-		_aiReg[AI_CONTROL] = (_aiReg[AI_CONTROL]&~0x02)|(_SHIFTL(rate,1,1));
-		_CPU_ISR_Restore(level);
-
-		AUDIO_SetStreamPlayState(playstate);
-		AUDIO_SetStreamVolLeft(volleft);
-		AUDIO_SetStreamVolRight(volright);
-	}
-}
-
-AISCallback AUDIO_RegisterStreamCallback(AISCallback callback)
-{
-	u32 level;
-
-	AISCallback old = __AIS_Callback;
-	_CPU_ISR_Disable(level);
-	__AIS_Callback = callback;
-	_CPU_ISR_Restore(level);
-	return old;
-}
-#endif
-
-void AUDIO_Init(u8 *stack)
+void AUDIO_Init()
 {
 	u32 rate,level;
 
@@ -264,10 +190,6 @@ void AUDIO_Init(u8 *stack)
 		}
 
 		__AID_Callback = NULL;
-
-		__OldStack = NULL;	// davem - use it or lose it
-							// looks like 3.4 isn't picking up the use from the asm below
-		__CallbackStack = stack;
 
 		IRQ_Request(IRQ_DSP_AI,__AIDHandler,NULL);
 		__UnmaskIrq(IRQMASK(IRQ_DSP_AI));

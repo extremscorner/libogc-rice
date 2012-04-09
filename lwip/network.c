@@ -1449,8 +1449,6 @@ static void evt_callback(struct netconn *conn,enum netconn_evt evt,u32 len)
 	
 }
 
-extern const devoptab_t dotab_stdnet;
-
 s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr *gateway,bool use_dhcp)
 {
 	s32 ret = 0;
@@ -1462,7 +1460,6 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 	if(g_netinitiated) return 0;
 	g_netinitiated = 1;
 
-	AddDevice(&dotab_stdnet);
 #ifdef STATS
 	stats_init();
 #endif /* STATS */

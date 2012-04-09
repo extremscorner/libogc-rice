@@ -218,7 +218,6 @@ struct sockaddr_in {
   u8 sin_family;
   u16 sin_port;
   struct in_addr sin_addr;
-  s8 sin_zero[8];
 };
 
 struct sockaddr {

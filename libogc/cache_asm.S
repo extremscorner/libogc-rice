@@ -31,7 +31,8 @@ distribution.
 
 #include <asm.h>
 
-	.globl DCFlashInvalidate
+	.section	.text.DCFlashInvalidate,"ax",@progbits
+	.globl	DCFlashInvalidate
 DCFlashInvalidate:
 	mfspr	r3,HID0
 	ori		r3,r3,0x0400
@@ -39,7 +40,8 @@ DCFlashInvalidate:
 	isync
 	blr
 
-	.globl DCEnable
+	.section	.text.DCEnable,"ax",@progbits
+	.globl	DCEnable
 DCEnable:
 	mfspr	r3,HID0
 	ori		r3,r3,0x4000
@@ -47,7 +49,8 @@ DCEnable:
 	isync
 	blr
 
-	.globl DCDisable
+	.section	.text.DCDisable,"ax",@progbits
+	.globl	DCDisable
 DCDisable:
 	mfspr	r3,HID0
 	rlwinm	r3,r3,0,18,16
@@ -55,7 +58,8 @@ DCDisable:
 	isync
 	blr
 
-	.globl DCFreeze
+	.section	.text.DCFreeze,"ax",@progbits
+	.globl	DCFreeze
 DCFreeze:
 	mfspr	r3,HID0
 	ori		r3,r3,0x1000
@@ -63,7 +67,8 @@ DCFreeze:
 	isync
 	blr
 
-	.globl DCUnfreeze
+	.section	.text.DCUnfreeze,"ax",@progbits
+	.globl	DCUnfreeze
 DCUnfreeze:
 	mfspr	r3,HID0
 	rlwinm	r3,r3,0,20,18
@@ -71,32 +76,8 @@ DCUnfreeze:
 	isync
 	blr
 
-	.globl DCTouchLoad
-DCTouchLoad:
-	dcbt	r0,r3
-	blr
-
-	.globl DCBlockZero
-DCBlockZero:
-	dcbz	r0,r3
-	blr
-
-	.globl DCBlockStore
-DCBlockStore:
-	dcbst	r0,r3
-	blr
-
-	.globl DCBlockFlush
-DCBlockFlush:
-	dcbf	r0,r3
-	blr
-
-	.globl DCBlockInvalidate
-DCBlockInvalidate:
-	dcbi	r0,r3
-	blr
-
-	.globl DCInvalidateRange
+	.section	.text.DCInvalidateRange,"ax",@progbits
+	.globl	DCInvalidateRange
 DCInvalidateRange:
 	cmplwi r4, 0   # zero or negative size?
 	blelr
@@ -113,7 +94,8 @@ DCInvalidateRange:
 	bdnz 2b
 	blr
 
-	.globl DCFlushRange
+	.section	.text.DCFlushRange,"ax",@progbits
+	.globl	DCFlushRange
 DCFlushRange:
 	cmplwi r4, 0   # zero or negative size?
 	blelr
@@ -128,10 +110,11 @@ DCFlushRange:
 	dcbf r0, r3
 	addi r3, r3, 0x20
 	bdnz 2b
-	sc
+	sync
 	blr
 
-	.globl DCStoreRange
+	.section	.text.DCStoreRange,"ax",@progbits
+	.globl	DCStoreRange
 DCStoreRange:
 	cmplwi r4, 0   # zero or negative size?
 	blelr
@@ -146,10 +129,11 @@ DCStoreRange:
 	dcbst r0, r3
 	addi r3, r3, 0x20
 	bdnz 2b
-	sc
+	sync
 	blr
 
-	.globl DCFlushRangeNoSync
+	.section	.text.DCFlushRangeNoSync,"ax",@progbits
+	.globl	DCFlushRangeNoSync
 DCFlushRangeNoSync:
 	cmplwi r4, 0   # zero or negative size?
 	blelr
@@ -166,7 +150,8 @@ DCFlushRangeNoSync:
 	bdnz 2b
 	blr
 
-	.globl DCStoreRangeNoSync
+	.section	.text.DCStoreRangeNoSync,"ax",@progbits
+	.globl	DCStoreRangeNoSync
 DCStoreRangeNoSync:
 	cmplwi r4, 0   # zero or negative size?
 	blelr
@@ -183,7 +168,8 @@ DCStoreRangeNoSync:
 	bdnz 2b
 	blr
 
-	.globl DCZeroRange
+	.section	.text.DCZeroRange,"ax",@progbits
+	.globl	DCZeroRange
 DCZeroRange:
 	cmplwi r4, 0   # zero or negative size?
 	blelr
@@ -200,7 +186,8 @@ DCZeroRange:
 	bdnz 2b
 	blr
 
-	.globl DCTouchRange
+	.section	.text.DCTouchRange,"ax",@progbits
+	.globl	DCTouchRange
 DCTouchRange:
 	cmplwi r4, 0   # zero or negative size?
 	blelr
@@ -217,7 +204,8 @@ DCTouchRange:
 	bdnz 2b
 	blr
 
-	.globl ICInvalidateRange
+	.section	.text.ICInvalidateRange,"ax",@progbits
+	.globl	ICInvalidateRange
 ICInvalidateRange:
 	cmplwi r4, 0   # zero or negative size?
 	blelr
@@ -236,7 +224,8 @@ ICInvalidateRange:
 	isync
 	blr
 
-	.globl ICFlashInvalidate
+	.section	.text.ICFlashInvalidate,"ax",@progbits
+	.globl	ICFlashInvalidate
 ICFlashInvalidate:
 	mfspr	r3,HID0
 	ori		r3,r3,0x0800
@@ -244,7 +233,8 @@ ICFlashInvalidate:
 	isync
 	blr
 
-	.globl ICEnable
+	.section	.text.ICEnable,"ax",@progbits
+	.globl	ICEnable
 ICEnable:
 	mfspr	r3,HID0
 	ori		r3,r3,0x8000
@@ -252,7 +242,8 @@ ICEnable:
 	isync
 	blr
 
-	.globl ICDisable
+	.section	.text.ICDisable,"ax",@progbits
+	.globl	ICDisable
 ICDisable:
 	mfspr	r3,HID0
 	rlwinm	r3,r3,0,17,15
@@ -260,7 +251,8 @@ ICDisable:
 	isync
 	blr
 
-	.globl ICFreeze
+	.section	.text.ICFreeze,"ax",@progbits
+	.globl	ICFreeze
 ICFreeze:
 	mfspr	r3,HID0
 	ori		r3,r3,0x2000
@@ -268,204 +260,11 @@ ICFreeze:
 	isync
 	blr
 
-	.globl ICUnfreeze
+	.section	.text.ICUnfreeze,"ax",@progbits
+	.globl	ICUnfreeze
 ICUnfreeze:
 	mfspr	r3,HID0
 	rlwinm	r3,r3,0,19,17
 	mtspr	HID0,r3
 	isync
 	blr
-
-	.globl ICBlockInvalidate
-ICBlockInvalidate:
-	icbi	r0,r3
-	blr
-
-	.globl ICSync
-ICSync:
-	isync
-	blr
-
-	.globl L2Init
-L2Init:
-	mflr	r0
-	stw		r0,4(sp)
-	stwu	sp,-16(sp)
-	stw		r31,12(sp)
-	mfmsr	r3
-	mr		r31,r3
-	sync
-	li		r3,48
-	mtmsr	r3
-	sync
-	bl		L2Disable
-	bl		L2GlobalInvalidate
-	mr		r3,r31
-	mtmsr	r3
-	lwz		r0,20(sp)
-	lwz		r31,12(sp)
-	mtlr	r0
-	blr
-
-	.globl L2Enable
-L2Enable:
-	sync
-	mfspr	r3,L2CR;
-	oris	r0,r3,0x8000
-	rlwinm	r3,r0,0,11,9
-	mtspr	L2CR,r3
-	sync
-	blr
-
-	.globl L2Disable
-L2Disable:
-	sync
-	mfspr	r3,L2CR
-	clrlwi	r3,r3,1
-	mtspr	L2CR,r3
-	sync
-	blr
-
-	.globl L2GlobalInvalidate
-L2GlobalInvalidate:
-	mflr	r0
-	stw		r0,4(sp)
-	stwu	sp,-8(sp)
-	bl		L2Disable
-	mfspr	r3,L2CR
-	oris	r3,r3,0x0020
-	mtspr	L2CR,r3
-1:	mfspr	r3,L2CR
-	clrlwi	r0,r3,31
-	cmplwi	r0,0x0000
-	bne		1b
-	mfspr	r3,L2CR
-	rlwinm	r3,r3,0,11,9
-	mtspr	L2CR,r3
-2:	mfspr	r3,L2CR
-	clrlwi	r0,r3,31
-	cmplwi	r0,0x0000
-	bne		2b
-	lwz		r0,12(sp)
-	addi	sp,sp,8
-	mtlr	r0
-	blr
-
-	.globl __LCEnable
-__LCEnable:
-	mfmsr	r5
-	ori		r5,r5,0x1000
-	mtmsr	r5
-	lis		r3,0x8000
-	li		r4,1024
-	mtctr	r4
-1:	dcbt	r0,r3
-	dcbst	r0,r3
-	addi    r3,r3,32
-	bdnz	1b
-	mfspr	r4,HID2
-	oris	r4,r4,0x100f
-	mtspr	HID2,r4
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	lis		r3,0xe000
-	ori		r3,r3,0x0002
-	mtspr	DBAT3L,r3
-	ori		r3,r3,0x01fe
-	mtspr	DBAT3U,r3
-	isync
-	lis		r3,0xe000
-	li		r6,512
-	mtctr	r6
-	li		r6,0
-2:	dcbz_l	r6,r3
-	addi	r3,r3,32
-	bdnz	2b
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	blr
-
-	.globl LCDisable
-LCDisable:
-	lis		r3,0xe000
-	li		r4,512
-	mtctr	r4
-1:	dcbi	r0,r3
-	addi	r3,r3,32
-	bdnz	1b
-	mfspr	r4,HID2
-	rlwinm	r4,r4,0,4,2
-	mtspr	HID2,r4
-	blr
-
-	.globl LCAllocOneTag
-LCAllocOneTag:
-	cmpwi	r3,0
-	beq		1f
-	dcbi	r0,r4
-1:	dcbz_l	r0,r4
-	blr
-
-	.globl LCAllocTags
-LCAllocTags:
-	mflr	r6
-	cmplwi	r5,0
-	ble		2f
-	mtctr	r5
-	cmpwi	r3,0
-	beq		3f
-1:	dcbi	r0,r4
-	dcbz_l	r0,r4
-	addi	r4,r4,32
-	bdnz	1b
-	b		2f
-3:	dcbz_l	r0,r4
-	addi	r4,r4,32
-	bdnz	3b
-2:	mtlr	r6
-	blr
-
-	.globl LCLoadBlocks
-LCLoadBlocks:
-	extrwi		r6,r5,5,25
-	clrlwi		r4,r4,4
-	or			r6,r6,r4
-	mtspr		DMAU,r6
-	clrlslwi	r6,r5,30,2
-	or			r6,r6,r3
-	ori			r6,r6,0x0012
-	mtspr		DMAL,r6
-	blr
-
-	.globl LCStoreBlocks
-LCStoreBlocks:
-	extrwi		r6,r5,5,25
-	clrlwi		r4,r4,4
-	or			r6,r6,r3
-	mtspr		DMAU,r6
-	clrlslwi	r6,r5,30,2
-	or			r6,r6,r4
-	ori			r6,r6,0x0002
-	mtspr		DMAL,r6
-	blr
-	

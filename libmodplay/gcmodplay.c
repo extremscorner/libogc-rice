@@ -155,7 +155,7 @@ static s32 SndBufStart(MODSNDBUF *sndbuf)
 
 	curr_audio = 0;
 	sndPlaying = TRUE;
-	if(LWP_CreateThread(&hplayer,player,NULL,player_stack,STACKSIZE,80)!=-1) {
+	if(LWP_CreateThread(&hplayer,player,NULL,player_stack,STACKSIZE,LWP_PRIO_HIGH)!=-1) {
 #ifndef __AESNDLIB_H__
 		AUDIO_RegisterDMACallback(dmaCallback);
 		AUDIO_InitDMA((u32)audioBuf[curr_audio],SNDBUFFERSIZE);
@@ -225,7 +225,7 @@ void MODPlay_Init(MODPlay *mod)
 	memset(mod,0,sizeof(MODPlay));
 
 #ifndef __AESNDLIB_H__
-    AUDIO_Init(NULL);
+    AUDIO_Init();
 #else
 	modvoice = AESND_AllocateVoice(__aesndvoicecallback);
 	if(modvoice) {

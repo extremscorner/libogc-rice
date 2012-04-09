@@ -34,7 +34,7 @@
 	stbu		r11,1(r30)
 
 	//r3 is input, r4 is output
-	.globl depackrnc2
+	.globl	depackrnc2
 depackrnc2:
 	mflr	r0
 	stw		r0,4(sp)

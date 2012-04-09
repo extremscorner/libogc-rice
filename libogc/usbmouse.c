@@ -39,7 +39,7 @@ distribution.
 #include <ogc/semaphore.h>
 
 #define MOUSE_THREAD_STACKSIZE		(1024 * 4)
-#define MOUSE_THREAD_PRIO			65
+#define MOUSE_THREAD_PRIO			(LWP_PRIO_NORMAL + 1)
 
 #define MOUSE_MAX_DATA				32
 
@@ -332,7 +332,6 @@ s32 MOUSE_Init(void)
 	{
 		// start the mouse thread
 		_mouse_thread_quit = false;
-		memset(_mouse_stack, 0, MOUSE_THREAD_STACKSIZE);
 
 		s32 res = LWP_CreateThread(&_mouse_thread, _mouse_thread_func, NULL,
 									_mouse_stack, MOUSE_THREAD_STACKSIZE,

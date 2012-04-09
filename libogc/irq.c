@@ -34,14 +34,12 @@ distribution.
 #include "cache.h"
 #include "context.h"
 #include "processor.h"
+#include "lwp_stack.h"
 #include "lwp_threads.h"
 #include "irq.h"
 #include "console.h"
 
 //#define _IRQ_DEBUG
-
-#define CPU_STACK_ALIGNMENT				8
-#define CPU_MINIMUM_STACK_FRAME_SIZE	16
 
 #define _SHIFTL(v, s, w)	\
     ((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))
@@ -80,9 +78,6 @@ static u32 const _irqPrio[] = {IM_PI_ERROR,IM_PI_DEBUG,IM_MEM,IM_PI_RSW,
 #endif
 							   0xffffffff};
 
-extern void __exception_load(u32,void *,u32,void *);
-
-extern s8 irqhandler_start[],irqhandler_end[];
 extern u8 __intrstack_addr[],__intrstack_end[];
 
 #ifdef _IRQ_DEBUG
@@ -127,7 +122,7 @@ static void __irq_dump(u32 irqmask,u32 irq_idx)
 }
 #endif
 
-void c_irqdispatcher(frame_context *ctx)
+void c_irqdispatcher()
 {
 	u32 i,icause,intmask,irq = 0;
 	u32 cause,mask;
@@ -405,11 +400,10 @@ void __irq_init()
 
 	*((u32*)intrStack_end) = 0xDEADBEEF;
 	intrStack = intrStack - CPU_MINIMUM_STACK_FRAME_SIZE;
-	intrStack &= ~(CPU_STACK_ALIGNMENT-1);
 	*((u32*)intrStack) = 0;
 
-	mtspr(272,irqNestingLevel);
-	mtspr(273,intrStack);
+	mtspr(SPRG0,irqNestingLevel);
+	mtspr(SPRG1,intrStack);
 
 	prevIrqMask = 0;
 	currIrqMask = 0;

@@ -1,7 +1,6 @@
 #include <asm.h>
 
-	.text
-	.section .init
+	.section	.init
 
 	# crt0.s file for the GameCube V1.1 by Costis (costis@gbaemu.com)!
 	#
@@ -17,13 +16,7 @@
 
 	# Entry Point
 
-	.extern __InitBATS
-	.extern __InitPS
-	.extern __InitFPRS
-	.extern __InitCache
-	.extern __InitSystem
-	.extern __sbss_start, __bss_end, __CheckARGV
-	.globl _start, __main, __system_argv
+	.globl	_start
 _start:
 	b	startup
 	.long	0x5f617267
@@ -38,40 +31,38 @@ __argv:
 startup:
 	bl		__InitBATS			# Initialize BATs to a clear and known state
 	bl		__InitGPRS			# Initialize the General Purpose Registers
-	bl		__InitHardware		# Initialize some aspects of the Hardware
-	bl		__InitSystem		# Initialize more cache aspects, clear a few SPR's, and disable interrupts.
+	bl		__InitPS 			# Initialize Paired Singles
+	bl		__InitFPRS		 	# Initialize the FPR's
+	bl		__InitCache 		# Initialize the system caches
 
 	bl		__CheckARGV		# check for argv & initialise struct
 
-	lis		r3,__isIPL@h
-	ori		r3,r3,__isIPL@l
-	cmplwi	r3,0
-	bne		1f
-
 	# Clear the SBSS section!
-	lis		r3,__sbss_start@h
-	ori		r3,r3,__sbss_start@l
+	lis		r3,__sbss_start@ha
+	lis		r5,__sbss_end@ha
+	addi	r3,r3,__sbss_start@l
+	addi	r5,r5,__sbss_end@l
 	li		r4,0
-	lis		r5,__sbss_end@h
-	ori		r5,r5,__sbss_end@l
-	sub		r5,r5,r3
-	bl		_memset
+	subf	r5,r3,r5
+	bl		memset
 
 	# Clear the BSS section!
-	lis		r3,__bss_start@h
-	ori		r3,r3,__bss_start@l
+	lis		r3,__bss_start@ha
+	lis		r5,__bss_end@ha
+	addi	r3,r3,__bss_start@l
+	addi	r5,r5,__bss_end@l
 	li		r4,0
-	lis		r5,__bss_end@h
-	ori		r5,r5,__bss_end@l
-	sub		r5,r5,r3
-	bl		_memset
+	subf	r5,r3,r5
+	bl		memset
 
-1:
 	b      SYS_Init # Branch to the user code!
 
 __InitGPRS:
 	# Clear all of the GPR's to 0
 	li      r0,0
+	lis     sp,__crt0stack@ha
+	addi    sp,sp,__crt0stack@l-0x8
+	li      r2,0
 	li      r3,0
 	li      r4,0
 	li      r5,0
@@ -82,6 +73,8 @@ __InitGPRS:
 	li      r10,0
 	li      r11,0
 	li      r12,0
+	lis     r13,_SDA_BASE_@ha
+	addi    r13,r13,_SDA_BASE_@l # Set the Small Data (Read\Write) base register.
 	li      r14,0
 	li      r15,0
 	li      r16,0
@@ -100,58 +93,15 @@ __InitGPRS:
 	li      r29,0
 	li      r30,0
 	li      r31,0
-
-	lis		sp,__crt0stack@h		    # we take 0x8173FFF0 as the topmost starting point for our stack,this gives us ~128Kb Stack
-	ori		sp,sp,__crt0stack@l
-	addi	sp,sp,-4
-	stw		r0,0(sp)
-	stwu	sp,-56(sp)
-
-	lis     r2,_SDA2_BASE_@h
-	ori     r2,r2,_SDA2_BASE_@l  # Set the Small Data 2 (Read Only) base register.
-	lis     r13,_SDA_BASE_@h
-	ori     r13,r13,_SDA_BASE_@l # Set the Small Data (Read\Write) base register.	
 	blr
 
-__InitHardware:
-	# Enable the Floating Point Registers
-	mfmsr   r3
-	ori     r3,r3,MSR_FP
-	mtmsr   r3
-
-	mflr	r31
-	bl		__InitPS 			# Initialize Paired Singles
-	bl		__InitFPRS		 	# Initialize the FPR's
-	bl		__InitCache 		# Initialize the system caches
-	mtlr	r31
-	blr
-	
-	//r3 = ptr, r4 = fill, r5 = size
-	.globl _memset
-_memset:
-	clrlwi.	r6,r5,29
-	srwi	r5,r5,2
-	subi	r3,r3,4
-	mtctr	r5
-1:	stwu	r4,4(r3)
-	bdnz	1b
-	cmplwi	r6,0
-	beq		3f
-2:	stbu	r4,1(r3)
-	addic.	r6,r6,-1
-	bne+	2b
-3:	blr
-
-	.section .bss
-	.balign 8
+	.section	.bss,"aw",@nobits
+	.balign	8
 __crt0stack_end:
-	.space 0x4000
+	.space	0x4000
 __crt0stack:
 
-	.globl __system_argv
 	.section	.sdata,"aw",@progbits
-	.align 2
-	.type	__system_argv, @object
-	.size	__system_argv, 4
+	.globl	__system_argv
 __system_argv:
 	.long	__argv

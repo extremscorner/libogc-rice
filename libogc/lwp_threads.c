@@ -33,8 +33,6 @@ static void (*_lwp_exitfunc)(void);
 
 extern void _cpu_context_switch(void *,void *);
 extern void _cpu_context_switch_ex(void *,void *);
-extern void _cpu_context_save(void *);
-extern void _cpu_context_restore(void *);
 extern void _cpu_context_save_fp(void *);
 extern void _cpu_context_restore_fp(void *);
 
@@ -71,38 +69,6 @@ void __lwp_dumpcontext_fp(lwp_cntrl *thrA,lwp_cntrl *thrB)
 }
 #endif
 
-/*
-void __lwp_getthreadlist(lwp_obj **thrs)
-{
-	*thrs = _lwp_objects;
-}
-*/
-u32 __lwp_isr_in_progress()
-{
-	register u32 isr_nest_level;
-	isr_nest_level = mfspr(272);
-	return isr_nest_level;
-}
-
-static inline void __lwp_msr_setlevel(u32 level)
-{
-	register u32 msr;
-	_CPU_MSR_GET(msr);
-	if(!(level&CPU_MODES_INTERRUPT_MASK))
-		msr |= MSR_EE;
-	else
-		msr &= ~MSR_EE;
-	_CPU_MSR_SET(msr);
-}
-
-static inline u32 __lwp_msr_getlevel()
-{
-	register u32 msr;
-	_CPU_MSR_GET(msr);
-	if(msr&MSR_EE) return 0;
-	else return 1;
-}
-
 void __lwp_thread_delayended(void *arg)
 {
 	lwp_cntrl *thethread = (lwp_cntrl*)arg;
@@ -126,11 +92,6 @@ void __lwp_thread_tickle_timeslice(void *arg)
 	
 	__lwp_thread_dispatchdisable();
 
-	if(!exec->is_preemptible) {
-		__lwp_wd_insert_ticks(&_lwp_wd_timeslice,ticks);
-		__lwp_thread_dispatchunnest();
-		return;
-	}
 	if(!__lwp_stateready(exec->cur_state)) {
 		__lwp_wd_insert_ticks(&_lwp_wd_timeslice,ticks);
 		__lwp_thread_dispatchunnest();
@@ -154,10 +115,8 @@ void __lwp_thread_tickle_timeslice(void *arg)
 
 void __thread_dispatch_fp()
 {
-	u32 level;
 	lwp_cntrl *exec;
 
-	_CPU_ISR_Disable(level);
 	exec = _thr_executing;
 #ifdef _LWPTHREADS_DEBUG
 	__lwp_dumpcontext_fp(exec,_thr_allocated_fp);
@@ -167,7 +126,6 @@ void __thread_dispatch_fp()
 		_cpu_context_restore_fp(&exec->context);
 		_thr_allocated_fp = exec;
 	}
-	_CPU_ISR_Restore(level);
 }
 
 void __thread_dispatch()
@@ -202,15 +160,12 @@ void __thread_dispatch()
 
 static void __lwp_thread_handler()
 {
-	u32 level;
 	lwp_cntrl *exec;
 
 	exec = _thr_executing;
 #ifdef _LWPTHREADS_DEBUG
 	kprintf("__lwp_thread_handler(%p,%d)\n",exec,_thread_dispatch_disable_level);
 #endif
-	level = exec->isr_level;
-	__lwp_msr_setlevel(level);
 	__lwp_thread_dispatchenable();
 	exec->wait.ret_arg = exec->entry(exec->arg);
 
@@ -353,27 +308,12 @@ void __lwp_thread_clearstate(lwp_cntrl *thethread,u32 state)
 			
 			if(thethread->cur_prio<_thr_heir->cur_prio) {
 				_thr_heir = thethread;
-				if(_thr_executing->is_preemptible
-					|| thethread->cur_prio==0)
 				_context_switch_want = TRUE;
 			}
 		}
 	}
 
 	_CPU_ISR_Restore(level);
-}
-
-u32 __lwp_evaluatemode()
-{
-	lwp_cntrl *exec;
-	
-	exec = _thr_executing;
-	if(!__lwp_stateready(exec->cur_state)
-		|| (!__lwp_thread_isheir(exec) && exec->is_preemptible)){
-		_context_switch_want = TRUE;
-		return TRUE;
-	}
-	return FALSE;
 }
 
 void __lwp_thread_changepriority(lwp_cntrl *thethread,u32 prio,u32 prependit)
@@ -403,8 +343,7 @@ void __lwp_thread_changepriority(lwp_cntrl *thethread,u32 prio,u32 prependit)
 
 	__lwp_thread_calcheir();
 	
-	if(!(_thr_executing==_thr_heir)
-		&& _thr_executing->is_preemptible)
+	if(!__lwp_thread_isheir(_thr_executing))
 		_context_switch_want = TRUE;
 
 	_CPU_ISR_Restore(level);
@@ -502,8 +441,6 @@ void __lwp_thread_resume(lwp_cntrl *thethread,u32 force)
 			_CPU_ISR_Flash(level);
 			if(thethread->cur_prio<_thr_heir->cur_prio) {
 				_thr_heir = thethread;
-				if(_thr_executing->is_preemptible
-					|| thethread->cur_prio==0)
 				_context_switch_want = TRUE;
 			}
 		}
@@ -514,9 +451,6 @@ void __lwp_thread_resume(lwp_cntrl *thethread,u32 force)
 void __lwp_thread_loadenv(lwp_cntrl *thethread)
 {
 	u32 stackbase,sp,size;
-	u32 r2,r13,msr_value;
-	
-	thethread->context.FPSCR = 0x000000f8;
 
 	stackbase = (u32)thethread->stack;
 	size = thethread->stack_size;
@@ -524,26 +458,16 @@ void __lwp_thread_loadenv(lwp_cntrl *thethread)
 	// tag both bottom & head of stack
 	*((u32*)stackbase) = 0xDEADBABE;
 	sp = stackbase+size-CPU_MINIMUM_STACK_FRAME_SIZE;
-	sp &= ~(CPU_STACK_ALIGNMENT-1);
 	*((u32*)sp) = 0;
 	
 	thethread->context.GPR[1] = sp;
 	
-	msr_value = (MSR_ME|MSR_IR|MSR_DR|MSR_RI);
-	if(!(thethread->isr_level&CPU_MODES_INTERRUPT_MASK))
-		msr_value |= MSR_EE;
-	
-	thethread->context.MSR = msr_value;
 	thethread->context.LR = (u32)__lwp_thread_handler;
-
-	__asm__ __volatile__ ("mr %0,2; mr %1,13" : "=r" ((r2)), "=r" ((r13)));
-	thethread->context.GPR[2] = r2;
-	thethread->context.GPR[13] = r13;
+	thethread->context.MSR = MSR_EE|MSR_ME|MSR_IR|MSR_DR|MSR_RI;
 
 #ifdef _LWPTHREADS_DEBUG
 	kprintf("__lwp_thread_loadenv(%p,%p,%d,%p)\n",thethread,(void*)stackbase,size,(void*)sp);
 #endif
-
 }
 
 void __lwp_thread_ready(lwp_cntrl *thethread)
@@ -562,29 +486,23 @@ void __lwp_thread_ready(lwp_cntrl *thethread)
 
 	__lwp_thread_calcheir();
 	heir = _thr_heir;
-	if(!(__lwp_thread_isexec(heir)) && _thr_executing->is_preemptible)
+	if(!__lwp_thread_isexec(heir))
 		_context_switch_want = TRUE;
 	
 	_CPU_ISR_Restore(level);
 }
 
-u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 prio,u32 isr_level,bool is_preemtible)
+u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 prio)
 {
 	u32 act_stack_size = 0;
 
 #ifdef _LWPTHREADS_DEBUG
-	kprintf("__lwp_thread_init(%p,%p,%d,%d,%d)\n",thethread,stack_area,stack_size,prio,isr_level);
+	kprintf("__lwp_thread_init(%p,%p,%d,%d)\n",thethread,stack_area,stack_size,prio);
 #endif
 
 	if(!stack_area) {
-		if(!__lwp_stack_isenough(stack_size))
-			act_stack_size = CPU_MINIMUM_STACK_SIZE;
-		else
-			act_stack_size = stack_size;
-
-		act_stack_size = __lwp_stack_allocate(thethread,act_stack_size);
+		act_stack_size = __lwp_stack_allocate(thethread,stack_size);
 		if(!act_stack_size) return 0;
-
 		thethread->stack_allocated = TRUE;
 	} else {
 		thethread->stack = stack_area;
@@ -599,8 +517,6 @@ u32 __lwp_thread_init(lwp_cntrl *thethread,void *stack_area,u32 stack_size,u32 p
 	memset(&thethread->wait,0,sizeof(thethread->wait));
 
 	thethread->budget_algo = (prio<128 ? LWP_CPU_BUDGET_ALGO_NONE : LWP_CPU_BUDGET_ALGO_TIMESLICE);
-	thethread->is_preemptible = is_preemtible;
-	thethread->isr_level = isr_level;
 	thethread->real_prio = prio;
 	thethread->cur_state = LWP_STATES_DORMANT;
 	thethread->cpu_time_budget = _lwp_ticks_per_timeslice;

@@ -37,11 +37,9 @@ typedef struct _lwpcntrl {
 	lwp_obj object;
 	u8  cur_prio,real_prio;
 	u32 suspendcnt,res_cnt;
-	u32 isr_level;
 	u32 cur_state;
 	u32 cpu_time_budget;
 	lwp_cpu_budget_algorithms budget_algo;
-	bool is_preemptible;
 	lwp_waitinfo wait;
 	prio_cntrl priomap;
 	wd_cntrl timer;
@@ -50,7 +48,7 @@ typedef struct _lwpcntrl {
 	void *arg;
 	void *stack;
 	u32 stack_size;
-	u8 stack_allocated;
+	bool stack_allocated;
 	lwp_queue *ready;
 	lwp_thrqueue join_list;
 	frame_context context;		//16
@@ -81,16 +79,13 @@ void __lwp_thread_suspend(lwp_cntrl *);
 void __lwp_thread_resume(lwp_cntrl *,u32);
 void __lwp_thread_loadenv(lwp_cntrl *);
 void __lwp_thread_ready(lwp_cntrl *);
-u32 __lwp_thread_init(lwp_cntrl *,void *,u32,u32,u32,bool);
+u32 __lwp_thread_init(lwp_cntrl *,void *,u32,u32);
 u32 __lwp_thread_start(lwp_cntrl *,void* (*)(void*),void *);
 void __lwp_thread_exit(void *);
 void __lwp_thread_close(lwp_cntrl *);
 void __lwp_thread_startmultitasking();
 void __lwp_thread_stopmultitasking(void (*exitfunc)());
-lwp_obj* __lwp_thread_getobject(lwp_cntrl *);
-u32 __lwp_evaluatemode();
 
-u32 __lwp_isr_in_progress();
 void __lwp_thread_resettimeslice();
 void __lwp_rotate_readyqueue(u32);
 void __lwp_thread_delayended(void *);

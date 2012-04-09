@@ -120,11 +120,23 @@ distribution.
  *@}
  */
 
-#define SYS_GetArenaLo					SYS_GetArena1Lo
-#define SYS_SetArenaLo					SYS_SetArena1Lo
-#define SYS_GetArenaHi					SYS_GetArena1Hi
-#define SYS_SetArenaHi					SYS_SetArena1Hi
-#define SYS_GetArenaSize				SYS_GetArena1Size
+#if defined(HW_DOL)
+	#define SYS_GetArenaLo				SYS_GetArena1Lo
+	#define SYS_SetArenaLo				SYS_SetArena1Lo
+	#define SYS_GetArenaHi				SYS_GetArena1Hi
+	#define SYS_SetArenaHi				SYS_SetArena1Hi
+	#define SYS_GetArenaSize			SYS_GetArena1Size
+	#define SYS_AllocArenaMemLo			SYS_AllocArena1MemLo
+	#define SYS_AllocArenaMemHi			SYS_AllocArena1MemHi
+#elif defined(HW_RVL)
+	#define SYS_GetArenaLo				SYS_GetArena2Lo
+	#define SYS_SetArenaLo				SYS_SetArena2Lo
+	#define SYS_GetArenaHi				SYS_GetArena2Hi
+	#define SYS_SetArenaHi				SYS_SetArena2Hi
+	#define SYS_GetArenaSize			SYS_GetArena2Size
+	#define SYS_AllocArenaMemLo			SYS_AllocArena2MemLo
+	#define SYS_AllocArenaMemHi			SYS_AllocArena2MemHi
+#endif
 
 #ifdef __cplusplus
    extern "C" {
@@ -230,13 +242,6 @@ struct _sys_resetinfo {
 	u32 prio;
 };
 
-/*! \fn void SYS_Init()
-\deprecated Performs basic system initialization such as EXI init etc. This function is called from within the crt0 startup code.
-
-\return none
-*/
-void SYS_Init();
-
 
 /*!
  * \fn void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
@@ -310,10 +315,9 @@ u32 SYS_GetFontEncoding();
 u32 SYS_InitFont(sys_fontheader *font_data);
 void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width);
 void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width);
-void SYS_ResetSystem(s32 reset,u32 reset_code,s32 force_menu);
+void SYS_ResetSystem(s32 reset);
 void SYS_RegisterResetFunc(sys_resetinfo *info);
 void SYS_UnregisterResetFunc(sys_resetinfo *info);
-u32 SYS_GetArenaSize();
 void SYS_SwitchFiber(u32 arg0,u32 arg1,u32 arg2,u32 arg3,u32 pc,u32 newsp);
 
 void* SYS_GetArena1Lo();
@@ -321,6 +325,8 @@ void SYS_SetArena1Lo(void *newLo);
 void* SYS_GetArena1Hi();
 void SYS_SetArena1Hi(void *newHi);
 u32 SYS_GetArena1Size();
+void* SYS_AllocArena1MemLo(u32 size,u32 align);
+void* SYS_AllocArena1MemHi(u32 size,u32 align);
 
 resetcallback SYS_SetResetCallback(resetcallback cb);
 
@@ -328,11 +334,15 @@ u32 SYS_ResetButtonDown();
 
 #if defined(HW_RVL)
 u32 SYS_GetHollywoodRevision();
+
 void* SYS_GetArena2Lo();
 void SYS_SetArena2Lo(void *newLo);
 void* SYS_GetArena2Hi();
 void SYS_SetArena2Hi(void *newHi);
 u32 SYS_GetArena2Size();
+void* SYS_AllocArena2MemLo(u32 size,u32 align);
+void* SYS_AllocArena2MemHi(u32 size,u32 align);
+
 powercallback SYS_SetPowerCallback(powercallback cb);
 #endif
 
