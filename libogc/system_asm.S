@@ -28,7 +28,7 @@ configBATS:
 	sync
 
 #if defined(HW_RVL)
-	lis		r3,0xA7F0		//bits set: H4A(HID4 access), SBE(2nd BAT enabled)
+	lis		r3,0xB7B0		//bits set: H4A(HID4 access), SBE(2nd BAT enabled)
 	mtspr	HID4,r3
 	isync
 #endif
