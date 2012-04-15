@@ -10,7 +10,7 @@
 #include "system.h"
 
 #if defined(HW_RVL)
-u32 MALLOC_MEM2 __attribute__((weak)) = 1;
+u32 MALLOC_MEM1 __attribute__((weak)) = 1;
 #endif
 
 void* _DEFUN(__libogc_sbrk_r,(ptr,incr),
@@ -26,8 +26,8 @@ void* _DEFUN(__libogc_sbrk_r,(ptr,incr),
 
 	_CPU_ISR_Disable(level);
 #if defined(HW_RVL)
-	if(MALLOC_MEM2) {
-		// use MEM2 aswell for malloc
+	if(MALLOC_MEM1) {
+		// use MEM1 aswell for malloc
 		if(mem2_start==NULL)
 			heap_end = (char*)SYS_GetArena1Lo();
 		else
@@ -73,9 +73,9 @@ void* _DEFUN(__libogc_sbrk_r,(ptr,incr),
 		}
 	} else {
 #endif
-		heap_end = (char*)SYS_GetArena1Lo();
+		heap_end = (char*)SYS_GetArenaLo();
 
-		if((heap_end+incr)>(char*)SYS_GetArena1Hi()) {
+		if((heap_end+incr)>(char*)SYS_GetArenaHi()) {
 
 			ptr->_errno = ENOMEM;
 			prev_heap = (char *)-1;
@@ -83,7 +83,7 @@ void* _DEFUN(__libogc_sbrk_r,(ptr,incr),
 		} else {
 
 			prev_heap = heap_end;
-			SYS_SetArena1Lo((void*)(heap_end+incr));
+			SYS_SetArenaLo((void*)(heap_end+incr));
 		}
 #if defined(HW_RVL)
 	}
