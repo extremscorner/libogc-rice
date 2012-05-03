@@ -863,6 +863,41 @@ GXRModeObj TVPal264DsAa =
 	}
 };
 
+GXRModeObj TVPal288Ds =
+{
+    VI_TVMODE_PAL_DS,       // viDisplayMode
+    640,             // fbWidth
+    288,             // efbHeight
+    288,             // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL/2 - 576/2)/2,        // viYOrigin
+    640,             // viWidth
+    576,             // viHeight
+    VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
+    GX_FALSE,        // field_rendering
+    GX_FALSE,        // aa
+
+    // sample points arranged in increasing Y order
+	{
+		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+		{6,6},{6,6},{6,6},  // pix 1
+		{6,6},{6,6},{6,6},  // pix 2
+		{6,6},{6,6},{6,6}   // pix 3
+	},
+
+    // vertical filter[7], 1/64 units, 6 bits each
+	{
+		 0,         // line n-1
+		 0,         // line n-1
+		21,         // line n
+		22,         // line n
+		21,         // line n
+		 0,         // line n+1
+		 0          // line n+1
+	}
+};
+
 GXRModeObj TVPal264Int =
 {
     VI_TVMODE_PAL_INT,      // viDisplayMode
@@ -919,6 +954,41 @@ GXRModeObj TVPal264IntAa =
 		{3,2},{9,6},{3,10},  // pix 1
 		{9,2},{3,6},{9,10},  // pix 2
 		{9,2},{3,6},{9,10}   // pix 3
+	},
+
+    // vertical filter[7], 1/64 units, 6 bits each
+	{
+		 0,         // line n-1
+		 0,         // line n-1
+		21,         // line n
+		22,         // line n
+		21,         // line n
+		 0,         // line n+1
+		 0          // line n+1
+	}
+};
+
+GXRModeObj TVPal288Int =
+{
+    VI_TVMODE_PAL_INT,      // viDisplayMode
+    640,             // fbWidth
+    288,             // efbHeight
+    288,             // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
+    640,             // viWidth
+    576,             // viHeight
+    VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
+    GX_TRUE,         // field_rendering
+    GX_FALSE,        // aa
+
+    // sample points arranged in increasing Y order
+	{
+		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+		{6,6},{6,6},{6,6},  // pix 1
+		{6,6},{6,6},{6,6},  // pix 2
+		{6,6},{6,6},{6,6}   // pix 3
 	},
 
     // vertical filter[7], 1/64 units, 6 bits each
