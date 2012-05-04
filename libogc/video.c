@@ -1107,6 +1107,41 @@ GXRModeObj TVPal524IntAa =
 	}
 };
 
+GXRModeObj TVPal576Int =
+{
+    VI_TVMODE_PAL_INT,       // viDisplayMode
+    640,             // fbWidth
+    288,             // efbHeight
+    576,             // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
+    640,             // viWidth
+    576,             // viHeight
+    VI_XFBMODE_DF,   // xFBmode
+    VI_FIELD_BELOW,  // field_order
+    GX_FALSE,        // field_rendering
+    GX_FALSE,        // aa
+
+    // sample points arranged in increasing Y order
+	{
+		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+		{6,6},{6,6},{6,6},  // pix 1
+		{6,6},{6,6},{6,6},  // pix 2
+		{6,6},{6,6},{6,6}   // pix 3
+	},
+
+    // vertical filter[7], 1/64 units, 6 bits each
+	{
+		 0,         // line n-1
+		 0,         // line n-1
+		21,         // line n
+		22,         // line n
+		21,         // line n
+		 0,         // line n+1
+		 0          // line n+1
+	}
+};
+
 GXRModeObj TVPal576IntDfScale =
 {
     VI_TVMODE_PAL_INT,      // viDisplayMode
@@ -1243,6 +1278,40 @@ GXRModeObj TVPal524ProgAa =
 		8,         // line n+1
 		4          // line n+1
 	}
+};
+
+GXRModeObj TVPal576Prog =
+{
+    VI_TVMODE_PAL_PROG,      // viDisplayMode
+    640,             // fbWidth
+    288,             // efbHeight
+    576,             // xfbHeight
+    (VI_MAX_WIDTH_PAL - 640)/2,         // viXOrigin
+    (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
+    640,             // viWidth
+    576,             // viHeight
+    VI_XFBMODE_SF,   // xFBmode
+    VI_FIELD_ABOVE,  // field_order
+    GX_FALSE,        // field_rendering
+    GX_FALSE,        // aa
+
+    // sample points arranged in increasing Y order
+	{
+		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
+		{6,6},{6,6},{6,6},  // pix 1
+		{6,6},{6,6},{6,6},  // pix 2
+		{6,6},{6,6},{6,6}   // pix 3
+	},
+    // vertical filter[7], 1/64 units, 6 bits each
+    {
+		 0,         // line n-1
+		 0,         // line n-1
+		21,         // line n
+		22,         // line n
+		21,         // line n
+		 0,         // line n+1
+		 0          // line n+1
+    }
 };
 
 GXRModeObj TVPal576ProgScale =

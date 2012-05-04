@@ -178,10 +178,12 @@ extern GXRModeObj TVPal288Int;
 extern GXRModeObj TVPal528Int;				/*!< Video and render mode configuration for 528 lines,interlaced PAL mode */
 extern GXRModeObj TVPal528IntDf;			/*!< Video and render mode configuration for 528 lines,interlaced,doublefield PAL mode */
 extern GXRModeObj TVPal524IntAa;			/*!< Video and render mode configuration for 524 lines,interlaced,doublefield,antialiased PAL mode */
+extern GXRModeObj TVPal576Int;
 extern GXRModeObj TVPal576IntDfScale;
 extern GXRModeObj TVPal528Prog;
 extern GXRModeObj TVPal528ProgSoft;
 extern GXRModeObj TVPal524ProgAa;
+extern GXRModeObj TVPal576Prog;
 extern GXRModeObj TVPal576ProgScale;
 extern GXRModeObj TVEurgb60Hz240Ds;
 extern GXRModeObj TVEurgb60Hz240DsAa;
