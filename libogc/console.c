@@ -513,7 +513,7 @@ int __console_write(struct _reent *r,int fd,const char *ptr,size_t len)
 			usb_sendbuffer(__gecko_status,ptr,len);
 	}
 
-	if(!curr_con) return -1;
+	if(!curr_con) return len;
 	con = curr_con;
 	if(!tmp || len<=0) return -1;
 
@@ -574,14 +574,19 @@ int __console_write(struct _reent *r,int fd,const char *ptr,size_t len)
 		if( con->cursor_row >= con->con_rows)
 		{
 			/* if bottom border reached scroll */
-			memcpy(con->destbuffer,
-				con->destbuffer+con->con_stride*(FONT_YSIZE*FONT_YFACTOR+FONT_YGAP),
-				con->con_stride*con->con_yres-FONT_YSIZE);
+			unsigned int cnt;
+			unsigned int *src, *dst;
 
-			unsigned int cnt = (con->con_stride * (FONT_YSIZE * FONT_YFACTOR + FONT_YGAP))/4;
-			unsigned int *ptr = (unsigned int*)(con->destbuffer + con->con_stride * (con->con_yres - FONT_YSIZE));
+			cnt = (con->con_stride * con->con_yres - FONT_YSIZE)/4;
+			src = (unsigned int*)(con->destbuffer + con->con_stride * (FONT_YSIZE * FONT_YFACTOR + FONT_YGAP));
+			dst = con->destbuffer;
 			while(cnt--)
-				*ptr++ = con->background;
+				*dst++ = *src++;
+
+			cnt = (con->con_stride * (FONT_YSIZE * FONT_YFACTOR + FONT_YGAP))/4;
+			dst = (unsigned int*)(con->destbuffer + con->con_stride * (con->con_yres - FONT_YSIZE));
+			while(cnt--)
+				*dst++ = con->background;
 			con->cursor_row--;
 		}
 	}
@@ -626,20 +631,18 @@ void CON_GetPosition(int *col, int *row)
 
 void CON_EnableGecko(int channel,int safe)
 {
-	if(channel && (channel>1 || !usb_isgeckoalive(channel))) channel = -1;
+	if(!usb_isgeckoalive(channel)) channel = -1;
 
 	__gecko_status = channel;
 	__gecko_safe = safe;
 
-	if(__gecko_status!=-1) {
-		devoptab_list[STD_OUT] = &dotab_stdout;
-		devoptab_list[STD_ERR] = &dotab_stdout;
+	devoptab_list[STD_OUT] = &dotab_stdout;
+	devoptab_list[STD_ERR] = &dotab_stdout;
 
-		// line buffered output for threaded apps when only using the usbgecko
-		if(!curr_con) {
-			setvbuf(stdout, NULL, _IOLBF, 0);
-			setvbuf(stderr, NULL, _IOLBF, 0);
-		}
+	// line buffered output for threaded apps when only using the usbgecko
+	if(!curr_con) {
+		setvbuf(stdout, NULL, _IOLBF, 0);
+		setvbuf(stderr, NULL, _IOLBF, 0);
 	}
 }
 
