@@ -500,9 +500,8 @@ static u32 __sram_read(void *buffer)
 	if(EXI_Imm(EXI_CHANNEL_0,&command,4,EXI_WRITE,NULL)==0) ret |= 0x01;
 	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
 	if(EXI_ImmEx(EXI_CHANNEL_0,buffer,64,EXI_READ)==0) ret |= 0x04;
-	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x08;
-	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x10;
-	if(EXI_Unlock(EXI_CHANNEL_0)==0) ret |= 0x20;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x08;
+	if(EXI_Unlock(EXI_CHANNEL_0)==0) ret |= 0x10;
 
 	if(ret) return 0;
 	return 1;
