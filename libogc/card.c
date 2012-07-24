@@ -1980,7 +1980,7 @@ static s32 __card_domount(s32 chn)
 						cnt++;
 					}
 					sum = (sum^-1)&0xff;
-					sramex->flashID_chksum[chn] = (sum<<8)|sum;
+					sramex->flashID_chksum[chn] = sum;
 					__SYS_UnlockSramEx(1);
 					return ret;
 				}
@@ -1997,7 +1997,6 @@ static s32 __card_domount(s32 chn)
 				__SYS_UnlockSramEx(0);
 				
 				sum = (sum^-1)&0xff;
-				sum |= (sum<<8);
 				if(cnt!=sum) {
 					ret = CARD_ERROR_IOERROR;
 					goto exit;
@@ -2413,7 +2412,11 @@ static s32 __dounlock(s32 chn,u32 *key)
 	cipher1[1] = e;
 	workarea[0] = (u32)cipher1;
 	workarea[1] = 8;
-	workarea[2] = 0;
+#if defined(HW_RVL)
+	workarea[2] = 0x10000000; // use MEM2 base
+#else
+	workarea[2] = 0; // use ARAM base
+#endif
 	workarea[3] = (u32)cipher2;
 	DCFlushRange(cipher1,8);
 	DCInvalidateRange(cipher2,4);
