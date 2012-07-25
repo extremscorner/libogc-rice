@@ -487,8 +487,6 @@ static u32 __sram_read(void *buffer)
 {
 	u32 command,ret;
 
-	DCInvalidateRange(buffer,64);
-
 	if(EXI_Lock(EXI_CHANNEL_0,EXI_DEVICE_1,NULL)==0) return 0;
 	if(EXI_Select(EXI_CHANNEL_0,EXI_DEVICE_1,EXI_SPEED8MHZ)==0) {
 		EXI_Unlock(EXI_CHANNEL_0);
