@@ -2,21 +2,17 @@
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 
-ifeq ($(strip $(DEVKITPRO)),)
-$(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>devkitPro")
+ifeq ($(strip $(DEVKITRICE)),)
+$(error "Please set DEVKITRICE in your environment. export DEVKITRICE=<path to>devkitRice")
 endif
 
-ifeq ($(strip $(DEVKITPPC)),)
-$(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
-endif
-
-export PATH	:=	$(DEVKITPPC)/bin:$(PATH)
+export PATH	:=	$(DEVKITRICE)/bin:$(PATH)
 
 export LIBOGC_MAJOR	:= 1
 export LIBOGC_MINOR	:= 9
 export LIBOGC_PATCH	:= 0
 
-include	$(DEVKITPPC)/base_rules
+include	$(DEVKITRICE)/rules
 
 BUILD		:=	build
 
@@ -84,16 +80,6 @@ INCLUDES	:=	$(DEFINCS) -I$(BASEDIR)/gc/netif -I$(BASEDIR)/gc/ipv4 \
 				-I$(BASEDIR)/gc/sdcard -I$(BASEDIR)/gc/wiiuse \
 				-I$(BASEDIR)/gc/di
 
-MACHDEP		:= -DBIGENDIAN -DGEKKO
-
-ifeq ($(PLATFORM),wii)
-MACHDEP		+=	-DHW_RVL
-endif
-
-ifeq ($(PLATFORM),cube)
-MACHDEP		+=	-DHW_DOL
-endif
-
 CFLAGS		:= -DLIBOGC_INTERNAL -g -Os -Wall $(MACHDEP) -fno-signed-zeros -fno-strict-aliasing $(INCLUDES)
 ASFLAGS		:=	$(MACHDEP) -D_LANGUAGE_ASSEMBLY $(INCLUDES)
 
@@ -141,7 +127,7 @@ OGCOBJ		:=	\
 			cond.o gx.o gu.o gu_psasm.o audio.o decrementer.o decrementer_handler.o \
 			message.o card.o aram.o depackrnc.o depackrnc1.o dsp.o si.o tpl.o ipc.o \
 			console_font_8x16.o timesupp.o lock_supp.o newlibc.o usbgecko.o usbmouse.o \
-			sbrk.o malloc_lock.o kprintf.o stm.o ios.o es.o isfs.o usb.o network_common.o \
+			sbrk.o kprintf.o stm.o ios.o es.o isfs.o usb.o network_common.o \
 			sdgecko_io.o sdgecko_buf.o gcsd.o argv.o network_wii.o wiisd.o conf.o usbstorage.o \
 			texconv.o wiilaunch.o
 
@@ -278,10 +264,9 @@ install-headers:
 #---------------------------------------------------------------------------------
 install: install-headers
 #---------------------------------------------------------------------------------
-	@mkdir -p $(DEVKITPRO)/libogc
-	@cp -frv include $(DEVKITPRO)/libogc
-	@cp -frv lib $(DEVKITPRO)/libogc
-	@cp -frv libogc_license.txt $(DEVKITPRO)/libogc
+	@mkdir -p $(DEVKITRICE)/usr
+	@cp -frv include $(DEVKITRICE)/usr
+	@cp -frv lib $(DEVKITRICE)/usr
 
 
 #---------------------------------------------------------------------------------
