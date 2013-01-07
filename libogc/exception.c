@@ -216,16 +216,10 @@ static void waitForReload()
 
 		int buttonsDown = PAD_ButtonsDown(0);
 
-		if( (buttonsDown & PAD_TRIGGER_Z) || SYS_ResetButtonDown() || 
+		if( buttonsDown || SYS_ResetButtonDown() || 
 			reload_timer == 0 )
 		{
 			kprintf("\n\tReload\n\n\n");
-			__reload ();
-		}
-
-		if ( buttonsDown & PAD_BUTTON_A )
-		{
-			kprintf("\n\tReset\n\n\n");
 			__reload ();
 		}
 

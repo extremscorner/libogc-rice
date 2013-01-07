@@ -1184,14 +1184,10 @@ void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl)
 void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
 {
 	u32 size = VIDEO_GetFrameBufferSize(rmode);
-	void *ptr = memalign(PPC_CACHE_ALIGNMENT,size);
-	
-	if(ptr) {
-		DCInvalidateRange(ptr,size);
-		ptr = MEM_K0_TO_K1(ptr);
-		__VIClearFramebuffer(ptr,size,COLOR_BLACK);
-	}
-	
+	void *ptr = SYS_AllocArenaMemHi(size,PPC_CACHE_ALIGNMENT);
+
+	ptr = MEM_K0_TO_K1(ptr);
+	__VIClearFramebuffer(ptr,size,COLOR_BLACK);
 	return ptr;
 }
 

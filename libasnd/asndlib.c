@@ -28,7 +28,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 #include <unistd.h>
-
+#include <string.h>
 #include <ogcsys.h>
 #include <gccore.h>
 #include <ogc/lwp_watchdog.h>
@@ -102,18 +102,6 @@ static t_sound_data sound_data[MAX_SND_VOICES];
 static t_sound_data sound_data_dma ATTRIBUTE_ALIGN(32);
 static s16 mute_buf[SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
 static s16 audio_buf[2][SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
-
-static __inline__ char* snd_set0b( char *p, int n)
-{
-	while(n>0) {*p++=0;n--;}
-	return p;
-}
-
-static __inline__ s32* snd_set0w( s32 *p, int n)
-{
-	while(n>0) {*p++=0;n--;}
-	return p;
-}
 
 static void __dsp_initcallback(dsptask_t *task)
 {
@@ -364,15 +352,15 @@ void ASND_Init()
 		dsp_complete = 0;
 		dsp_done = 0;
 
-		snd_set0w((s32*)mute_buf, SND_BUFFERSIZE>>2);
-		snd_set0w((s32*)audio_buf[0], SND_BUFFERSIZE>>2);
-		snd_set0w((s32*)audio_buf[1], SND_BUFFERSIZE>>2);
+		memset(mute_buf,0,SND_BUFFERSIZE);
+		memset(audio_buf[0],0,SND_BUFFERSIZE);
+		memset(audio_buf[1],0,SND_BUFFERSIZE);
 		DCFlushRange(mute_buf,SND_BUFFERSIZE);
 		DCFlushRange(audio_buf[0],SND_BUFFERSIZE);
 		DCFlushRange(audio_buf[1],SND_BUFFERSIZE);
 
 		for(i=0;i<MAX_SND_VOICES;i++)
-			snd_set0w((s32*)&sound_data[i],sizeof(t_sound_data)/4);
+			memset(&sound_data[i],0,sizeof(t_sound_data));
 
 		dsp_task.prio = 255;
 		dsp_task.iram_maddr = (u16*)MEM_VIRTUAL_TO_PHYSICAL(dsp_mixer);
