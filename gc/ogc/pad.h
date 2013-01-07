@@ -32,6 +32,15 @@
 #define PAD_BUTTON_MENU				0x1000
 #define PAD_BUTTON_START			0x1000
 
+#define PAD_SUBSTICK_UP				(0x0100<<16)
+#define PAD_SUBSTICK_DOWN			(0x0200<<16)
+#define PAD_SUBSTICK_LEFT			(0x0400<<16)
+#define PAD_SUBSTICK_RIGHT			(0x0800<<16)
+#define PAD_STICK_UP				(0x1000<<16)
+#define PAD_STICK_DOWN				(0x2000<<16)
+#define PAD_STICK_LEFT				(0x4000<<16)
+#define PAD_STICK_RIGHT				(0x8000<<16)
+
 #define PAD_CHAN0_BIT				0x80000000
 #define PAD_CHAN1_BIT				0x40000000
 #define PAD_CHAN2_BIT				0x20000000
@@ -72,9 +81,9 @@ void PAD_SetSpec(u32 spec);
 
 u32 PAD_ScanPads();
 
-u16 PAD_ButtonsUp(int pad);
-u16 PAD_ButtonsDown(int pad);
-u16 PAD_ButtonsHeld(int pad);
+u32 PAD_ButtonsUp(int pad);
+u32 PAD_ButtonsDown(int pad);
+u32 PAD_ButtonsHeld(int pad);
 
 s8 PAD_SubStickX(int pad);
 s8 PAD_SubStickY(int pad);

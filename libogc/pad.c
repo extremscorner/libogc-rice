@@ -28,9 +28,9 @@ typedef struct _keyinput {
 	s8 substickY;
 	u8 triggerL;
 	u8 triggerR;
-	u16 up;
-	u16 down;
-	u16 state;
+	u32 up;
+	u32 down;
+	u32 state;
 	u32 chan;
 } keyinput;
 
@@ -696,7 +696,7 @@ u32 PAD_ScanPads()
 	s32 i;
 	u32 resetBits;
 	u32 padBit,connected;
-	u16 state,oldstate;
+	u32 state,oldstate;
 	PADStatus padstatus[PAD_CHANMAX];
 
 	resetBits = 0;
@@ -709,8 +709,27 @@ u32 PAD_ScanPads()
 
 		switch(padstatus[i].err) {
 		case PAD_ERR_NONE:
-			oldstate				= __pad_keys[i].state; 
-			state					= padstatus[i].button;
+			oldstate = __pad_keys[i].state; 
+			state = padstatus[i].button;
+
+			if(padstatus[i].stickX<-48)
+				state |= PAD_STICK_LEFT;
+			if(padstatus[i].stickX>48)
+				state |= PAD_STICK_RIGHT;
+			if(padstatus[i].stickY<-48)
+				state |= PAD_STICK_DOWN;
+			if(padstatus[i].stickY>48)
+				state |= PAD_STICK_UP;
+
+			if(padstatus[i].substickX<-48)
+				state |= PAD_SUBSTICK_LEFT;
+			if(padstatus[i].substickX>48)
+				state |= PAD_SUBSTICK_RIGHT;
+			if(padstatus[i].substickY<-48)
+				state |= PAD_SUBSTICK_DOWN;
+			if(padstatus[i].substickY>48)
+				state |= PAD_SUBSTICK_UP;
+
 			__pad_keys[i].stickX	= padstatus[i].stickX;
 			__pad_keys[i].stickY	= padstatus[i].stickY;
 			__pad_keys[i].substickX	= padstatus[i].substickX;
@@ -745,19 +764,19 @@ u32 PAD_ScanPads()
 }
 
 
-u16 PAD_ButtonsUp(int pad)
+u32 PAD_ButtonsUp(int pad)
 {
 	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
 	return __pad_keys[pad].up;
 }
 
-u16 PAD_ButtonsDown(int pad)
+u32 PAD_ButtonsDown(int pad)
 {
 	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
 	return __pad_keys[pad].down;
 }
 
-u16 PAD_ButtonsHeld(int pad)
+u32 PAD_ButtonsHeld(int pad)
 {
 	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
 	return __pad_keys[pad].state;
