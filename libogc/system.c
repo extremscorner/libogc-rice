@@ -405,11 +405,11 @@ static void __memprotect_init()
 	_memReg[16] = 0;
 	_memReg[8] = 255;
 
-	IRQ_Request(IRQ_MEM0,__MEMInterruptHandler,NULL);
-	IRQ_Request(IRQ_MEM1,__MEMInterruptHandler,NULL);
-	IRQ_Request(IRQ_MEM2,__MEMInterruptHandler,NULL);
-	IRQ_Request(IRQ_MEM3,__MEMInterruptHandler,NULL);
-	IRQ_Request(IRQ_MEMADDRESS,__MEMInterruptHandler,NULL);
+	IRQ_Request(IRQ_MEM0,__MEMInterruptHandler);
+	IRQ_Request(IRQ_MEM1,__MEMInterruptHandler);
+	IRQ_Request(IRQ_MEM2,__MEMInterruptHandler);
+	IRQ_Request(IRQ_MEM3,__MEMInterruptHandler);
+	IRQ_Request(IRQ_MEMADDRESS,__MEMInterruptHandler);
 
 	SYS_RegisterResetFunc(&mem_resetinfo);
 	__UnmaskIrq(IM_MEMADDRESS);		//only enable memaddress irq atm
@@ -873,7 +873,7 @@ void SYS_Init()
 #if defined(HW_RVL)
 	__IPC_ClntInit();
 #elif defined(HW_DOL)
-	IRQ_Request(IRQ_PI_RSW,__RSWHandler,NULL);
+	IRQ_Request(IRQ_PI_RSW,__RSWHandler);
 	__MaskIrq(IRQMASK(IRQ_PI_RSW));
 #endif
 	__libc_init(1);

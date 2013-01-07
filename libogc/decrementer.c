@@ -50,7 +50,7 @@ void __decrementer_init()
 #endif
 }
 
-void c_decrementerhandler()
+void c_decrementerhandler(frame_context *ctx)
 {
 #ifdef _DECEX_DEBUG
 	printk("c_decrementerhandler(%d)\n",_wd_ticks_since_boot);

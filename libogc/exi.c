@@ -93,9 +93,9 @@ static u32 exi_uart_dev = EXI_DEVICE_0;
 static u32 exi_uart_barnacle_enabled = 0;
 static u32 exi_uart_enabled = 0;
 
-static void __exi_irq_handler(u32,void *);
-static void __tc_irq_handler(u32,void *);
-static void __ext_irq_handler(u32,void *);
+static void __exi_irq_handler(u32,frame_context *);
+static void __tc_irq_handler(u32,frame_context *);
+static void __ext_irq_handler(u32,frame_context *);
 
 #if defined(HW_DOL)
 	static vu32* const _exiReg = (u32*)0xCC006800;
@@ -744,19 +744,19 @@ void __exi_init()
 
 	__exi_initmap(eximap);
 
-	IRQ_Request(IRQ_EXI0_EXI,__exi_irq_handler,NULL);
-	IRQ_Request(IRQ_EXI0_TC,__tc_irq_handler,NULL);
-	IRQ_Request(IRQ_EXI0_EXT,__ext_irq_handler,NULL);
-	IRQ_Request(IRQ_EXI1_EXI,__exi_irq_handler,NULL);
-	IRQ_Request(IRQ_EXI1_TC,__tc_irq_handler,NULL);
-	IRQ_Request(IRQ_EXI1_EXT,__ext_irq_handler,NULL);
-	IRQ_Request(IRQ_EXI2_EXI,__exi_irq_handler,NULL);
-	IRQ_Request(IRQ_EXI2_TC,__tc_irq_handler,NULL);
+	IRQ_Request(IRQ_EXI0_EXI,__exi_irq_handler);
+	IRQ_Request(IRQ_EXI0_TC,__tc_irq_handler);
+	IRQ_Request(IRQ_EXI0_EXT,__ext_irq_handler);
+	IRQ_Request(IRQ_EXI1_EXI,__exi_irq_handler);
+	IRQ_Request(IRQ_EXI1_TC,__tc_irq_handler);
+	IRQ_Request(IRQ_EXI1_EXT,__ext_irq_handler);
+	IRQ_Request(IRQ_EXI2_EXI,__exi_irq_handler);
+	IRQ_Request(IRQ_EXI2_TC,__tc_irq_handler);
 
 	EXI_ProbeReset();
 }
 
-void __exi_irq_handler(u32 nIrq,void *pCtx)
+void __exi_irq_handler(u32 nIrq,frame_context *pCtx)
 {
 	u32 chan,dev;
 	exibus_priv *exi = NULL;
@@ -775,7 +775,7 @@ void __exi_irq_handler(u32 nIrq,void *pCtx)
 	exi->CallbackEXI(chan,dev);
 }
 
-void __tc_irq_handler(u32 nIrq,void *pCtx)
+void __tc_irq_handler(u32 nIrq,frame_context *pCtx)
 {
 	u32 cnt,len,d,chan,dev;
 	EXICallback tccb;
@@ -813,7 +813,7 @@ void __tc_irq_handler(u32 nIrq,void *pCtx)
 	tccb(chan,dev);
 }
 
-void __ext_irq_handler(u32 nIrq,void *pCtx)
+void __ext_irq_handler(u32 nIrq,frame_context *pCtx)
 {
 
 	u32 chan,dev;

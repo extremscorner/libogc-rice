@@ -79,8 +79,6 @@ distribution.
 static vu16* const _dspReg = (u16*)0xCC005000;
 
 static u32 __AIInitFlag = 0;
-static u32 __AIActive = 0;
-
 static u64 bound_32KHz,bound_48KHz,min_wait,max_wait,buffer;
 
 #if defined(HW_DOL)
@@ -89,7 +87,7 @@ static AISCallback __AIS_Callback;
 static AIDCallback __AID_Callback;
 
 #if defined(HW_DOL)
-static void __AISHandler(u32 nIrq,void *pCtx)
+static void __AISHandler(u32 nIrq,frame_context *pCtx)
 {
 	if(__AIS_Callback)
 		__AIS_Callback(_aiReg[AI_SAMPLE_COUNT]);
@@ -97,16 +95,11 @@ static void __AISHandler(u32 nIrq,void *pCtx)
 }
 #endif
 
-static void __AIDHandler(u32 nIrq,void *pCtx)
+static void __AIDHandler(u32 nIrq,frame_context *pCtx)
 {
 	_dspReg[5] = (_dspReg[5]&~(DSPCR_DSPINT|DSPCR_ARINT))|DSPCR_AIINT;
-	if(__AID_Callback) {
-		if(!__AIActive) {
-			__AIActive = 1;
-			__AID_Callback();
-			__AIActive = 0;
-		}
-	}
+	if(__AID_Callback)
+		__AID_Callback();
 }
 
 static void __AISRCINIT()
@@ -191,12 +184,12 @@ void AUDIO_Init()
 
 		__AID_Callback = NULL;
 
-		IRQ_Request(IRQ_DSP_AI,__AIDHandler,NULL);
+		IRQ_Request(IRQ_DSP_AI,__AIDHandler);
 		__UnmaskIrq(IRQMASK(IRQ_DSP_AI));
 #if defined(HW_DOL)
 		__AIS_Callback = NULL;
 
-		IRQ_Request(IRQ_AI,__AISHandler,NULL);
+		IRQ_Request(IRQ_AI,__AISHandler);
 		__UnmaskIrq(IRQMASK(IRQ_AI));
 #endif
 		__AIInitFlag = 1;

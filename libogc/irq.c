@@ -46,15 +46,10 @@ distribution.
 #define _SHIFTR(v, s, w)	\
     ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 
-struct irq_handler_s {
-	raw_irq_handler_t pHndl;
-	void *pCtx;
-};
-
 static u64 spuriousIrq = 0;
 static u32 prevIrqMask = 0;
 static u32 currIrqMask = 0;
-static struct irq_handler_s g_IRQHandler[32];
+static irq_handler_t g_IRQHandler[32];
 
 static vu32* const _piReg = (u32*)0xCC003000;
 static vu16* const _memReg = (u16*)0xCC004000;
@@ -122,7 +117,7 @@ static void __irq_dump(u32 irqmask,u32 irq_idx)
 }
 #endif
 
-void c_irqdispatcher()
+void c_irqdispatcher(frame_context *ctx)
 {
 	u32 i,icause,intmask,irq = 0;
 	u32 cause,mask;
@@ -251,7 +246,7 @@ void c_irqdispatcher()
 			i++;
 		}
 
-		if(g_IRQHandler[irq].pHndl) g_IRQHandler[irq].pHndl(irq,g_IRQHandler[irq].pCtx);
+		if(g_IRQHandler[irq]) g_IRQHandler[irq](irq,ctx);
 	}
 #ifdef _IRQ_DEBUG
 	__irq_dump(mask,irq);
@@ -396,7 +391,7 @@ void __irq_init()
 	register u32 intrStack_end = (u32)__intrstack_end;
 	register u32 irqNestingLevel = 0;
 
-	memset(g_IRQHandler,0,32*sizeof(struct irq_handler_s));
+	memset(g_IRQHandler,0,32*sizeof(irq_handler_t));
 
 	*((u32*)intrStack_end) = 0xDEADBEEF;
 	intrStack = intrStack - CPU_MINIMUM_STACK_FRAME_SIZE;
@@ -415,37 +410,37 @@ void __irq_init()
 	__UnmaskIrq(IM_PI_ERROR);
 }
 
-raw_irq_handler_t IRQ_Request(u32 nIrq,raw_irq_handler_t pHndl,void *pCtx)
+irq_handler_t IRQ_Request(u32 nIrq,irq_handler_t pHndl)
 {
 	u32 level;
+	irq_handler_t old;
 
 	_CPU_ISR_Disable(level);
-	raw_irq_handler_t old = g_IRQHandler[nIrq].pHndl;
-	g_IRQHandler[nIrq].pHndl = pHndl;
-	g_IRQHandler[nIrq].pCtx = pCtx;
+	old = g_IRQHandler[nIrq];
+	g_IRQHandler[nIrq] = pHndl;
 	_CPU_ISR_Restore(level);
 	return old;
 }
 
-raw_irq_handler_t IRQ_GetHandler(u32 nIrq)
+irq_handler_t IRQ_GetHandler(u32 nIrq)
 {
 	u32 level;
-	raw_irq_handler_t ret;
+	irq_handler_t ret;
 
 	_CPU_ISR_Disable(level);
-	ret = g_IRQHandler[nIrq].pHndl;
+	ret = g_IRQHandler[nIrq];
 	_CPU_ISR_Restore(level);
 	return ret;
 }
 
-raw_irq_handler_t IRQ_Free(u32 nIrq)
+irq_handler_t IRQ_Free(u32 nIrq)
 {
 	u32 level;
+	irq_handler_t old;
 
 	_CPU_ISR_Disable(level);
-	raw_irq_handler_t old = g_IRQHandler[nIrq].pHndl;
-	g_IRQHandler[nIrq].pHndl = NULL;
-	g_IRQHandler[nIrq].pCtx = NULL;
+	old = g_IRQHandler[nIrq];
+	g_IRQHandler[nIrq] = NULL;
 	_CPU_ISR_Restore(level);
 	return old;
 }

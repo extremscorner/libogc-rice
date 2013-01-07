@@ -44,27 +44,25 @@ irq_exceptionhandler:
 	bne		1f
 	mfspr	sp,SPRG1
 
-1:	lis		r2,_thread_dispatch_disable_level@ha
-	lwz		r4,_thread_dispatch_disable_level@l(r2)
+1:	lwz		r4,_thread_dispatch_disable_level@sdarel(r13)
 	addi	r3,r3,1
 	addi	r4,r4,1
-	stw		r4,_thread_dispatch_disable_level@l(r2)
+	stw		r4,_thread_dispatch_disable_level@sdarel(r13)
 	mtspr	SPRG0,r3
 
+	mr		r3,r31
 	bl		c_irqdispatcher
 
 	mfspr	r3,SPRG0
 	mr		sp,r31
-	lis		r2,_thread_dispatch_disable_level@ha
-	lwz		r4,_thread_dispatch_disable_level@l(r2)
+	lwz		r4,_thread_dispatch_disable_level@sdarel(r13)
 	subi	r3,r3,1
 	subic.	r4,r4,1
-	stw		r4,_thread_dispatch_disable_level@l(r2)
+	stw		r4,_thread_dispatch_disable_level@sdarel(r13)
 	mtspr	SPRG0,r3
 	bne		2f
 
-	lis		r2,_context_switch_want@ha
-	lwz		r3,_context_switch_want@l(r2)
+	lwz		r3,_context_switch_want@sdarel(r13)
 	cmpwi	r3,0
 	beq		2f
 
