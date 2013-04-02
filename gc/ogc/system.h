@@ -98,9 +98,22 @@ distribution.
  *@}
  */
 
+#define SYS_SOUND_MONO					0
+#define SYS_SOUND_STEREO				1
+
+#define SYS_VIDEO_NTSC					0
+#define SYS_VIDEO_PAL					1
+#define SYS_VIDEO_MPAL					2
+
+#define SYS_LANG_ENGLISH				0
+#define SYS_LANG_GERMAN					1
+#define SYS_LANG_FRENCH					2
+#define SYS_LANG_SPANISH				3
+#define SYS_LANG_ITALIAN				4
+#define SYS_LANG_DUTCH					5
+
 #define SYS_FONTSIZE_ANSI				(288 + 131072)
 #define SYS_FONTSIZE_SJIS				(3840 + 1179648)
-
 
 
 /*!
@@ -309,8 +322,23 @@ s32 SYS_RemoveAlarm(syswd_t thealarm);
 s32 SYS_CancelAlarm(syswd_t thealarm);
 
 
-void SYS_SetWirelessID(u32 chan,u32 id);
-u32 SYS_GetWirelessID(u32 chan);
+void SYS_SetSoundMode(u8 mode);
+void SYS_SetProgressiveScan(u8 enable);
+void SYS_SetVideoMode(u8 mode);
+void SYS_SetLanguage(u8 lang);
+void SYS_SetEuRGB60(u8 enable);
+void SYS_SetDisplayOffsetH(s8 offset);
+void SYS_SetCounterBias(u32 bias);
+void SYS_SetWirelessID(u32 chan,u16 id);
+u8 SYS_GetSoundMode();
+u8 SYS_GetProgressiveScan();
+u8 SYS_GetVideoMode();
+u8 SYS_GetLanguage();
+u8 SYS_GetEuRGB60();
+s8 SYS_GetDisplayOffsetH();
+u32 SYS_GetCounterBias();
+u16 SYS_GetWirelessID(u32 chan);
+
 u32 SYS_GetFontEncoding();
 u32 SYS_InitFont(sys_fontheader *font_data);
 void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width);
