@@ -258,7 +258,7 @@ install-headers:
 	@cp ./gc/wiikeyboard/*.h $(INCDIR)/wiikeyboard
 
 #---------------------------------------------------------------------------------
-install: install-headers
+install: wii cube install-headers
 #---------------------------------------------------------------------------------
 	@mkdir -p $(DEVKITRICE)/usr
 	@cp -frv include $(DEVKITRICE)/usr
@@ -266,7 +266,7 @@ install: install-headers
 
 
 #---------------------------------------------------------------------------------
-dist: install-headers
+dist: wii cube install-headers
 #---------------------------------------------------------------------------------
 	@tar    --exclude=*CVS* --exclude=.svn --exclude=wii --exclude=cube --exclude=*deps* \
 		--exclude=*.bz2  --exclude=*include* --exclude=*lib/* --exclude=*docs/*\
