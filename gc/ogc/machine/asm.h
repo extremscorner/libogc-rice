@@ -249,7 +249,7 @@
  * As SVR4 ABI requires 16, make it 16 (as some
  * exception may need more registers to be processed...)
  */
-#define EXCEPTION_FRAME_END 688
+#define EXCEPTION_FRAME_END 704
 
 #define	IBAT0U		528
 #define	IBAT0L		529	

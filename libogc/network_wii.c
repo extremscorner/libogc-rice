@@ -854,7 +854,7 @@ s32 net_connect(s32 s, struct sockaddr *addr, socklen_t addrlen)
 
 s32 net_write(s32 s, const void *data, s32 size)
 {
-    return net_send(s, data, size, 0);
+    return net_sendto(s, data, size, 0, NULL, 0);
 }
 
 s32 net_send(s32 s, const void *data, s32 size, u32 flags)

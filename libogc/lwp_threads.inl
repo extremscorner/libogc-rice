@@ -26,16 +26,6 @@ static __inline__ void __lwp_thread_calcheir()
 #endif
 }
 
-static __inline__ u32 __lwp_thread_isallocatedfp(lwp_cntrl *thethread)
-{
-	return (thethread==_thr_allocated_fp);
-}
-
-static __inline__ void __lwp_thread_deallocatefp()
-{
-	_thr_allocated_fp = NULL;
-}
-
 static __inline__ void __lwp_thread_dispatchinitialize()
 {
 	_thread_dispatch_disable_level = 1;

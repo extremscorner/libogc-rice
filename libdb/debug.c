@@ -637,6 +637,7 @@ void DEBUG_Init(s32 device_type,s32 channel_port)
 	if(current_device!=NULL) {
 		_CPU_ISR_Disable(level);
 		__exception_sethandler(EX_DSI,dbg_exceptionhandler);
+		__exception_sethandler(EX_ISI,dbg_exceptionhandler);
 		__exception_sethandler(EX_PRG,dbg_exceptionhandler);
 		__exception_sethandler(EX_TRACE,dbg_exceptionhandler);
 		__exception_sethandler(EX_IABR,dbg_exceptionhandler);

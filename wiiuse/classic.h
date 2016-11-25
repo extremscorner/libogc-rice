@@ -42,9 +42,9 @@ extern "C" {
 
 int classic_ctrl_handshake(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyte* data, uword len);
 
-void classic_ctrl_disconnected(struct classic_ctrl_t* cc);
+void classic_ctrl_disconnected(struct wiimote_t* wm, struct classic_ctrl_t* cc);
 
-void classic_ctrl_event(struct classic_ctrl_t* cc, ubyte* msg);
+void classic_ctrl_event(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyte* msg);
 
 #ifdef __cplusplus
 }

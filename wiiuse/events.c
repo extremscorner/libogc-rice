@@ -173,19 +173,19 @@ static void handle_expansion(struct wiimote_t *wm,ubyte *msg)
 {
 	switch (wm->exp.type) {
 		case EXP_NUNCHUK:
-			nunchuk_event(&wm->exp.nunchuk, msg);
+			nunchuk_event(wm, &wm->exp.nunchuk, msg);
 			break;
 		case EXP_CLASSIC:
-			classic_ctrl_event(&wm->exp.classic, msg);
+			classic_ctrl_event(wm, &wm->exp.classic, msg);
 			break;
 		case EXP_GUITAR_HERO_3:
-			guitar_hero_3_event(&wm->exp.gh3, msg);
+			guitar_hero_3_event(wm, &wm->exp.gh3, msg);
 			break;
  		case EXP_WII_BOARD:
- 			wii_board_event(&wm->exp.wb, msg);
+ 			wii_board_event(wm, &wm->exp.wb, msg);
  			break;
  		case EXP_MOTION_PLUS:
- 			motion_plus_event(&wm->exp.mp, msg);
+ 			motion_plus_event(wm, &wm->exp.mp, msg);
  			break;
 		default:
 			break;

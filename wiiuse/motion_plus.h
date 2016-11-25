@@ -12,9 +12,9 @@
 extern "C" {
 #endif
 
-void motion_plus_disconnected(struct motion_plus_t* mp);
+void motion_plus_disconnected(struct wiimote_t* wm, struct motion_plus_t* mp);
 
-void motion_plus_event(struct motion_plus_t* mp, ubyte* msg);
+void motion_plus_event(struct wiimote_t* wm, struct motion_plus_t* mp, ubyte* msg);
 
 #ifdef __cplusplus
 }

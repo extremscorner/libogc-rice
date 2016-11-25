@@ -194,7 +194,6 @@ void DCZeroRange(void *startaddress,u32 len);
 void DCTouchRange(void *startaddress,u32 len);
 
 
-
 /*!
  * \fn void ICFlashInvalidate()
  * \brief Invalidate the L1 i-cache.
@@ -262,6 +261,14 @@ void ICUnfreeze();
  */
 void ICInvalidateRange(void *startaddress,u32 len);
 
+void LCEnable();
+void LCDisable();
+void LCLoadBlocks(void *,void *,u32);
+void LCStoreBlocks(void *,void *,u32);
+u32 LCQueueLength();
+u32 LCQueueWait(u32);
+void LCAllocOneTag(BOOL,void *);
+void LCAllocTags(BOOL,void *,u32);
 #ifdef __cplusplus
    }
 #endif /* __cplusplus */

@@ -42,6 +42,7 @@ distribution.
 #include <ogc/es.h>
 #include <ogc/ipc.h>
 #include <ogc/ios.h>
+#include <ogc/lwp.h>
 #include <ogc/mutex.h>
 #include <ogc/lwp_watchdog.h>
 #include <ogc/machine/processor.h>
@@ -111,17 +112,18 @@ static int _DI_ReadDVD_D0_Async(void* buf, uint32_t len, uint32_t lba, ipccallba
 }
 
 static int _DI_ReadDVD(void* buf, uint32_t len, uint32_t lba, uint32_t read_cmd){
-	if ((((int) buf) & 0xC0000000) == 0x80000000) // cached?
+	if (((uint32_t)buf & 0xC0000000) == 0x80000000) // cached?
 		_dvdReg[0] = 0x2E;
 	_dvdReg[1] = 0;
 	_dvdReg[2] = read_cmd;
 	_dvdReg[3] = read_cmd == 0xD0000000 ? lba : lba << 9;
 	_dvdReg[4] = read_cmd == 0xD0000000 ? len : len << 11;
-	_dvdReg[5] = (unsigned long) buf;
+	_dvdReg[5] = (uint32_t)buf & 0x1FFFFFE0;
 	_dvdReg[6] = len << 11;
 	_dvdReg[7] = 3; // enable reading!
 	DCInvalidateRange(buf, len << 11);
-	while (_dvdReg[7] & 1);
+	while (_dvdReg[7] & 1)
+		LWP_YieldThread();
 
 	if (_dvdReg[0] & 0x4)
 		return 1;

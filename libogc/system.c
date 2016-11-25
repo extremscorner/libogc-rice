@@ -212,21 +212,24 @@ static __inline__ void __lwp_syswd_free(alarm_st *alarm)
 	__lwp_objmgr_free(&sys_alarm_objects,&alarm->object);
 }
 
-#ifdef HW_DOL
-#define SOFTRESET_ADR *((vu32*)0xCC003024)
-void __reload() { SOFTRESET_ADR=0; }
+#if defined(HW_DOL)
+void __reload()
+{
+	_piReg[9] = 0;
+	ppchalt();
+}
 
 void __libogc_exit(int status)
 {
 	SYS_ResetSystem(SYS_SHUTDOWN);
 	__lwp_thread_stopmultitasking(__reload);
 }
-#else
+#elif defined(HW_RVL)
 static void (*reload)() = (void(*)())0x80001800;
 
 static bool __stub_found()
 {
-	u64 sig = ((u64)(*(u32*)0x80001804) << 32) + *(u32*)0x80001808;
+	u64 sig = *(u64*)0x80001804;
 	if (sig == 0x5354554248415858ULL) // 'STUBHAXX'
 		return true;
 	return false;
@@ -249,7 +252,6 @@ void __libogc_exit(int status)
 	}
 	SYS_ResetSystem(SYS_RETURNTOMENU);
 }
-
 #endif
 
 static void __init_syscall_array() {
@@ -342,17 +344,14 @@ static void __RSWHandler()
 	static s64 hold_down = 0;
 
 	hold_down = gettime();
-	do  {
+	do {
 		now = gettime();
 		if(diff_usec(hold_down,now)>=100) break;
 	} while(!(_piReg[0]&0x10000));
 
-	if(_piReg[0]&0x10000) {
-		__MaskIrq(IRQMASK(IRQ_PI_RSW));
-
-		if(__RSWCallback) {
+	if(!(_piReg[0]&0x10000)) {
+		if(__RSWCallback)
 			__RSWCallback();
-		}
 	}
 	_piReg[0] = 2;
 }
@@ -448,6 +447,31 @@ static u32 __read_rom(void *buf,u32 len,u32 offset)
 	if(ret) return 0;
 	return 1;
 }
+
+#if defined(HW_DOL)
+static u32 __qoob_setconfig(u32 enable)
+{
+	u32 command,ret;
+
+	if(EXI_Lock(EXI_CHANNEL_0,EXI_DEVICE_1,NULL)==0) return 0;
+	if(EXI_Select(EXI_CHANNEL_0,EXI_DEVICE_1,EXI_SPEED8MHZ)==0) {
+		EXI_Unlock(EXI_CHANNEL_0);
+		return 0;
+	}
+
+	ret = 0;
+	command = 0xc0000000;
+	if(EXI_Imm(EXI_CHANNEL_0,&command,4,EXI_WRITE,NULL)==0) ret |= 0x01;
+	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x02;
+	if(EXI_Imm(EXI_CHANNEL_0,&enable,4,EXI_WRITE,NULL)==0) ret |= 0x04;
+	if(EXI_Sync(EXI_CHANNEL_0)==0) ret |= 0x08;
+	if(EXI_Deselect(EXI_CHANNEL_0)==0) ret |= 0x10;
+	if(EXI_Unlock(EXI_CHANNEL_0)==0) ret |= 0x20;
+
+	if(ret) return 0;
+	return 1;
+}
+#endif
 
 static u32 __getrtc(u32 *gctime)
 {
@@ -881,9 +905,11 @@ void SYS_Init()
 }
 
 // This function gets called inside the main thread, prior to the application's main() function
-void SYS_PreMain()
+void __attribute__((weak)) SYS_PreMain()
 {
-#if defined(HW_RVL)
+#if defined(HW_DOL)
+	__qoob_setconfig(0x02000000);
+#elif defined(HW_RVL)
 	u32 i;
 
 	for (i = 0; i < 32; ++i)
@@ -908,16 +934,15 @@ void SYS_ResetSystem(s32 reset)
 
 	while(__call_resetfuncs(FALSE)==0);
 
+	__qoob_setconfig(0x00000000);
+
 	__exception_closeall();
 	__call_resetfuncs(TRUE);
 
 	__lwp_thread_dispatchdisable();
 	__lwp_thread_closeall();
 }
-#endif
-
-#if defined(HW_RVL)
-
+#elif defined(HW_RVL)
 void SYS_ResetSystem(s32 reset)
 {
 	u32 ret = 0;
@@ -944,7 +969,7 @@ void SYS_ResetSystem(s32 reset)
 			break;
 		case SYS_POWEROFF_IDLE:
 			ret = CONF_GetIdleLedMode();
-			if(ret >= 0 && ret <= 2) STM_SetLedMode(ret);
+			if(ret <= 2) STM_SetLedMode(ret);
 			STM_ShutdownToIdle();
 			break;
 		case SYS_RETURNTOMENU:
@@ -1191,15 +1216,21 @@ void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
 	return ptr;
 }
 
+u32 SYS_SetFontEncoding(u32 enc)
+{
+	if(sys_fontenc<=0x0001) return sys_fontenc;
+	sys_fontenc = enc;
+	return enc;
+}
+
 u32 SYS_GetFontEncoding()
 {
-	u32 ret,tv_mode;
+	u32 ret;
 
 	if(sys_fontenc<=0x0001) return sys_fontenc;
 
-	ret = 0;
-	tv_mode = VIDEO_GetCurrentTvMode();
-	if(tv_mode==VI_NTSC && _viReg[55]&0x0002) ret = 1;
+	ret = SYS_FONTENC_ANSI;
+	if(_viReg[55]&0x0002) ret = SYS_FONTENC_SJIS;
 	sys_fontenc = ret;
 	return ret;
 }

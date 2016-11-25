@@ -535,7 +535,7 @@ static s32 __card_getfilenum(card_block *card,const char *filename,const char *g
 	entries = dirblock->entries;
 	for(i=0;i<CARD_MAXFILES;i++) {
 		if(entries[i].gamecode[0]!=0xff) {
-			if(strnicmp((const char*)entries[i].filename,filename,strlen(filename))==0) {
+			if(strcmp(filename,(const char*)entries[i].filename)==0) {
 				if((gamecode && gamecode[0]!=0xff && memcmp(entries[i].gamecode,gamecode,4)!=0)
 					|| (company && company[0]!=0xff && memcmp(entries[i].company,company,2)!=0)) continue;
 
@@ -787,7 +787,7 @@ static s32 __card_allocblock(s32 chn,u32 blocksneed,cardcallback callback)
 		  wrong.
 		*/
 		count++;
-		if(count>=(card->blocks-CARD_SYSAREA)) return CARD_ERROR_BROKEN;
+		if(count>(card->blocks-CARD_SYSAREA)) return CARD_ERROR_BROKEN;
 	
 		currblock++;
 	    if(currblock<CARD_SYSAREA || currblock>=card->blocks) currblock = CARD_SYSAREA;
@@ -820,6 +820,8 @@ static s32 __card_freeblock(s32 chn,u16 block,cardcallback callback)
 	
 	fatblock = __card_getbatblock(card);
 	next = fatblock->fat[block-CARD_SYSAREA];
+	fatblock->fat[block-CARD_SYSAREA] = 0;
+	fatblock->freeblocks++;
 	while(1) {
 		if(next==0xffff) break;
 		if(next<CARD_SYSAREA || next>=card->blocks) return CARD_ERROR_BROKEN;
@@ -1162,9 +1164,6 @@ static s32 __card_exthandler(s32 chn,s32 dev)
 	card = &cardmap[chn];
 
 	if(card->attached) {
-		if(card->card_tx_cb) {
-			printf("error: card->card_tx_cb!=NULL\n");
-		}
 		card->attached = 0;
 		EXI_RegisterEXICallback(chn,NULL);
 		SYS_CancelAlarm(card->timeout_svc);

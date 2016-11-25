@@ -47,6 +47,9 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+#define MAX_VOICES     16
+#define SND_BUFFERSIZE 4096
+
 /*! \addtogroup sndretvals SND return values
  * @{
  */

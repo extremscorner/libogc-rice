@@ -112,6 +112,9 @@ distribution.
 #define SYS_LANG_ITALIAN				4
 #define SYS_LANG_DUTCH					5
 
+#define SYS_FONTENC_ANSI				0
+#define SYS_FONTENC_SJIS				1
+
 #define SYS_FONTSIZE_ANSI				(288 + 131072)
 #define SYS_FONTSIZE_SJIS				(3840 + 1179648)
 
@@ -339,6 +342,7 @@ s8 SYS_GetDisplayOffsetH();
 u32 SYS_GetCounterBias();
 u16 SYS_GetWirelessID(u32 chan);
 
+u32 SYS_SetFontEncoding(u32 enc);
 u32 SYS_GetFontEncoding();
 u32 SYS_InitFont(sys_fontheader *font_data);
 void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width);

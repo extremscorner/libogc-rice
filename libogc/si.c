@@ -128,21 +128,17 @@ static u32 __si_transfer(s32 chan,void *out,u32 out_len,void *in,u32 in_len,SICa
 static __inline__ struct _xy* __si_getxy()
 {
 	switch(VIDEO_GetCurrentTvMode()) {
-		case VI_NTSC:
-		case VI_MPAL:
-		case VI_EURGB60:
-			return xy[0];
-			break;
 		case VI_PAL:
+		case VI_DEBUG_PAL:
 			return xy[1];
-			break;
+		default:
+			return xy[0];
 	}
-	return NULL;
 }
 
 static __inline__ void __si_cleartcinterrupt()
 {
-	_siReg[13] = (_siReg[13]|SICOMCSR_TCINT)&SICOMCSR_TCINT;
+	_siReg[13] = (_siReg[13]|SICOMCSR_TCINT)&~SICOMCSR_TSTART;
 }
 
 static void __si_alarmhandler(syswd_t thealarm,void *cbarg)

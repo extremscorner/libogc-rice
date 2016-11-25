@@ -42,9 +42,9 @@ extern "C" {
 
 int wii_board_handshake(struct wiimote_t* wm, struct wii_board_t* wb, ubyte* data, uword len);
 
-void wii_board_disconnected(struct wii_board_t* wb);
+void wii_board_disconnected(struct wiimote_t* wm, struct wii_board_t* wb);
 
-void wii_board_event(struct wii_board_t* wb, ubyte* msg);
+void wii_board_event(struct wiimote_t* wm, struct wii_board_t* wb, ubyte* msg);
 
 #ifdef __cplusplus
 }

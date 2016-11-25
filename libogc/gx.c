@@ -17,7 +17,7 @@
 #define TEXCACHE_TESTING
 
 
-#define GX_FINISH		2
+#define GUARD_BAND		342
 
 #if defined(HW_DOL)
 	#define LARGE_NUMBER	(-1048576.0f)
@@ -301,8 +301,13 @@ static void __GX_SaveFifo()
 
 	if(_gxcpufifoready) {
 		val = _piReg[0x05];
+#if defined(HW_DOL)
+		cpufifo->wt_ptr = (u32)MEM_PHYSICAL_TO_K0((val&0x03FFFFE0));
+		cpufifo->fifo_wrap = ((val&0x04000000)==0x04000000);
+#else
 		cpufifo->wt_ptr = (u32)MEM_PHYSICAL_TO_K0((val&0x1FFFFFE0));
 		cpufifo->fifo_wrap = ((val&0x20000000)==0x20000000);
+#endif
 	}
 
 	if(_gxgpfifoready) {
@@ -314,6 +319,7 @@ static void __GX_SaveFifo()
 		cpufifo->rd_ptr = gpfifo->rd_ptr;
 		cpufifo->rdwt_dst = gpfifo->rdwt_dst;
 		gpfifo->wt_ptr = cpufifo->wt_ptr;
+		gpfifo->fifo_wrap = cpufifo->fifo_wrap;
 	} else if(_gxcpufifoready) {
 		rdwt_dst = (cpufifo->wt_ptr - cpufifo->rd_ptr);
 		if(rdwt_dst<0) cpufifo->rdwt_dst = (cpufifo->rdwt_dst + cpufifo->size);
@@ -818,6 +824,7 @@ static void __GX_SetVAT()
 			GX_LOAD_CP_REG((0x90+(i&7)),__gx->VAT2reg[i]);
 		}
 	}
+	wgPipe->U8 = 0;
 	__gx->VATTable = 0;
 }
 
@@ -906,7 +913,7 @@ static void __GX_SetGenMode()
 
 static void __GX_UpdateBPMask()
 {
-#if defined(HW_DOL)
+#if 0
 	u32 i;
 	u32 nbmp,nres;
 	u8 ntexmap;
@@ -1506,7 +1513,6 @@ lwp_t GX_SetCurrentGXThread()
 volatile void* GX_RedirectWriteGatherPipe(void *ptr)
 {
 	u32 level;
-	struct __gxfifo *cpufifo = (struct __gxfifo*)&_cpufifo;
 
 	_CPU_ISR_Disable(level);
 	GX_Flush();
@@ -1517,41 +1523,35 @@ volatile void* GX_RedirectWriteGatherPipe(void *ptr)
 		__GX_FifoLink(GX_FALSE);
 		__GX_WriteFifoIntEnable(GX_DISABLE,GX_DISABLE);
 	}
-	cpufifo->wt_ptr = (u32)MEM_PHYSICAL_TO_K0(_piReg[5]&~0x04000000);
+	__GX_SaveFifo();
 
 	_piReg[3] = 0;
 	_piReg[4] = 0x04000000;
-	_piReg[5] = (((u32)ptr&0x3FFFFFE0)&~0x04000000);
+	_piReg[5] = ((u32)ptr&0x1FFFFFE0);
 	ppcsync();
 
 	_CPU_ISR_Restore(level);
 
-	return (volatile void*)0x0C008000;
+	return (volatile void*)0xCC008000;
 }
 
 void GX_RestoreWriteGatherPipe()
 {
-	u32 level;
+	u32 i,level;
 	struct __gxfifo *cpufifo = (struct __gxfifo*)&_cpufifo;
 
 	_CPU_ISR_Disable(level);
 
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-	wgPipe->U32 = 0;
-
+	for(i=0;i<31;i++) {
+		wgPipe->U8 = 0;
+	}
 	ppcsync();
 	while(!IsWriteGatherBufferEmpty());
 
 	mtwpar(0x0C008000);
 	_piReg[3] = MEM_VIRTUAL_TO_PHYSICAL(cpufifo->buf_start);
 	_piReg[4] = MEM_VIRTUAL_TO_PHYSICAL(cpufifo->buf_end);
-	_piReg[5] = (((u32)cpufifo->wt_ptr&0x3FFFFFE0)&~0x04000000);
+	_piReg[5] = (cpufifo->wt_ptr&0x1FFFFFE0);
 	if(_cpgplinked) {
 		__GX_WriteFifoIntReset(GX_TRUE,GX_TRUE);
 		__GX_WriteFifoIntEnable(GX_ENABLE,GX_DISABLE);
@@ -1747,11 +1747,11 @@ void GX_SetMisc(u32 token,u32 value)
 void GX_SetViewportJitter(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ,u32 field)
 {
 	f32 x0,y0,x1,y1,n,f,z;
-	static f32 Xfactor = 0.5;
-	static f32 Yfactor = 342.0;
-	static f32 Zfactor = 16777215.0;
+	static f32 Xfactor = 0.5f;
+	static f32 Yfactor = 1.0f/12.0f+GUARD_BAND;
+	static f32 Zfactor = 16777215.0f;
 
-	if(!field) yOrig -= Xfactor;
+	if(field) yOrig += Xfactor;
 
 	x0 = wd*Xfactor;
 	y0 = (-ht)*Xfactor;
@@ -1772,7 +1772,7 @@ void GX_SetViewportJitter(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ,u
 
 void GX_SetViewport(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ)
 {
-	GX_SetViewportJitter(xOrig,yOrig,wd,ht,nearZ,farZ,1);
+	GX_SetViewportJitter(xOrig,yOrig,wd,ht,nearZ,farZ,0);
 }
 
 void GX_LoadProjectionMtx(Mtx44 mt,u8 type)
@@ -1844,6 +1844,7 @@ static void __GetImageTileCount(u32 fmt,u16 wd,u16 ht,u32 *xtiles,u32 *ytiles,u3
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
 		case GX_TF_RGBA8:
+		case GX_CTF_YUVA8:
 			xshift = 2;
 			yshift = 2;
 			break;
@@ -1865,7 +1866,7 @@ static void __GetImageTileCount(u32 fmt,u16 wd,u16 ht,u32 *xtiles,u32 *ytiles,u3
 	*ytiles = tile;
 
 	*zplanes = 1;
-	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8) *zplanes = 2;
+	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8 || fmt==GX_CTF_YUVA8) *zplanes = 2;
 }
 
 void GX_SetCopyClear(GXColor color,u32 zvalue)
@@ -3011,7 +3012,6 @@ u16 GX_GetTexObjWidth(GXTexObj* obj)
 	return (((struct __gx_texobj*)obj)->tex_size & 0x3ff) + 1;
 }
 
-
 void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height,
                      u8* format, u8* wrap_s, u8* wrap_t, u8* mipmap)
 {
@@ -3024,52 +3024,57 @@ void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height,
 	*wrap_t = _SHIFTR(ptr->tex_filt & 0x0c, 2, 2);
 	*mipmap = ptr->tex_flag & 0x01;
 }
+
 u32 GX_GetTexBufferSize(u16 wd,u16 ht,u32 fmt,u8 mipmap,u8 maxlod)
 {
 	u32 xshift,yshift,xtiles,ytiles,bitsize,size;
 
 	switch(fmt) {
 		case GX_TF_I4:
+		case GX_TF_CI4:
 		case GX_TF_CMPR:
 		case GX_CTF_R4:
-		case GX_CTF_RA4:
 		case GX_CTF_Z4:
 			xshift = 3;
 			yshift = 3;
 			break;
-		case GX_TF_Z8:
 		case GX_TF_I8:
 		case GX_TF_IA4:
+		case GX_TF_CI8:
+		case GX_TF_Z8:
+		case GX_CTF_RA4:
 		case GX_CTF_A8:
 		case GX_CTF_R8:
 		case GX_CTF_G8:
 		case GX_CTF_B8:
-		case GX_CTF_RG8:
-		case GX_CTF_GB8:
 		case GX_CTF_Z8M:
 		case GX_CTF_Z8L:
 			xshift = 3;
 			yshift = 2;
 			break;
 		case GX_TF_IA8:
-		case GX_TF_Z16:
-		case GX_TF_Z24X8:
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
 		case GX_TF_RGBA8:
-		case GX_CTF_Z16L:
+		case GX_TF_CI14:
+		case GX_TF_Z16:
+		case GX_TF_Z24X8:
 		case GX_CTF_RA8:
+		case GX_CTF_YUVA8:
+		case GX_CTF_RG8:
+		case GX_CTF_GB8:
+		case GX_CTF_Z16L:
 			xshift = 2;
 			yshift = 2;
 			break;
 		default:
-			xshift = 2;
-			yshift = 2;
+			xshift = 0;
+			yshift = 0;
 			break;
 	}
 
 	bitsize = 32;
-	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8) bitsize = 64;
+	if(fmt==GX_TF_RGBA8 || fmt==GX_TF_Z24X8 || fmt==GX_CTF_YUVA8) bitsize = 64;
 
 	size = 0;
 	if(mipmap) {
@@ -3227,12 +3232,12 @@ void GX_InitTexObj(GXTexObj *obj,void *img_ptr,u16 wd,u16 ht,u8 fmt,u8 wrap_s,u8
 		case GX_TF_IA8:
 		case GX_TF_RGB565:
 		case GX_TF_RGB5A3:
-		case GX_TF_RGBA8:
+		case GX_TF_CI14:
 			xshift = 2;
 			yshift = 2;
 			ptr->tex_tile_type = 2;
 			break;
-		case GX_TF_CI14:
+		case GX_TF_RGBA8:
 			xshift = 2;
 			yshift = 2;
 			ptr->tex_tile_type = 3;
@@ -3516,20 +3521,21 @@ void GX_PreloadEntireTexture(GXTexObj *obj,GXTexRegion *region)
 			h = wd>>(i+1);
 			switch(ptr->tex_fmt) {
 				case GX_TF_I4:
-				case GX_TF_IA4:
 				case GX_TF_CI4:
 				case GX_TF_CMPR:
 					xshift = 3;
 					yshift = 3;
 					break;
 				case GX_TF_I8:
+				case GX_TF_IA4:
 				case GX_TF_CI8:
 					xshift = 3;
 					yshift = 2;
 					break;
 				case GX_TF_IA8:
-				case GX_TF_RGB5A3:
 				case GX_TF_RGB565:
+				case GX_TF_RGB5A3:
+				case GX_TF_RGBA8:
 				case GX_TF_CI14:
 					xshift = 2;
 					yshift = 2;
@@ -3917,8 +3923,8 @@ void GX_SetClipMode(u8 mode)
 
 void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht)
 {
-	u32 xo = xOrigin+0x156;
-	u32 yo = yOrigin+0x156;
+	u32 xo = xOrigin+GUARD_BAND;
+	u32 yo = yOrigin+GUARD_BAND;
 	u32 nwd = xo+(wd-1);
 	u32 nht = yo+(ht-1);
 
@@ -3932,10 +3938,23 @@ void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht)
 	GX_LOAD_BP_REG(__gx->sciBRcorner);
 }
 
+void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht)
+{
+	u32 xo = _SHIFTR(__gx->sciTLcorner,12,11);
+	u32 yo = _SHIFTL(__gx->sciTLcorner,0,11);
+	u32 nwd = _SHIFTR(__gx->sciBRcorner,12,11);
+	u32 nht = _SHIFTL(__gx->sciBRcorner,0,11);
+
+	*xOrigin = xo-GUARD_BAND;
+	*yOrigin = yo-GUARD_BAND;
+	*wd = (nwd+1)-xo;
+	*ht = (nht+1)-yo;
+}
+
 void GX_SetScissorBoxOffset(s32 xoffset,s32 yoffset)
 {
-	s32 xoff = _SHIFTR((xoffset+0x156),1,24);
-	s32 yoff = _SHIFTR((yoffset+0x156),1,24);
+	s32 xoff = _SHIFTR((xoffset+GUARD_BAND),1,24);
+	s32 yoff = _SHIFTR((yoffset+GUARD_BAND),1,24);
 
 	GX_LOAD_BP_REG((0x59000000|(_SHIFTL(yoff,10,10))|(xoff&0x3ff)));
 }
@@ -4313,7 +4332,7 @@ void GX_SetFogRangeAdj(u8 enable,u16 center,GXFogAdjTbl *table)
 		val = 0xed000000|(_SHIFTL(table->r[9],12,12))|(table->r[8]&0x0fff);
 		GX_LOAD_BP_REG(val);
 	}
-	val = 0xe8000000|(_SHIFTL(enable,10,1))|((center + 342)&0x03ff);
+	val = 0xe8000000|(_SHIFTL(enable,10,1))|((center+GUARD_BAND)&0x03ff);
 	GX_LOAD_BP_REG(val);
 }
 
@@ -5101,12 +5120,10 @@ void GX_AdjustForOverscan(GXRModeObj *rmin,GXRModeObj *rmout,u16 hor,u16 ver)
 
 	rmout->fbWidth = rmin->fbWidth-(hor<<1);
 	rmout->efbHeight = rmin->efbHeight-((rmin->efbHeight*(ver<<1))/rmin->xfbHeight);
-	if(rmin->xfbMode==VI_XFBMODE_SF && !(rmin->viTVMode&VI_PROGRESSIVE)) rmout->xfbHeight = rmin->xfbHeight-ver;
-	else rmout->xfbHeight = rmin->xfbHeight-(ver<<1);
+	rmout->xfbHeight = rmin->xfbHeight-(ver<<1);
 
 	rmout->viWidth = rmin->viWidth-(hor<<1);
-	if(rmin->viTVMode&VI_PROGRESSIVE) rmout->viHeight = rmin->viHeight-(ver<<2);
-	else rmout->viHeight = rmin->viHeight-(ver<<1);
+	rmout->viHeight = rmin->viHeight-(ver<<1);
 
 	rmout->viXOrigin += hor;
 	rmout->viYOrigin += ver;

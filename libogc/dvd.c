@@ -345,7 +345,7 @@ static const u8 __dvd_patchcodeQ08[] =
 static vu32* const _piReg = (u32*)0xCC003000;
 
 #if defined(HW_RVL)
-	static vu32* const _diReg = (u32*)0xCD006000;
+	static vu32* const _diReg = (u32*)0xCD806000;
 #elif defined(HW_DOL)
 	static vu32* const _diReg = (u32*)0xCC006000;
 #endif
@@ -1792,7 +1792,6 @@ s32 DVD_LowPatchDriveCode(dvdcallbacklow cb)
 	if(__dvd_driveinfo.rel_date==DVD_MODEL04) {
 		__dvdpatchcode = __dvd_patchcode04;
 		__dvdpatchcode_size = __dvd_patchcode04_size;
-	} else if((__dvd_driveinfo.rel_date&0x0000ff00)==0x00000500) {		// for wii: since i don't know the real date i have to mask & compare.
 	} else if(__dvd_driveinfo.rel_date==DVD_MODEL06) {
 		__dvdpatchcode = __dvd_patchcode06;
 		__dvdpatchcode_size = __dvd_patchcode06_size;
@@ -1802,7 +1801,6 @@ s32 DVD_LowPatchDriveCode(dvdcallbacklow cb)
 	} else if(__dvd_driveinfo.rel_date==DVD_MODEL08Q) {
 		__dvdpatchcode = __dvd_patchcodeQ08;
 		__dvdpatchcode_size = __dvd_patchcodeQ08_size;
-	} else if((__dvd_driveinfo.rel_date&0x0000ff00)==0x00000900) {		// for wii: since i don't know the real date i have to mask & compare.
 	} else {
 		__dvdpatchcode = NULL;
 		__dvdpatchcode_size = 0;
@@ -2636,16 +2634,6 @@ u32 DVD_SetAutoInvalidation(u32 auto_inv)
 static bool dvdio_Startup()
 {
 	DVD_Init();
-
-	if (mfpvr() == 0x00083214) // GameCube
-	{
-		DVD_Mount();
-	}
-	else
-	{
-		DVD_Reset(DVD_RESETHARD);
-		DVD_ReadDiskID(&__dvd_block$15, &__dvd_tmpid0, callback);
-	}
 	return true;
 }
 
@@ -2672,7 +2660,7 @@ static bool dvdio_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 
 static bool dvdio_WriteSectors(sec_t sector,sec_t numSectors,const void *buffer)
 {
-	return true;
+	return false;
 }
 
 static bool dvdio_ClearStatus()
@@ -2682,6 +2670,7 @@ static bool dvdio_ClearStatus()
 
 static bool dvdio_Shutdown()
 {
+	DVD_LowStopMotor(NULL);
 	return true;
 }
 

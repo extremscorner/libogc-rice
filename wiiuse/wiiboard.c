@@ -97,7 +97,7 @@ int wii_board_handshake(struct wiimote_t* wm, struct wii_board_t* wb, ubyte* dat
  *
  *	@param cc		A pointer to a classic_ctrl_t structure.
  */
-void wii_board_disconnected(struct wii_board_t* wb)
+void wii_board_disconnected(struct wiimote_t* wm, struct wii_board_t* wb)
 {
 	memset(wb, 0, sizeof(struct wii_board_t));
 }
@@ -109,7 +109,7 @@ void wii_board_disconnected(struct wii_board_t* wb)
  *	@param wb		A pointer to a wii_board_t structure.
  *	@param msg		The message specified in the event packet.
  */
-void wii_board_event(struct wii_board_t* wb, ubyte* msg)
+void wii_board_event(struct wiimote_t* wm, struct wii_board_t* wb, ubyte* msg)
 { 
 	wb->rtr = (msg[0]<<8)|msg[1];
 	wb->rbr = (msg[2]<<8)|msg[3];

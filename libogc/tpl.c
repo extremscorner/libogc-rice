@@ -83,18 +83,14 @@ static u32 TPL_GetTextureSize(u32 width,u32 height,u32 fmt)
 	return size;
 }
 
-s32 TPL_OpenTPLFromFile(TPLFile* tdf, const char* file_name)
+s32 TPL_OpenTPLFromFile(TPLFile* tdf, FHANDLE f)
 {
 	u32 c;
 	u32 version;
-	FILE *f = NULL;
 	TPLDescHeader *deschead = NULL;
 	TPLImgHeader *imghead = NULL;
 	TPLPalHeader *palhead = NULL;
 
-	if(!file_name) return 0;
-
-	f = fopen(file_name,"rb");
 	if(!f) return -1;
 
 	tdf->type = TPL_FILE_TYPE_DISC;

@@ -89,12 +89,11 @@ void VIDEO_SetBlack(bool black);
 
 
 /*! 
- * \fn u32 VIDEO_GetNextField()
- * \brief Get the next field in DS mode.
+ * \fn u32 VIDEO_GetCurrentField()
+ * \brief Get the current field
  *
  * \return \ref vi_fielddef "field"
  */
-u32 VIDEO_GetNextField();
 u32 VIDEO_GetCurrentField();
 
 
@@ -200,8 +199,13 @@ u32 VIDEO_HaveComponentCable(void);
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode);
 
+void VIDEO_SetAdjustingValues(s16 hor,s16 ver);
+void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver);
+
 #ifdef HW_RVL
 void VIDEO_SetTrapFilter(bool filter);
+
+u32 VIDEO_SetAspectRatio(u32 display,u32 aspect);
 #endif
 
 #ifdef __cplusplus

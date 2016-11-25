@@ -70,7 +70,6 @@ static int stride_length = 1280;
 void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*));
 
 extern void udelay(int us);
-extern void fpu_exceptionhandler();
 extern void irq_exceptionhandler();
 extern void dec_exceptionhandler();
 extern void default_exceptionhandler();
@@ -123,7 +122,6 @@ void __exception_init()
 		//set default exception handler into table
 		__exception_sethandler(i,default_exceptionhandler);
 	}
-	__exception_sethandler(EX_FP,fpu_exceptionhandler);
 	__exception_sethandler(EX_INT,irq_exceptionhandler);
 	__exception_sethandler(EX_DEC,dec_exceptionhandler);
 

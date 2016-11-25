@@ -457,10 +457,10 @@ typedef struct nunchuk_t {
  *	@brief Classic controller expansion device.
  */
 typedef struct classic_ctrl_t {
-	short btns;						/**< what buttons have just been pressed	*/
-	short btns_last;				/**< what buttons have just been pressed	*/
-	short btns_held;				/**< what buttons are being held down		*/
-	short btns_released;			/**< what buttons were just released this	*/
+	uword btns;						/**< what buttons have just been pressed	*/
+	uword btns_last;				/**< what buttons have just been pressed	*/
+	uword btns_held;				/**< what buttons are being held down		*/
+	uword btns_released;			/**< what buttons were just released this	*/
 
 	ubyte rs_raw;
 	ubyte ls_raw;
@@ -478,10 +478,10 @@ typedef struct classic_ctrl_t {
  *	@brief Guitar Hero 3 expansion device.
  */
 typedef struct guitar_hero_3_t {
-	short btns;						/**< what buttons have just been pressed	*/
-	short btns_last;				/**< what buttons have just been pressed	*/
-	short btns_held;				/**< what buttons are being held down		*/
-	short btns_released;			/**< what buttons were just released this	*/
+	uword btns;						/**< what buttons have just been pressed	*/
+	uword btns_last;				/**< what buttons have just been pressed	*/
+	uword btns_held;				/**< what buttons are being held down		*/
+	uword btns_released;			/**< what buttons were just released this	*/
 
 	ubyte wb_raw;
 	float whammy_bar;				/**< whammy bar (range 0-1)					*/
@@ -553,7 +553,7 @@ typedef enum win_bt_stack_t {
  *	@brief Significant data from the previous event.
  */
 typedef struct wiimote_state_t {
-	unsigned short btns;
+	uword btns;
 
 	struct ir_t ir;
 	struct vec3w_t accel;
@@ -640,10 +640,10 @@ typedef struct wiimote_t {
 
 	WCONST struct ir_t ir;					/**< IR data								*/
 
-	WCONST unsigned short btns;				/**< what buttons are down					*/
-	WCONST unsigned short btns_last;		/**< what buttons were down before			*/
-	WCONST unsigned short btns_held;		/**< what buttons are and were held down	*/
-	WCONST unsigned short btns_released;	/**< what buttons were just released		*/
+	WCONST uword btns;						/**< what buttons are down					*/
+	WCONST uword btns_last;					/**< what buttons were down before			*/
+	WCONST uword btns_held;					/**< what buttons are and were held down	*/
+	WCONST uword btns_released;				/**< what buttons were just released		*/
 
 	WCONST struct wiimote_state_t lstate;	/**< last saved state						*/
 

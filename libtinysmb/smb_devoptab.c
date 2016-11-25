@@ -1035,23 +1035,17 @@ static int dentry_to_stat(SMBDIRENTRY *dentry, struct stat *st)
 
 	st->st_dev = 0;
 	st->st_ino = 0;
-
 	st->st_mode = ((dentry->attributes & SMB_SRCH_DIRECTORY) ? S_IFDIR : S_IFREG);
 	st->st_nlink = 1;
 	st->st_uid = 1; // Faked
-	st->st_rdev = st->st_dev;
 	st->st_gid = 2; // Faked
+	st->st_rdev = st->st_dev;
 	st->st_size = dentry->size;
 	st->st_atime = dentry->atime/10000000.0 - 11644473600LL;
-	st->st_spare1 = 0;
 	st->st_mtime = dentry->mtime/10000000.0 - 11644473600LL;
-	st->st_spare2 = 0;
 	st->st_ctime = dentry->ctime/10000000.0 - 11644473600LL;
-	st->st_spare3 = 0;
 	st->st_blksize = 1024;
 	st->st_blocks = (st->st_size + st->st_blksize - 1) / st->st_blksize; // File size in blocks
-	st->st_spare4[0] = 0;
-	st->st_spare4[1] = 0;
 
 	return 0;
 }

@@ -55,9 +55,9 @@ extern "C" {
 
 int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte* data, uword len);
 
-void guitar_hero_3_disconnected(struct guitar_hero_3_t* gh3);
+void guitar_hero_3_disconnected(struct wiimote_t* wm, struct guitar_hero_3_t* gh3);
 
-void guitar_hero_3_event(struct guitar_hero_3_t* gh3, ubyte* msg);
+void guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte* msg);
 
 #ifdef __cplusplus
 }

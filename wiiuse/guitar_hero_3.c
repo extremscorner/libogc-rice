@@ -98,7 +98,7 @@ int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, u
  *
  *	@param cc		A pointer to a classic_ctrl_t structure.
  */
-void guitar_hero_3_disconnected(struct guitar_hero_3_t* gh3) 
+void guitar_hero_3_disconnected(struct wiimote_t* wm, struct guitar_hero_3_t* gh3) 
 {
 	memset(gh3, 0, sizeof(struct guitar_hero_3_t));
 }
@@ -111,7 +111,7 @@ void guitar_hero_3_disconnected(struct guitar_hero_3_t* gh3)
  *	@param cc		A pointer to a classic_ctrl_t structure.
  *	@param msg		The message specified in the event packet.
  */
-void guitar_hero_3_event(struct guitar_hero_3_t* gh3, ubyte* msg) {
+void guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte* msg) {
 	//int i;
 
 	/* decrypt data */

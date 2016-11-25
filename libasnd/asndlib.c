@@ -37,11 +37,6 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "asndlib.h"
 #include "dsp_mixer.h"
 
-#undef SND_BUFFERSIZE
-
-#define MAX_SND_VOICES			16
-#define SND_BUFFERSIZE			(4096) // don't modify this value
-
 #define VOICE_UPDATEADD   (1<<12)
 #define VOICE_UPDATE      (1<<11)
 #define VOICE_VOLUPDATE   (1<<10)
@@ -90,14 +85,14 @@ static vu32 curr_audio_buf = 0;
 static vu32 dsp_done = 0;
 
 static vs32 snd_chan = 0;
-static vs32 global_pause = 1;
+static vs32 global_pause = 0;
 static vu32 global_counter = 0;
 
 static vu32 DSP_DI_HANDLER = 1;
 static void (*global_callback)()=NULL;
 
 static u32 asnd_inited = 0;
-static t_sound_data sound_data[MAX_SND_VOICES];
+static t_sound_data sound_data[MAX_VOICES];
 
 static t_sound_data sound_data_dma ATTRIBUTE_ALIGN(32);
 static s16 mute_buf[SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
@@ -123,7 +118,7 @@ static void __dsp_requestcallback(dsptask_t *task)
 
 	DCInvalidateRange(&sound_data_dma, sizeof(t_sound_data));
 
-	if(snd_chan>=MAX_SND_VOICES) {
+	if(snd_chan>=MAX_VOICES) {
 		if(!dsp_complete) time_of_process = (gettime() - dsp_task_starttime);
 		if(!global_pause) global_counter++;
 
@@ -200,7 +195,7 @@ static void __dsp_requestcallback(dsptask_t *task)
 
 	while(snd_chan<16 && !(sound_data[snd_chan].flags>>16)) snd_chan++;
 
-	if(snd_chan>=MAX_SND_VOICES)
+	if(snd_chan>=MAX_VOICES)
 	{
 		snd_chan++;
 		DCFlushRange(&sound_data_dma, sizeof(t_sound_data));
@@ -259,7 +254,7 @@ static void audio_dma_callback()
 
 	dsp_complete = 0;
 
-	for(n=0;n<MAX_SND_VOICES;n++) sound_data[n].out_buf = (void *)MEM_VIRTUAL_TO_PHYSICAL((void *)audio_buf[curr_audio_buf]);
+	for(n=0;n<MAX_VOICES;n++) sound_data[n].out_buf = (void *)MEM_VIRTUAL_TO_PHYSICAL((void *)audio_buf[curr_audio_buf]);
 
 	if(global_callback) global_callback();
 
@@ -346,7 +341,7 @@ void ASND_Init()
 	_CPU_ISR_Disable(level);
 	if(!asnd_inited) {
 		asnd_inited = 1;
-		global_pause = 1;
+		global_pause = 0;
 		curr_audio_buf = 0;
 		DSP_DI_HANDLER = 1;
 		dsp_complete = 0;
@@ -359,7 +354,7 @@ void ASND_Init()
 		DCFlushRange(audio_buf[0],SND_BUFFERSIZE);
 		DCFlushRange(audio_buf[1],SND_BUFFERSIZE);
 
-		for(i=0;i<MAX_SND_VOICES;i++)
+		for(i=0;i<MAX_VOICES;i++)
 			memset(&sound_data[i],0,sizeof(t_sound_data));
 
 		dsp_task.prio = 255;
@@ -405,7 +400,7 @@ s32 ASND_SetVoice(s32 voice, s32 format, s32 pitch,s32 delay, void *snd, s32 siz
 	u32 level;
 	u32 flag_h=0;
 
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 
 	if(size_snd<=0 || snd==NULL) return SND_INVALID; // invalid voice
 
@@ -472,7 +467,7 @@ s32 ASND_SetInfiniteVoice(s32 voice, s32 format, s32 pitch,s32 delay, void *snd,
 	u32 level;
 	u32 flag_h=0;
 
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 
 	if(size_snd<=0 || snd==NULL) return SND_INVALID; // invalid voice
 
@@ -539,7 +534,7 @@ s32 ASND_AddVoice(s32 voice, void *snd, s32 size_snd)
 	u32 level;
 	s32 ret=SND_OK;
 
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 
 	if(size_snd<=0 || snd==NULL) return SND_INVALID; // invalid voice
 
@@ -567,10 +562,10 @@ s32 ASND_AddVoice(s32 voice, void *snd, s32 size_snd)
 
 s32 ASND_TestVoiceBufferReady(s32 voice)
 {
-	if(voice<0 || voice>=MAX_SND_VOICES) return 0; // invalid voice: not ready (of course XD)
-	if(sound_data[voice].start_addr && sound_data[voice].start_addr2) return 0; // not ready
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice: not ready (of course XD)
+	if(sound_data[voice].start_addr && sound_data[voice].start_addr2) return SND_BUSY; // not ready
 
-	return 1; // ready
+	return SND_OK; // ready
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -581,7 +576,7 @@ s32 ASND_TestPointer(s32 voice, void *pointer)
 	u32 addr2=(u32) MEM_VIRTUAL_TO_PHYSICAL(pointer);
 	int ret=SND_OK;
 
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 
 	_CPU_ISR_Disable(level);
 
@@ -598,7 +593,7 @@ s32 ASND_TestPointer(s32 voice, void *pointer)
 
 s32 ASND_PauseVoice(s32 voice, s32 pause)
 {
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 	if(pause) sound_data[voice].flags|=VOICE_PAUSE; else sound_data[voice].flags&=~VOICE_PAUSE;
 
 	return SND_OK;
@@ -610,7 +605,7 @@ s32 ASND_StopVoice(s32 voice)
 {
 	u32 level;
 
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 
 	_CPU_ISR_Disable(level);
 
@@ -630,7 +625,7 @@ s32 ASND_StatusVoice(s32 voice)
 	u32 level;
 	s32 status=SND_WORKING;
 
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 
 	_CPU_ISR_Disable(level);
 	if(!(sound_data[voice].flags>>16)) status=SND_UNUSED;
@@ -646,7 +641,7 @@ s32 ASND_ChangeVolumeVoice(s32 voice, s32 volume_l, s32 volume_r)
 {
 	u32 level;
 
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 
 	volume_l &=255;
 	volume_r &=255;
@@ -664,7 +659,7 @@ s32 ASND_ChangeVolumeVoice(s32 voice, s32 volume_l, s32 volume_r)
 
 u32 ASND_GetTickCounterVoice(s32 voice)
 {
-	if(voice<0 || voice>=MAX_SND_VOICES) return 0; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return 0; // invalid voice
 
 	return (sound_data[voice].tick_counter * SND_BUFFERSIZE/4);
 }
@@ -673,7 +668,7 @@ u32 ASND_GetTickCounterVoice(s32 voice)
 
 u32 ASND_GetTimerVoice(s32 voice)
 {
-	if(voice<0 || voice>=MAX_SND_VOICES) return 0; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return 0; // invalid voice
 
 	return (sound_data[voice].tick_counter * SND_BUFFERSIZE/4)/48;
 }
@@ -742,7 +737,7 @@ s32 ASND_GetFirstUnusedVoice()
 
 	s32 n;
 
-	for(n=1;n<MAX_SND_VOICES;n++)
+	for(n=1;n<MAX_VOICES;n++)
 		if(!(sound_data[n].flags>>16)) return n;
 
 	if(!(sound_data[0].flags>>16)) return 0; // voice 0 is a special case
@@ -757,7 +752,7 @@ s32 ASND_ChangePitchVoice(s32 voice, s32 pitch)
 {
 	u32 level;
 
-	if(voice<0 || voice>=MAX_SND_VOICES) return SND_INVALID; // invalid voice
+	if(voice<0 || voice>=MAX_VOICES) return SND_INVALID; // invalid voice
 
 	if(pitch<1) pitch=1;
 	if(pitch>144000) pitch=144000;

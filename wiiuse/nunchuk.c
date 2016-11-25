@@ -102,7 +102,7 @@ int nunchuk_handshake(struct wiimote_t *wm,struct nunchuk_t *nc,ubyte *data,uwor
  *
  *	@param nc		A pointer to a nunchuk_t structure.
  */
-void nunchuk_disconnected(struct nunchuk_t* nc) 
+void nunchuk_disconnected(struct wiimote_t* wm, struct nunchuk_t* nc) 
 {
 	//printf("nunchuk_disconnected()\n");
 	memset(nc, 0, sizeof(struct nunchuk_t));
@@ -114,7 +114,7 @@ void nunchuk_disconnected(struct nunchuk_t* nc)
  *	@param nc		A pointer to a nunchuk_t structure.
  *	@param msg		The message specified in the event packet.
  */
-void nunchuk_event(struct nunchuk_t* nc, ubyte* msg) {
+void nunchuk_event(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* msg) {
 	//int i;
 
 	/* decrypt data */
@@ -128,15 +128,20 @@ void nunchuk_event(struct nunchuk_t* nc, ubyte* msg) {
 	nc->js.pos.x = msg[0];
 	nc->js.pos.y = msg[1];
 
-	/* extend min and max values to physical range of motion */
-	if (nc->js.center.x) {
-		if (nc->js.min.x > nc->js.pos.x) nc->js.min.x = nc->js.pos.x;
-		if (nc->js.max.x < nc->js.pos.x) nc->js.max.x = nc->js.pos.x;
+	if (wm->expansion_state == 3) {
+		wm->expansion_state++;
+		nc->js.center.x = nc->js.pos.x;
+		nc->js.center.y = nc->js.pos.y;
 	}
-	if (nc->js.center.y) {
-		if (nc->js.min.y > nc->js.pos.y) nc->js.min.y = nc->js.pos.y;
-		if (nc->js.max.y < nc->js.pos.y) nc->js.max.y = nc->js.pos.y;
-	}
+
+	if (nc->js.min.x > nc->js.pos.x)
+		nc->js.min.x = nc->js.pos.x;
+	if (nc->js.max.x < nc->js.pos.x)
+		nc->js.max.x = nc->js.pos.x;
+	if (nc->js.min.y > nc->js.pos.y)
+		nc->js.min.y = nc->js.pos.y;
+	if (nc->js.max.y < nc->js.pos.y)
+		nc->js.max.y = nc->js.pos.y;
 
 #ifndef GEKKO
 	/* calculate joystick state */

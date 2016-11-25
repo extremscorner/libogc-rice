@@ -184,6 +184,20 @@ void hci_pin_req(err_t (* pin_req)(void *arg, struct bd_addr *bdaddr))
 {
 	hci_dev->pin_req = pin_req;
 }
+
+/*-----------------------------------------------------------------------------------*/
+/* 
+ * hci_link_key_req():
+ *
+ * Used to specify the function that should be called when HCI has received a 
+ * link key request event.
+ */
+/*-----------------------------------------------------------------------------------*/
+void hci_link_key_req(err_t (* link_key_req)(void *arg, struct bd_addr *bdaddr))
+{
+	hci_dev->link_key_req = link_key_req;
+}
+
 /*-----------------------------------------------------------------------------------*/
 /* 
  * hci_link_key_not():
@@ -867,6 +881,34 @@ err_t hci_pin_code_request_reply(struct bd_addr *bdaddr, u8_t pinlen, u8_t *pinc
 }
 
 /*-----------------------------------------------------------------------------------*/
+/* hci_link_key_request_reply():
+ *
+ * Used to reply to a Link Key Request event from the Host Controller and specifies 
+ * the link key to use for a connection.
+ */
+ /*-----------------------------------------------------------------------------------*/
+err_t hci_link_key_request_reply(struct bd_addr *bdaddr, u8_t *link)
+{
+	struct pbuf *p;
+
+	if ((p = btpbuf_alloc(PBUF_RAW, HCI_LINK_KEY_REQ_REP_PLEN, PBUF_RAM)) == NULL) {
+		ERROR("hci_link_key_request_reply: Could not allocate memory for pbuf\n");
+		return ERR_MEM;
+	}
+
+	/* Assembling command packet */
+	p = hci_cmd_ass(p, HCI_LINK_KEY_REQ_REP, HCI_LINK_CTRL_OGF, HCI_LINK_KEY_REQ_REP_PLEN);
+	/* Assembling cmd prameters */
+	memcpy(((u8_t *)p->payload) + 4, bdaddr->addr, 6);
+	memcpy(((u8_t *)p->payload) + 10, link, 16);
+
+	physbusif_output(p, p->tot_len);
+	btpbuf_free(p);
+
+	return ERR_OK;
+}
+
+/*-----------------------------------------------------------------------------------*/
 /* hci_pin_code_request_neg_reply():
  *
  * Used to reply to a PIN Code Request event from the Host Controller when the Host 
@@ -883,6 +925,31 @@ err_t hci_pin_code_request_neg_reply(struct bd_addr *bdaddr)
 	}
 
 	p = hci_cmd_ass(p,HCI_PIN_CODE_REQ_NEG_REP,HCI_LINK_CTRL_OGF,HCI_PIN_CODE_REQ_NEG_REP_PLEN);
+	memcpy(((u8_t *)p->payload)+4, bdaddr->addr, 6);
+
+	physbusif_output(p,p->tot_len);
+	btpbuf_free(p);
+
+	return ERR_OK;
+}
+
+/*-----------------------------------------------------------------------------------*/
+/* hci_link_key_request_neg_reply():
+ *
+ * Used to reply to a Link Key Request event from the Host Controller when the Host 
+ * cannot specify a link key to use for a connection.
+ */
+ /*-----------------------------------------------------------------------------------*/
+err_t hci_link_key_request_neg_reply(struct bd_addr *bdaddr)
+{
+	struct pbuf *p;
+
+	if((p=btpbuf_alloc(PBUF_RAW,HCI_LINK_KEY_REQ_NEG_REP_PLEN,PBUF_RAM)) == NULL) {
+		ERROR("hci_link_key_request_neg_reply: Could not allocate memory for pbuf\n");
+		return ERR_MEM;
+	}
+
+	p = hci_cmd_ass(p,HCI_LINK_KEY_REQ_NEG_REP,HCI_LINK_CTRL_OGF,HCI_LINK_KEY_REQ_NEG_REP_PLEN);
 	memcpy(((u8_t *)p->payload)+4, bdaddr->addr, 6);
 
 	physbusif_output(p,p->tot_len);
@@ -1650,6 +1717,10 @@ void hci_event_handler(struct pbuf *p)
 			bdaddr = (void *)((u8_t *)p->payload); /* Get the Bluetooth address */
 			HCI_EVENT_PIN_REQ(hci_dev, bdaddr, ret); /* Notify application. If event is not registered, 
 													send a negative reply */
+			break;
+		case HCI_LINK_KEY_REQUEST:
+			bdaddr = (void *)((u8_t *)p->payload); /* Get the Bluetooth address */
+			HCI_EVENT_LINK_KEY_REQ(hci_dev, bdaddr, ret);
 			break;
 		case HCI_LINK_KEY_NOTIFICATION:
 			bdaddr = (void *)((u8_t *)p->payload); /* Get the Bluetooth address */

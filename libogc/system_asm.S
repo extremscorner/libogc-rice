@@ -13,12 +13,12 @@ __InitBATS:
 
 configBATS:
 	// HID0 = 00510EAC:
-	// bus checkstops off, nap mode on,
+	// bus checkstops on, doze mode on,
 	// caches off, caches invalidate,
 	// store gathering on, enable data cache
 	// flush assist, enable branch target cache,
 	// enable branch history table
-	lis		r3,0x0051
+	lis		r3,0xF091
 	ori		r3,r3,0x0EAC
 	mtspr	HID0,r3
 	isync
@@ -28,7 +28,7 @@ configBATS:
 	sync
 
 #if defined(HW_RVL)
-	lis		r3,0xB7B0		//bits set: H4A(HID4 access), SBE(2nd BAT enabled)
+	lis		r3,0xA390		// set bits: H4A, 64B L2FM, SBE, ST0, LPE, L2CFI
 	mtspr	HID4,r3
 	isync
 #endif
@@ -50,18 +50,18 @@ configBATS:
 	isync
 
 #if defined(HW_DOL)
-	// set [DI]BAT0 for 128MB@80000000,
+	// set [DI]BAT0 for 64MB@80000000,
 	// real 00000000, WIMG=0000, R/W
 	lis		r4,0x8000
 	li		r3,0x0002
-	ori		r4,r4,0x0FFF
+	ori		r4,r4,0x07FF
 	mtspr	IBAT0L,r3
 	mtspr	IBAT0U,r4
 	mtspr	DBAT0L,r3
 	mtspr	DBAT0U,r4
 	isync
 
-	// set DBAT1 for 128MB@C0000000,
+	// set DBAT1 for 64MB@C0000000,
 	// real 00000000, WIMG=0100, R/W
 	oris	r6,r4,0x4000
 	ori		r5,r3,0x0020
@@ -285,11 +285,10 @@ __InitCache:
 	lis		r3,0x0020
 	mtspr	L2CR,r3
 1:	mfspr	r3,L2CR
-	clrlwi	r0,r3,31
-	cmplwi	r0,0x0000
+	clrlwi.	r0,r3,31
 	bne		1b
 
-	lis		r3,0x8008
+	lis		r3,0xC008
 	mtspr	L2CR,r3
 	sync
 	blr

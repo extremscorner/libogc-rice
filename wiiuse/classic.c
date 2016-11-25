@@ -123,7 +123,7 @@ int classic_ctrl_handshake(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyt
  *
  *	@param cc		A pointer to a classic_ctrl_t structure.
  */
-void classic_ctrl_disconnected(struct classic_ctrl_t* cc) 
+void classic_ctrl_disconnected(struct wiimote_t* wm, struct classic_ctrl_t* cc) 
 {
 	memset(cc, 0, sizeof(struct classic_ctrl_t));
 }
@@ -136,7 +136,7 @@ void classic_ctrl_disconnected(struct classic_ctrl_t* cc)
  *	@param cc		A pointer to a classic_ctrl_t structure.
  *	@param msg		The message specified in the event packet.
  */
-void classic_ctrl_event(struct classic_ctrl_t* cc, ubyte* msg) {
+void classic_ctrl_event(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyte* msg) {
 	//int i;
 
 	/* decrypt data */
@@ -163,6 +163,32 @@ void classic_ctrl_event(struct classic_ctrl_t* cc, ubyte* msg) {
 	cc->ljs.pos.y = (msg[1] & 0x3F);
 	cc->rjs.pos.x = ((msg[0] & 0xC0) >> 3) | ((msg[1] & 0xC0) >> 5) | ((msg[2] & 0x80) >> 7);
 	cc->rjs.pos.y = (msg[2] & 0x1F);
+
+	if (wm->expansion_state == 3) {
+		wm->expansion_state++;
+		cc->ljs.center.x = cc->ljs.pos.x;
+		cc->ljs.center.y = cc->ljs.pos.y;
+		cc->rjs.center.x = cc->rjs.pos.x;
+		cc->rjs.center.y = cc->rjs.pos.y;
+	}
+
+	if (cc->ljs.min.x > cc->ljs.pos.x)
+		cc->ljs.min.x = cc->ljs.pos.x;
+	if (cc->ljs.max.x < cc->ljs.pos.x)
+		cc->ljs.max.x = cc->ljs.pos.x;
+	if (cc->ljs.min.y > cc->ljs.pos.y)
+		cc->ljs.min.y = cc->ljs.pos.y;
+	if (cc->ljs.max.y < cc->ljs.pos.y)
+		cc->ljs.max.y = cc->ljs.pos.y;
+	if (cc->rjs.min.x > cc->rjs.pos.x)
+		cc->rjs.min.x = cc->rjs.pos.x;
+	if (cc->rjs.max.x < cc->rjs.pos.x)
+		cc->rjs.max.x = cc->rjs.pos.x;
+	if (cc->rjs.min.y > cc->rjs.pos.y)
+		cc->rjs.min.y = cc->rjs.pos.y;
+	if (cc->rjs.max.y < cc->rjs.pos.y)
+		cc->rjs.max.y = cc->rjs.pos.y;
+
 #ifndef GEKKO
 	calc_joystick_state(&cc->ljs, cc->ljs.pos.x, cc->ljs.pos.y);
 	calc_joystick_state(&cc->rjs, cc->rjs.pos.x, cc->rjs.pos.y);

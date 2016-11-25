@@ -19,7 +19,6 @@ lwp_cntrl *_thr_idle = NULL;
 
 lwp_cntrl *_thr_executing = NULL;
 lwp_cntrl *_thr_heir = NULL;
-lwp_cntrl *_thr_allocated_fp = NULL;
 
 vu32 _context_switch_want;
 vu32 _thread_dispatch_disable_level;
@@ -111,21 +110,6 @@ void __lwp_thread_tickle_timeslice(void *arg)
 
 	__lwp_wd_insert_ticks(&_lwp_wd_timeslice,ticks);
 	__lwp_thread_dispatchunnest();
-}
-
-void __thread_dispatch_fp()
-{
-	lwp_cntrl *exec;
-
-	exec = _thr_executing;
-#ifdef _LWPTHREADS_DEBUG
-	__lwp_dumpcontext_fp(exec,_thr_allocated_fp);
-#endif
-	if(!__lwp_thread_isallocatedfp(exec)) {
-		if(_thr_allocated_fp) _cpu_context_save_fp(&_thr_allocated_fp->context);
-		_cpu_context_restore_fp(&exec->context);
-		_thr_allocated_fp = exec;
-	}
 }
 
 void __thread_dispatch()
@@ -463,7 +447,7 @@ void __lwp_thread_loadenv(lwp_cntrl *thethread)
 	thethread->context.GPR[1] = sp;
 	
 	thethread->context.LR = (u32)__lwp_thread_handler;
-	thethread->context.MSR = MSR_EE|MSR_ME|MSR_IR|MSR_DR|MSR_RI;
+	thethread->context.MSR = MSR_EE|MSR_FP|MSR_ME|MSR_IR|MSR_DR|MSR_RI;
 
 #ifdef _LWPTHREADS_DEBUG
 	kprintf("__lwp_thread_loadenv(%p,%p,%d,%p)\n",thethread,(void*)stackbase,size,(void*)sp);
@@ -552,9 +536,6 @@ void __lwp_thread_close(lwp_cntrl *thethread)
 	_CPU_ISR_Restore(level);
 
 	__libc_delete_hook(_thr_executing,thethread);
-
-	if(__lwp_thread_isallocatedfp(thethread))
-		__lwp_thread_deallocatefp();
 
 	__lwp_stack_free(thethread);
 
@@ -653,7 +634,6 @@ void __lwp_thread_coreinit()
 	_context_switch_want = FALSE;
 	_thr_executing = NULL;
 	_thr_heir = NULL;
-	_thr_allocated_fp = NULL;
 	_lwp_ticks_per_timeslice = 10;
 
 	memset(&core_context,0,sizeof(core_context));

@@ -78,6 +78,7 @@ void SI_SetCommand(s32 chan,u32 cmd);
 u32 SI_GetStatus(s32 chan);
 u32 SI_GetResponse(s32 chan,void *buf);
 u32 SI_GetResponseRaw(s32 chan);
+void SI_SetSamplingRate(u32 samplingrate);
 void SI_RefreshSamplingRate();
 u32 SI_Transfer(s32 chan,void *out,u32 out_len,void *in,u32 in_len,SICallback cb,u32 us_delay);
 u32 SI_GetTypeAsync(s32 chan,SICallback cb);

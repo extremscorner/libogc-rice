@@ -76,13 +76,13 @@ void wiiuse_set_motion_plus(struct wiimote_t *wm, int status)
 	}
 }
 
-void motion_plus_disconnected(struct motion_plus_t* mp)
+void motion_plus_disconnected(struct wiimote_t* wm, struct motion_plus_t* mp)
 {
 	WIIUSE_DEBUG("Motion plus disconnected");
 	memset(mp, 0, sizeof(struct motion_plus_t));
 }
 
-void motion_plus_event(struct motion_plus_t* mp, ubyte* msg)
+void motion_plus_event(struct wiimote_t* wm, struct motion_plus_t* mp, ubyte* msg)
 {
 	mp->rx = ((msg[5] & 0xFC) << 6) | msg[2]; // Pitch
 	mp->ry = ((msg[4] & 0xFC) << 6) | msg[1]; // Roll

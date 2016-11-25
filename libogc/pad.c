@@ -196,7 +196,7 @@ static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 	mode = __pad_analogmode&0x0700;
 	if(mode==0x100) {
 		status->substickX = (s8)((data[1]>>24)&0xf0);
-		status->substickY = (s8)((data[1]>>8)&0xff);
+		status->substickY = (s8)((data[1]>>20)&0xf0);
 		status->triggerL = (u8)((data[1]>>16)&0xff);
 		status->triggerR = (u8)((data[1]>>8)&0xff);
 		status->analogA = (u8)(data[1]&0xf0);
@@ -221,7 +221,7 @@ static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 		status->triggerL = 0;
 		status->triggerR = 0;
 		status->analogA = (u8)((data[1]>>8)&0xff);
-		status->analogB = (u8)data[1]&0xff ;
+		status->analogB = (u8)data[1]&0xff;
 	} else if(!mode || mode==0x500 || mode==0x600 || mode==0x700) {
 		status->substickX = (s8)((data[1]>>24)&0xff);
 		status->substickY = (s8)((data[1]>>16)&0xff);
@@ -461,6 +461,8 @@ static void __pad_doreset()
 
 static void __pad_samplinghandler(u32 irq,void *ctx)
 {
+	if(__pad_samplingcallback)
+		__pad_samplingcallback();
 }
 
 u32 PAD_Init()
@@ -612,10 +614,24 @@ u32 PAD_Reset(u32 mask)
 u32 PAD_Recalibrate(u32 mask)
 {
 	u32 level;
+	u32 pend_bits,en_bits;
 
 	_CPU_ISR_Disable(level);
+	pend_bits = (__pad_pendingbits|mask);
+	__pad_pendingbits = 0;
 
+	pend_bits &= ~(__pad_waitingbits|__pad_checkingbits);
+	__pad_resettingbits |= pend_bits;
+
+	en_bits = (__pad_resettingbits&__pad_enabledbits);
+	__pad_enabledbits &= ~pend_bits;
+
+	__pad_recalibratebits |= pend_bits;
+
+	SI_DisablePolling(en_bits);
+	if(__pad_resettingchan==32) __pad_doreset();
 	_CPU_ISR_Restore(level);
+
 	return 1;
 }
 
