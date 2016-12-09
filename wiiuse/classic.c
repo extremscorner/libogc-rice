@@ -106,6 +106,8 @@ int classic_ctrl_handshake(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyt
 	cc->rjs.min.y = data[10 + offset] / 8;
 	cc->rjs.center.y = data[11 + offset] / 8 == 0 ? 16 : data[11 + offset] / 8;
 
+	cc->type = data[218];
+
 	/* handshake done */
 	wm->event = WIIUSE_CLASSIC_CTRL_INSERTED;
 	wm->exp.type = EXP_CLASSIC;
@@ -144,7 +146,7 @@ void classic_ctrl_event(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyte* 
 	for (i = 0; i < 6; ++i)
 		msg[i] = (msg[i] ^ 0x17) + 0x17;
 	*/
-	classic_ctrl_pressed_buttons(cc, BIG_ENDIAN_SHORT(*(short*)(msg + 4)));
+	classic_ctrl_pressed_buttons(cc, LITTLE_ENDIAN_SHORT(*(short*)(msg + 4)));
 
 	/* left/right buttons */
 	cc->ls_raw = (((msg[2] & 0x60) >> 2) | ((msg[3] & 0xE0) >> 5));

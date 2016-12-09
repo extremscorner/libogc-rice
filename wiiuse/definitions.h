@@ -46,8 +46,12 @@
 #define DEGREE_TO_RAD(d)	(d * (WIIMOTE_PI / 180.0f))
 
 /* Convert to big endian */
-#define BIG_ENDIAN_LONG(i)				(htonl(i))
-#define BIG_ENDIAN_SHORT(i)				(htons(i))
+#define BIG_ENDIAN_LONG(x)			(x)
+#define BIG_ENDIAN_SHORT(x)			(x)
+
+/* Convert to little endian */
+#define LITTLE_ENDIAN_LONG(x)		(bswap32(x))
+#define LITTLE_ENDIAN_SHORT(x)		(bswap16(x))
 
 #define absf(x)						((x >= 0) ? (x) : (x * -1.0f))
 #define diff_f(x, y)				((x >= y) ? (absf(x - y)) : (absf(y - x)))

@@ -162,7 +162,7 @@ void wiiuse_set_ir(struct wiimote_t *wm,int status)
 	char* block1 = NULL;
 	char* block2 = NULL;
 
-	if(!wm) return;
+	if(!wm || WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP_ONLY)) return;
 
 	/*
 	 *	Wait for the handshake to finish first.

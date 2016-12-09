@@ -20,6 +20,7 @@
 #include "nunchuk.h"
 #include "classic.h"
 #include "guitar_hero_3.h"
+#include "wiiupro.h"
 #include "wiiboard.h"
 #include "motion_plus.h"
 #include "ir.h"
@@ -181,6 +182,9 @@ static void handle_expansion(struct wiimote_t *wm,ubyte *msg)
 		case EXP_GUITAR_HERO_3:
 			guitar_hero_3_event(wm, &wm->exp.gh3, msg);
 			break;
+		case EXP_WIIU_PRO:
+			wiiu_pro_ctrl_event(wm, &wm->exp.wup, msg);
+			break;
  		case EXP_WII_BOARD:
  			wii_board_event(wm, &wm->exp.wb, msg);
  			break;
@@ -323,8 +327,8 @@ void parse_event(struct wiimote_t *wm)
 void wiiuse_pressed_buttons(struct wiimote_t* wm, ubyte* msg) {
 	short now;
 
-	/* convert to big endian */
-	now = BIG_ENDIAN_SHORT(*(short*)msg) & WIIMOTE_BUTTON_ALL;
+	/* convert to little endian */
+	now = LITTLE_ENDIAN_SHORT(*(short*)msg) & WIIMOTE_BUTTON_ALL;
 
 	/* preserve old btns pressed */
 	wm->btns_last = wm->btns;

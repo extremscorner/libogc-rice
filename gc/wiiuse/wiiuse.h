@@ -26,23 +26,23 @@
 #define WIIMOTE_LED_4					0x80
 
 /* button codes */
-#define WIIMOTE_BUTTON_TWO				0x0001
-#define WIIMOTE_BUTTON_ONE				0x0002
-#define WIIMOTE_BUTTON_B				0x0004
-#define WIIMOTE_BUTTON_A				0x0008
-#define WIIMOTE_BUTTON_MINUS			0x0010
-#define WIIMOTE_BUTTON_ZACCEL_BIT6		0x0020
-#define WIIMOTE_BUTTON_ZACCEL_BIT7		0x0040
-#define WIIMOTE_BUTTON_HOME				0x0080
-#define WIIMOTE_BUTTON_LEFT				0x0100
-#define WIIMOTE_BUTTON_RIGHT			0x0200
-#define WIIMOTE_BUTTON_DOWN				0x0400
-#define WIIMOTE_BUTTON_UP				0x0800
-#define WIIMOTE_BUTTON_PLUS				0x1000
-#define WIIMOTE_BUTTON_ZACCEL_BIT4		0x2000
-#define WIIMOTE_BUTTON_ZACCEL_BIT5		0x4000
-#define WIIMOTE_BUTTON_UNKNOWN			0x8000
-#define WIIMOTE_BUTTON_ALL				0x1F9F
+#define WIIMOTE_BUTTON_LEFT				0x0001
+#define WIIMOTE_BUTTON_RIGHT			0x0002
+#define WIIMOTE_BUTTON_DOWN				0x0004
+#define WIIMOTE_BUTTON_UP				0x0008
+#define WIIMOTE_BUTTON_PLUS				0x0010
+#define WIIMOTE_BUTTON_ZACCEL_BIT4		0x0020
+#define WIIMOTE_BUTTON_ZACCEL_BIT5		0x0040
+#define WIIMOTE_BUTTON_UNKNOWN			0x0080
+#define WIIMOTE_BUTTON_TWO				0x0100
+#define WIIMOTE_BUTTON_ONE				0x0200
+#define WIIMOTE_BUTTON_B				0x0400
+#define WIIMOTE_BUTTON_A				0x0800
+#define WIIMOTE_BUTTON_MINUS			0x1000
+#define WIIMOTE_BUTTON_ZACCEL_BIT6		0x2000
+#define WIIMOTE_BUTTON_ZACCEL_BIT7		0x4000
+#define WIIMOTE_BUTTON_HOME				0x8000
+#define WIIMOTE_BUTTON_ALL				0x9F1F
 
 /* nunchul button codes */
 #define NUNCHUK_BUTTON_Z				0x01
@@ -50,34 +50,34 @@
 #define NUNCHUK_BUTTON_ALL				0x03
 
 /* classic controller button codes */
-#define CLASSIC_CTRL_BUTTON_UP			0x0001
-#define CLASSIC_CTRL_BUTTON_LEFT		0x0002
-#define CLASSIC_CTRL_BUTTON_ZR			0x0004
-#define CLASSIC_CTRL_BUTTON_X			0x0008
-#define CLASSIC_CTRL_BUTTON_A			0x0010
-#define CLASSIC_CTRL_BUTTON_Y			0x0020
-#define CLASSIC_CTRL_BUTTON_B			0x0040
-#define CLASSIC_CTRL_BUTTON_ZL			0x0080
-#define CLASSIC_CTRL_BUTTON_FULL_R		0x0200
-#define CLASSIC_CTRL_BUTTON_PLUS		0x0400
-#define CLASSIC_CTRL_BUTTON_HOME		0x0800
-#define CLASSIC_CTRL_BUTTON_MINUS		0x1000
-#define CLASSIC_CTRL_BUTTON_FULL_L		0x2000
-#define CLASSIC_CTRL_BUTTON_DOWN		0x4000
-#define CLASSIC_CTRL_BUTTON_RIGHT		0x8000
-#define CLASSIC_CTRL_BUTTON_ALL			0xFEFF
+#define CLASSIC_CTRL_BUTTON_FULL_R		0x0002
+#define CLASSIC_CTRL_BUTTON_PLUS		0x0004
+#define CLASSIC_CTRL_BUTTON_HOME		0x0008
+#define CLASSIC_CTRL_BUTTON_MINUS		0x0010
+#define CLASSIC_CTRL_BUTTON_FULL_L		0x0020
+#define CLASSIC_CTRL_BUTTON_DOWN		0x0040
+#define CLASSIC_CTRL_BUTTON_RIGHT		0x0080
+#define CLASSIC_CTRL_BUTTON_UP			0x0100
+#define CLASSIC_CTRL_BUTTON_LEFT		0x0200
+#define CLASSIC_CTRL_BUTTON_ZR			0x0400
+#define CLASSIC_CTRL_BUTTON_X			0x0800
+#define CLASSIC_CTRL_BUTTON_A			0x1000
+#define CLASSIC_CTRL_BUTTON_Y			0x2000
+#define CLASSIC_CTRL_BUTTON_B			0x4000
+#define CLASSIC_CTRL_BUTTON_ZL			0x8000
+#define CLASSIC_CTRL_BUTTON_ALL			0xFFFE
 
 /* guitar hero 3 button codes */
-#define GUITAR_HERO_3_BUTTON_STRUM_UP	0x0001
-#define GUITAR_HERO_3_BUTTON_YELLOW		0x0008
-#define GUITAR_HERO_3_BUTTON_GREEN		0x0010
-#define GUITAR_HERO_3_BUTTON_BLUE		0x0020
-#define GUITAR_HERO_3_BUTTON_RED		0x0040
-#define GUITAR_HERO_3_BUTTON_ORANGE		0x0080
-#define GUITAR_HERO_3_BUTTON_PLUS		0x0400
-#define GUITAR_HERO_3_BUTTON_MINUS		0x1000
-#define GUITAR_HERO_3_BUTTON_STRUM_DOWN	0x4000
-#define GUITAR_HERO_3_BUTTON_ALL		0xFEFF
+#define GUITAR_HERO_3_BUTTON_PLUS		0x0004
+#define GUITAR_HERO_3_BUTTON_MINUS		0x0010
+#define GUITAR_HERO_3_BUTTON_STRUM_DOWN	0x0040
+#define GUITAR_HERO_3_BUTTON_STRUM_UP	0x0100
+#define GUITAR_HERO_3_BUTTON_YELLOW		0x0800
+#define GUITAR_HERO_3_BUTTON_GREEN		0x1000
+#define GUITAR_HERO_3_BUTTON_BLUE		0x2000
+#define GUITAR_HERO_3_BUTTON_RED		0x4000
+#define GUITAR_HERO_3_BUTTON_ORANGE		0x8000
+#define GUITAR_HERO_3_BUTTON_ALL		0xFFFE
 
 /* guitar hero world tour touch bar codes */
 #define GUITAR_HERO_3_TOUCH_AVAILABLE	0x1000
@@ -86,6 +86,28 @@
 #define GUITAR_HERO_3_TOUCH_YELLOW		0x1004
 #define GUITAR_HERO_3_TOUCH_BLUE		0x1008
 #define GUITAR_HERO_3_TOUCH_ORANGE		0x1010
+
+/* wiiu pro controller button codes */
+#define WIIU_PRO_CTRL_BUTTON_R			0x00002
+#define WIIU_PRO_CTRL_BUTTON_PLUS		0x00004
+#define WIIU_PRO_CTRL_BUTTON_HOME		0x00008
+#define WIIU_PRO_CTRL_BUTTON_MINUS		0x00010
+#define WIIU_PRO_CTRL_BUTTON_L			0x00020
+#define WIIU_PRO_CTRL_BUTTON_DOWN		0x00040
+#define WIIU_PRO_CTRL_BUTTON_RIGHT		0x00080
+#define WIIU_PRO_CTRL_BUTTON_UP			0x00100
+#define WIIU_PRO_CTRL_BUTTON_LEFT		0x00200
+#define WIIU_PRO_CTRL_BUTTON_ZR			0x00400
+#define WIIU_PRO_CTRL_BUTTON_X			0x00800
+#define WIIU_PRO_CTRL_BUTTON_A			0x01000
+#define WIIU_PRO_CTRL_BUTTON_Y			0x02000
+#define WIIU_PRO_CTRL_BUTTON_B			0x04000
+#define WIIU_PRO_CTRL_BUTTON_ZL			0x08000
+#define WIIU_PRO_CTRL_BUTTON_R3			0x10000
+#define WIIU_PRO_CTRL_BUTTON_L3			0x20000
+#define WIIU_PRO_CTRL_BUTTON_CHARGING	0x40000
+#define WIIU_PRO_CTRL_BUTTON_CONNECTED	0x80000
+#define WIIU_PRO_CTRL_BUTTON_ALL		0xFFFFE
 
 /* wiimote option flags */
 #define WIIUSE_SMOOTHING				0x01
@@ -102,8 +124,9 @@
 #define EXP_NUNCHUK						1
 #define EXP_CLASSIC						2
 #define EXP_GUITAR_HERO_3				3
-#define EXP_WII_BOARD					4
-#define EXP_MOTION_PLUS					5
+#define EXP_WIIU_PRO					4
+#define EXP_WII_BOARD					5
+#define EXP_MOTION_PLUS					6
 
 /* IR correction types */
 typedef enum ir_position_t {
@@ -269,6 +292,15 @@ typedef struct vec2b_t {
 
 
 /**
+ *	@struct vec2w_t
+ *	@brief Unsigned x,y byte vector.
+ */
+typedef struct vec2w_t {
+	uword x, y;
+} vec2w_t;
+
+
+/**
 *	@struct vec3b_t
 *	@brief Unsigned x,y,z byte vector.
 */
@@ -421,10 +453,10 @@ typedef struct ir_t {
  *	be higher.
  */
 typedef struct joystick_t {
-	struct vec2b_t max;				/**< maximum joystick values	*/
-	struct vec2b_t min;				/**< minimum joystick values	*/
-	struct vec2b_t center;			/**< center joystick values		*/
-	struct vec2b_t pos;				/**< raw position values        */
+	struct vec2w_t max;				/**< maximum joystick values	*/
+	struct vec2w_t min;				/**< minimum joystick values	*/
+	struct vec2w_t center;			/**< center joystick values		*/
+	struct vec2w_t pos;				/**< raw position values		*/
 
 	float ang;						/**< angle the joystick is being held		*/
 	float mag;						/**< magnitude of the joystick (range 0-1)	*/
@@ -470,6 +502,8 @@ typedef struct classic_ctrl_t {
 
 	struct joystick_t ljs;			/**< left joystick calibration				*/
 	struct joystick_t rjs;			/**< right joystick calibration				*/
+
+	ubyte type;
 } classic_ctrl_t;
 
 
@@ -484,13 +518,31 @@ typedef struct guitar_hero_3_t {
 	uword btns_released;			/**< what buttons were just released this	*/
 
 	ubyte wb_raw;
-	float whammy_bar;				/**< whammy bar (range 0-1)					*/
-
 	ubyte tb_raw;
+
+	float whammy_bar;				/**< whammy bar (range 0-1)					*/
 	int touch_bar;					/**< touch bar								*/
 
 	struct joystick_t js;			/**< joystick calibration					*/
 } guitar_hero_3_t;
+
+
+/**
+ *	@struct wiiu_pro_ctrl_t
+ *	@brief Wii U Pro Controller expansion device.
+ */
+typedef struct wiiu_pro_ctrl_t {
+	uint btns;						/**< what buttons have just been pressed	*/
+	uint btns_last;					/**< what buttons have just been pressed	*/
+	uint btns_held;					/**< what buttons are being held down		*/
+	uint btns_released;				/**< what buttons were just released this	*/
+
+	ubyte battery_level;			/**< battery level (range 0-4)				*/
+
+	struct joystick_t ljs;			/**< left joystick calibration				*/
+	struct joystick_t rjs;			/**< right joystick calibration				*/
+} wiiu_pro_ctrl_t;
+
 
 /**
   * @struct wii_board_t
@@ -531,6 +583,7 @@ typedef struct expansion_t {
 		struct nunchuk_t nunchuk;
 		struct classic_ctrl_t classic;
 		struct guitar_hero_3_t gh3;
+		struct wiiu_pro_ctrl_t wup;
  		struct wii_board_t wb;
 		struct motion_plus_t mp;
 	};
@@ -580,6 +633,8 @@ typedef enum WIIUSE_EVENT_TYPE {
 	WIIUSE_CLASSIC_CTRL_REMOVED,
 	WIIUSE_GUITAR_HERO_3_CTRL_INSERTED,
  	WIIUSE_GUITAR_HERO_3_CTRL_REMOVED,
+ 	WIIUSE_WIIU_PRO_CTRL_INSERTED,
+ 	WIIUSE_WIIU_PRO_CTRL_REMOVED,
  	WIIUSE_WII_BOARD_INSERTED,
  	WIIUSE_WII_BOARD_REMOVED,
  	WIIUSE_MOTION_PLUS_ACTIVATED,

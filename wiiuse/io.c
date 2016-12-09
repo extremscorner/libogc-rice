@@ -6,6 +6,7 @@
 #include "nunchuk.h"
 #include "classic.h"
 #include "guitar_hero_3.h"
+#include "wiiupro.h"
 #include "wiiboard.h"
 #include "motion_plus.h"
 #include "io.h"
@@ -13,6 +14,7 @@
 
 void wiiuse_handshake(struct wiimote_t *wm,ubyte *data,uword len)
 {
+	uint id;
 	ubyte *buf = NULL;
 	struct accel_t *accel = &wm->accel_calib;
 
@@ -24,10 +26,35 @@ void wiiuse_handshake(struct wiimote_t *wm,ubyte *data,uword len)
 
 			wiiuse_set_leds(wm,WIIMOTE_LED_NONE,NULL);
 
-			buf = __lwp_wkspace_allocate(sizeof(ubyte)*8);
-			wiiuse_read_data(wm,buf,WM_MEM_OFFSET_CALIBRATION,7,wiiuse_handshake);
+			buf = __lwp_wkspace_allocate(sizeof(ubyte)*6);
+			wiiuse_read_data(wm,buf,WM_EXP_ID,6,wiiuse_handshake);
 			break;
 		case 1:
+			wm->handshake_state++;
+
+			id = BIG_ENDIAN_LONG(*(uint*)(&data[2]));
+			__lwp_wkspace_free(data);
+
+			switch(id) {
+				case EXP_ID_CODE_WIIUPRO_CONTROLLER:
+				case EXP_ID_CODE_WIIBOARD:
+					WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_ACC);
+					WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_IR|WIIMOTE_STATE_IR_INIT);
+					WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_SPEAKER|WIIMOTE_STATE_SPEAKER_INIT);
+					WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE);
+					WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE_COMPLETE);
+					WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_EXP_ONLY);
+
+					wm->event = WIIUSE_CONNECT;
+					wiiuse_status(wm,NULL);
+					break;
+				default:
+					buf = __lwp_wkspace_allocate(sizeof(ubyte)*8);
+					wiiuse_read_data(wm,buf,WM_MEM_OFFSET_CALIBRATION,8,wiiuse_handshake);
+					break;
+			}
+			break;
+		case 2:
 			wm->handshake_state++;
 
 			accel->cal_zero.x = ((data[0]<<2)|((data[3]>>4)&3));
@@ -63,7 +90,7 @@ void wiiuse_handshake_expansion_start(struct wiimote_t *wm)
 
 void wiiuse_handshake_expansion(struct wiimote_t *wm,ubyte *data,uword len)
 {
-	int id;
+	uint id;
 	ubyte val;
 	ubyte *buf = NULL;
 
@@ -86,7 +113,7 @@ void wiiuse_handshake_expansion(struct wiimote_t *wm,ubyte *data,uword len)
 			break;
 		case 3:
 			if(!data || !len) return;
-			id = BIG_ENDIAN_LONG(*(int*)(&data[220]));
+			id = BIG_ENDIAN_LONG(*(uint*)(&data[220]));
 
 			switch(id) {
 				case EXP_ID_CODE_NUNCHUK:
@@ -98,11 +125,15 @@ void wiiuse_handshake_expansion(struct wiimote_t *wm,ubyte *data,uword len)
 				case EXP_ID_CODE_GUITAR:
 					if(!guitar_hero_3_handshake(wm,&wm->exp.gh3,data,len)) return;
 					break;
+				case EXP_ID_CODE_WIIUPRO_CONTROLLER:
+					if(!wiiu_pro_ctrl_handshake(wm,&wm->exp.wup,data,len)) return;
+					break;
  				case EXP_ID_CODE_WIIBOARD:
  					if(!wii_board_handshake(wm,&wm->exp.wb,data,len)) return;
  					break;
 				default:
 					if(!classic_ctrl_handshake(wm,&wm->exp.classic,data,len)) return;
+					break;
 			}
 			__lwp_wkspace_free(data);
 
@@ -131,6 +162,10 @@ void wiiuse_disable_expansion(struct wiimote_t *wm)
 		case EXP_GUITAR_HERO_3:
 			guitar_hero_3_disconnected(wm, &wm->exp.gh3);
 			wm->event = WIIUSE_GUITAR_HERO_3_CTRL_REMOVED;
+			break;
+		case EXP_WIIU_PRO:
+			wiiu_pro_ctrl_disconnected(wm, &wm->exp.wup);
+			wm->event = WIIUSE_WIIU_PRO_CTRL_REMOVED;
 			break;
  		case EXP_WII_BOARD:
  			wii_board_disconnected(wm, &wm->exp.wb);

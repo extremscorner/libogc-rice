@@ -144,6 +144,8 @@ int wiiuse_set_flags(struct wiimote_t* wm, int enable, int disable) {
  */
 void wiiuse_motion_sensing(struct wiimote_t* wm, int status) 
 {
+	if(!wm || WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP_ONLY)) return;
+
 	if (status) {
 		if(WIIMOTE_IS_SET(wm,WIIMOTE_STATE_ACC)) return;
 		WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_ACC);

@@ -67,7 +67,7 @@ void wiiuse_set_speaker(struct wiimote_t *wm,int status)
 	ubyte conf[7];
 	ubyte buf = 0x00;
 
-	if(!wm) return;
+	if(!wm || WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP_ONLY)) return;
 
 	if(!WIIMOTE_IS_SET(wm,WIIMOTE_STATE_HANDSHAKE_COMPLETE)) {
 		WIIUSE_DEBUG("Tried to enable speaker, will wait until handshake finishes.\n");

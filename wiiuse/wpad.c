@@ -182,17 +182,17 @@ static void __wpad_setfmt(s32 chan)
 		case WPAD_FMT_BTNS:
 			wiiuse_set_flags(__wpads[chan], 0, WIIUSE_CONTINUOUS);
 			wiiuse_motion_sensing(__wpads[chan],0);
-			if(chan != WPAD_BALANCE_BOARD) wiiuse_set_ir(__wpads[chan],0);
+			wiiuse_set_ir(__wpads[chan],0);
 			break;
 		case WPAD_FMT_BTNS_ACC:
 			wiiuse_set_flags(__wpads[chan], WIIUSE_CONTINUOUS, 0);
 			wiiuse_motion_sensing(__wpads[chan],1);
-			if(chan != WPAD_BALANCE_BOARD) wiiuse_set_ir(__wpads[chan],0);
+			wiiuse_set_ir(__wpads[chan],0);
 			break;
 		case WPAD_FMT_BTNS_ACC_IR:
 			wiiuse_set_flags(__wpads[chan], WIIUSE_CONTINUOUS, 0);
 			wiiuse_motion_sensing(__wpads[chan],1);
-			if(chan != WPAD_BALANCE_BOARD) wiiuse_set_ir(__wpads[chan],1);
+			wiiuse_set_ir(__wpads[chan],1);
 			break;
 		default:
 			break;
@@ -393,6 +393,16 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 			}
 			break;
 
+			case EXP_WIIU_PRO:
+			{
+				struct wiiu_pro_ctrl_t *wup = &data->exp.wup;
+
+				calc_joystick_state(&wup->ljs, wup->ljs.pos.x, wup->ljs.pos.y);
+				calc_joystick_state(&wup->rjs, wup->rjs.pos.x, wup->rjs.pos.y);
+				data->btns_h |= (data->exp.wup.btns<<16);
+			}
+			break;
+
  			case EXP_WII_BOARD:
  			{
 				struct wii_board_t *wb = &data->exp.wb;
@@ -427,6 +437,9 @@ static void __save_state(struct wiimote_t* wm) {
 			break;
 		case EXP_GUITAR_HERO_3:
 			wm->lstate.exp.gh3 = wm->exp.gh3;
+			break;
+		case EXP_WIIU_PRO:
+			wm->lstate.exp.wup = wm->exp.wup;
 			break;
 		case EXP_WII_BOARD:
 			wm->lstate.exp.wb = wm->exp.wb;
@@ -476,6 +489,14 @@ static u32 __wpad_read_expansion(struct wiimote_t *wm,WPADData *data, struct _wp
 			STATE_CHECK(thresh->js, wm->exp.gh3.wb_raw, wm->lstate.exp.gh3.wb_raw);
 			STATE_CHECK(thresh->js, wm->exp.gh3.js.pos.x, wm->lstate.exp.gh3.js.pos.x);
 			STATE_CHECK(thresh->js, wm->exp.gh3.js.pos.y, wm->lstate.exp.gh3.js.pos.y);
+			break;
+		case EXP_WIIU_PRO:
+			data->exp.wup = wm->exp.wup;
+			STATE_CHECK_SIMPLE(thresh->btns, wm->exp.wup.btns, wm->lstate.exp.wup.btns);
+			STATE_CHECK(thresh->js, wm->exp.wup.ljs.pos.x, wm->lstate.exp.wup.ljs.pos.x);
+			STATE_CHECK(thresh->js, wm->exp.wup.ljs.pos.y, wm->lstate.exp.wup.ljs.pos.y);
+			STATE_CHECK(thresh->js, wm->exp.wup.rjs.pos.x, wm->lstate.exp.wup.rjs.pos.x);
+			STATE_CHECK(thresh->js, wm->exp.wup.rjs.pos.y, wm->lstate.exp.wup.rjs.pos.y);
 			break;
  		case EXP_WII_BOARD:
 			data->exp.wb = wm->exp.wb;
@@ -1028,6 +1049,7 @@ s32 WPAD_Probe(s32 chan,u32 *type)
 					case WPAD_EXP_NUNCHUK:
 					case WPAD_EXP_CLASSIC:
 					case WPAD_EXP_GUITARHERO3:
+					case WPAD_EXP_WIIUPRO:
  					case WPAD_EXP_WIIBOARD:
 						dev = wm->exp.type;
 						break;

@@ -119,7 +119,7 @@ void guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyt
 	for (i = 0; i < 6; ++i)
 		msg[i] = (msg[i] ^ 0x17) + 0x17;
 	*/
-	guitar_hero_3_pressed_buttons(gh3, BIG_ENDIAN_SHORT(*(short*)(msg + 4)));
+	guitar_hero_3_pressed_buttons(gh3, LITTLE_ENDIAN_SHORT(*(short*)(msg + 4)));
 
 	gh3->js.pos.x = (msg[0] & GUITAR_HERO_3_JS_MASK);
 	gh3->js.pos.y = (msg[1] & GUITAR_HERO_3_JS_MASK);
