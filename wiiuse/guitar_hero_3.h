@@ -57,7 +57,7 @@ int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, u
 
 void guitar_hero_3_disconnected(struct wiimote_t* wm, struct guitar_hero_3_t* gh3);
 
-void guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte* msg);
+int guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte* msg, ubyte len);
 
 #ifdef __cplusplus
 }

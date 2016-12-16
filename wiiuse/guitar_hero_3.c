@@ -52,7 +52,8 @@ static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, short now
 /**
  *	@brief Handle the handshake data from the guitar.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param wm		A pointer to a wiimote_t structure.
+ *	@param gh3		A pointer to a guitar_hero_3_t structure.
  *	@param data		The data read in from the device.
  *	@param len		The length of the data block, in bytes.
  *
@@ -96,7 +97,8 @@ int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, u
 /**
  *	@brief The guitar disconnected.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param wm		A pointer to a wiimote_t structure.
+ *	@param gh3		A pointer to a guitar_hero_3_t structure.
  */
 void guitar_hero_3_disconnected(struct wiimote_t* wm, struct guitar_hero_3_t* gh3) 
 {
@@ -104,14 +106,17 @@ void guitar_hero_3_disconnected(struct wiimote_t* wm, struct guitar_hero_3_t* gh
 }
 
 
-
 /**
  *	@brief Handle guitar event.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param wm		A pointer to a wiimote_t structure.
+ *	@param gh3		A pointer to a guitar_hero_3_t structure.
  *	@param msg		The message specified in the event packet.
+ *	@param len		The length of the message block, in bytes.
+ *
+ *	@return	Returns 1 if event was successful, 0 if not.
  */
-void guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte* msg) {
+int guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte* msg, ubyte len) {
 	//int i;
 
 	/* decrypt data */
@@ -155,13 +160,15 @@ void guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyt
 	/* joy stick */
 	calc_joystick_state(&gh3->js, gh3->js.pos.x, gh3->js.pos.y);
 #endif
+
+	return 1;
 }
 
 
 /**
  *	@brief Find what buttons are pressed.
  *
- *	@param cc		A pointer to a classic_ctrl_t structure.
+ *	@param gh3		A pointer to a guitar_hero_3_t structure.
  *	@param msg		The message byte specified in the event packet.
  */
 static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, short now) {

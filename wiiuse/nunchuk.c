@@ -100,6 +100,7 @@ int nunchuk_handshake(struct wiimote_t *wm,struct nunchuk_t *nc,ubyte *data,uwor
 /**
  *	@brief The nunchuk disconnected.
  *
+ *	@param wm		A pointer to a wiimote_t structure.
  *	@param nc		A pointer to a nunchuk_t structure.
  */
 void nunchuk_disconnected(struct wiimote_t* wm, struct nunchuk_t* nc) 
@@ -111,10 +112,14 @@ void nunchuk_disconnected(struct wiimote_t* wm, struct nunchuk_t* nc)
 /**
  *	@brief Handle nunchuk event.
  *
+ *	@param wm		A pointer to a wiimote_t structure.
  *	@param nc		A pointer to a nunchuk_t structure.
  *	@param msg		The message specified in the event packet.
+ *	@param len		The length of the message block, in bytes.
+ *
+ *	@return	Returns 1 if event was successful, 0 if not.
  */
-void nunchuk_event(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* msg) {
+int nunchuk_event(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* msg, ubyte len) {
 	//int i;
 
 	/* decrypt data */
@@ -128,7 +133,7 @@ void nunchuk_event(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* msg) {
 	nc->js.pos.x = msg[0];
 	nc->js.pos.y = msg[1];
 
-	if (wm->expansion_state == 3) {
+	if (wm->expansion_state == 4) {
 		wm->expansion_state++;
 		nc->js.center.x = nc->js.pos.x;
 		nc->js.center.y = nc->js.pos.y;
@@ -155,5 +160,7 @@ void nunchuk_event(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* msg) {
 	calculate_orientation(&nc->accel_calib, &nc->accel, &nc->orient, NUNCHUK_IS_FLAG_SET(nc, WIIUSE_SMOOTHING));
 	calculate_gforce(&nc->accel_calib, &nc->accel, &nc->gforce);
 #endif
+
+	return 1;
 }
 

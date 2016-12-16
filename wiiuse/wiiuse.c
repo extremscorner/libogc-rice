@@ -209,7 +209,7 @@ int wiiuse_set_report_type(struct wiimote_t *wm,cmd_blk_cb cb)
 	buf[0] = (WIIMOTE_IS_FLAG_SET(wm, WIIUSE_CONTINUOUS) ? 0x04 : 0x00);	/* set to 0x04 for continuous reporting */
 	buf[1] = 0x00;
 
-	motion = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_ACC) || WIIMOTE_IS_SET(wm, WIIMOTE_STATE_IR);
+	motion = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_ACC);
 	exp = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP);
 	ir = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_IR);
 

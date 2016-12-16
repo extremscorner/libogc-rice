@@ -44,7 +44,7 @@ int wii_board_handshake(struct wiimote_t* wm, struct wii_board_t* wb, ubyte* dat
 
 void wii_board_disconnected(struct wiimote_t* wm, struct wii_board_t* wb);
 
-void wii_board_event(struct wiimote_t* wm, struct wii_board_t* wb, ubyte* msg);
+int wii_board_event(struct wiimote_t* wm, struct wii_board_t* wb, ubyte* msg, ubyte len);
 
 #ifdef __cplusplus
 }

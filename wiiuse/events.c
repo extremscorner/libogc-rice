@@ -170,26 +170,26 @@ done:
 	wiiuse_send_next_command(wm);
 }
 
-static void handle_expansion(struct wiimote_t *wm,ubyte *msg)
+static void handle_expansion(struct wiimote_t *wm,ubyte *msg,ubyte len)
 {
 	switch (wm->exp.type) {
 		case EXP_NUNCHUK:
-			nunchuk_event(wm, &wm->exp.nunchuk, msg);
+			nunchuk_event(wm, &wm->exp.nunchuk, msg, len);
 			break;
 		case EXP_CLASSIC:
-			classic_ctrl_event(wm, &wm->exp.classic, msg);
+			classic_ctrl_event(wm, &wm->exp.classic, msg, len);
 			break;
 		case EXP_GUITAR_HERO_3:
-			guitar_hero_3_event(wm, &wm->exp.gh3, msg);
+			guitar_hero_3_event(wm, &wm->exp.gh3, msg, len);
 			break;
 		case EXP_WIIU_PRO:
-			wiiu_pro_ctrl_event(wm, &wm->exp.wup, msg);
+			wiiu_pro_ctrl_event(wm, &wm->exp.wup, msg, len);
 			break;
  		case EXP_WII_BOARD:
- 			wii_board_event(wm, &wm->exp.wb, msg);
+ 			wii_board_event(wm, &wm->exp.wb, msg, len);
  			break;
  		case EXP_MOTION_PLUS:
- 			motion_plus_event(wm, &wm->exp.mp, msg);
+ 			motion_plus_event(wm, &wm->exp.mp, msg, len);
  			break;
 		default:
 			break;
@@ -273,7 +273,7 @@ void parse_event(struct wiimote_t *wm)
 			break;
 		case WM_RPT_BTN_EXP:
 			wiiuse_pressed_buttons(wm,msg);
-			handle_expansion(wm,msg+2);
+			handle_expansion(wm, msg+2, 19);
 			break;
 		case WM_RPT_BTN_ACC_EXP:
 			/* button - motion - expansion */
@@ -286,12 +286,12 @@ void parse_event(struct wiimote_t *wm)
 			calculate_orientation(&wm->accel_calib, &wm->accel, &wm->orient, WIIMOTE_IS_FLAG_SET(wm, WIIUSE_SMOOTHING));
 			calculate_gforce(&wm->accel_calib, &wm->accel, &wm->gforce);
 #endif
-			handle_expansion(wm, msg+5);
+			handle_expansion(wm, msg+5, 16);
 			break;
 		case WM_RPT_BTN_IR_EXP:
 			wiiuse_pressed_buttons(wm,msg);
 			calculate_basic_ir(wm, msg+2);
-			handle_expansion(wm,msg+12);
+			handle_expansion(wm, msg+12, 9);
 			break;
 		case WM_RPT_BTN_ACC_IR_EXP:
 			/* button - motion - ir - expansion */
@@ -307,7 +307,7 @@ void parse_event(struct wiimote_t *wm)
 			/* ir */
 			calculate_basic_ir(wm, msg+5);
 
-			handle_expansion(wm, msg+15);
+			handle_expansion(wm, msg+15, 6);
 			break;
 		default:
 			WIIUSE_WARNING("Unknown event, can not handle it [Code 0x%x].", event);

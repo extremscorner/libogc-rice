@@ -189,6 +189,11 @@ static void __wpad_setfmt(s32 chan)
 			wiiuse_motion_sensing(__wpads[chan],1);
 			wiiuse_set_ir(__wpads[chan],0);
 			break;
+		case WPAD_FMT_BTNS_IR:
+			wiiuse_set_flags(__wpads[chan], WIIUSE_CONTINUOUS, 0);
+			wiiuse_motion_sensing(__wpads[chan],0);
+			wiiuse_set_ir(__wpads[chan],1);
+			break;
 		case WPAD_FMT_BTNS_ACC_IR:
 			wiiuse_set_flags(__wpads[chan], WIIUSE_CONTINUOUS, 0);
 			wiiuse_motion_sensing(__wpads[chan],1);
@@ -311,29 +316,32 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 {
 	if(data->err!=WPAD_ERR_NONE) return;
 
-	data->orient = lstate->orient;
-
-	data->ir.state = lstate->ir.state;
-	data->ir.sensorbar = lstate->ir.sensorbar;
-	data->ir.x = lstate->ir.x;
-	data->ir.y = lstate->ir.y;
-	data->ir.sx = lstate->ir.sx;
-	data->ir.sy = lstate->ir.sy;
-	data->ir.ax = lstate->ir.ax;
-	data->ir.ay = lstate->ir.ay;
-	data->ir.distance = lstate->ir.distance;
-	data->ir.z = lstate->ir.z;
-	data->ir.angle = lstate->ir.angle;
-	data->ir.error_cnt = lstate->ir.error_cnt;
-	data->ir.glitch_cnt = lstate->ir.glitch_cnt;
-
-	data->btns_l = lstate->btns_h;
 	if(data->data_present & WPAD_DATA_ACCEL) {
+		data->orient = lstate->orient;
 		calculate_orientation(accel_calib, &data->accel, &data->orient, smoothed);
 		calculate_gforce(accel_calib, &data->accel, &data->gforce);
+	} else {
+		memset(&data->accel,0,sizeof(struct accel_t));
+		memset(&data->orient,0,sizeof(struct orient_t));
+		memset(&data->gforce,0,sizeof(struct gforce_t));
 	}
 	if(data->data_present & WPAD_DATA_IR) {
+		data->ir.state = lstate->ir.state;
+		data->ir.sensorbar = lstate->ir.sensorbar;
+		data->ir.x = lstate->ir.x;
+		data->ir.y = lstate->ir.y;
+		data->ir.sx = lstate->ir.sx;
+		data->ir.sy = lstate->ir.sy;
+		data->ir.ax = lstate->ir.ax;
+		data->ir.ay = lstate->ir.ay;
+		data->ir.distance = lstate->ir.distance;
+		data->ir.z = lstate->ir.z;
+		data->ir.angle = lstate->ir.angle;
+		data->ir.error_cnt = lstate->ir.error_cnt;
+		data->ir.glitch_cnt = lstate->ir.glitch_cnt;
 		interpret_ir_data(&data->ir,&data->orient);
+	} else {
+		memset(&data->ir,0,sizeof(struct ir_t));
 	}
 	if(data->data_present & WPAD_DATA_EXPANSION) {
 		switch(data->exp.type) {
@@ -413,7 +421,10 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 			default:
 				break;
 		}
+	} else {
+		memset(&data->exp,0,sizeof(struct expansion_t));
 	}
+	data->btns_l = lstate->btns_h;
 	data->btns_d = data->btns_h & ~data->btns_l;
 	data->btns_u = ~data->btns_h & data->btns_l;
 	*lstate = *data;
@@ -549,8 +560,7 @@ static void __wpad_read_wiimote(struct wiimote_t *wm, WPADData *data, s32 *idle_
 					STATE_CHECK(thresh->acc, wm->accel.z, wm->lstate.accel.z);
 			}
 			switch(wm->event_buf[0]) {
-				//IR requires acceleration
-				//case WM_RPT_BTN_IR_EXP:
+				case WM_RPT_BTN_IR_EXP:
 				case WM_RPT_BTN_ACC_IR:
 				case WM_RPT_BTN_ACC_IR_EXP:
 					data->ir = wm->ir;
@@ -945,6 +955,7 @@ s32 WPAD_SetDataFormat(s32 chan, s32 fmt)
 		switch(fmt) {
 			case WPAD_FMT_BTNS:
 			case WPAD_FMT_BTNS_ACC:
+			case WPAD_FMT_BTNS_IR:
 			case WPAD_FMT_BTNS_ACC_IR:
 				__wpdcb[chan].data_fmt = fmt;
 				__wpad_setfmt(chan);

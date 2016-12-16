@@ -50,6 +50,7 @@
 #define NUNCHUK_BUTTON_ALL				0x03
 
 /* classic controller button codes */
+#define CLASSIC_CTRL_BUTTON_PRESENT		0x0001
 #define CLASSIC_CTRL_BUTTON_FULL_R		0x0002
 #define CLASSIC_CTRL_BUTTON_PLUS		0x0004
 #define CLASSIC_CTRL_BUTTON_HOME		0x0008
@@ -66,6 +67,14 @@
 #define CLASSIC_CTRL_BUTTON_B			0x4000
 #define CLASSIC_CTRL_BUTTON_ZL			0x8000
 #define CLASSIC_CTRL_BUTTON_ALL			0xFFFE
+
+#define CLASSIC_CTRL_TYPE_ORIGINAL		0x00
+#define CLASSIC_CTRL_TYPE_PRO			0x01
+
+#define CLASSIC_CTRL_MODE_COMPAT		0x00
+#define CLASSIC_CTRL_MODE_1				0x01
+#define CLASSIC_CTRL_MODE_2				0x02
+#define CLASSIC_CTRL_MODE_3				0x03
 
 /* guitar hero 3 button codes */
 #define GUITAR_HERO_3_BUTTON_PLUS		0x0004
@@ -504,6 +513,7 @@ typedef struct classic_ctrl_t {
 	struct joystick_t rjs;			/**< right joystick calibration				*/
 
 	ubyte type;
+	ubyte mode;
 } classic_ctrl_t;
 
 

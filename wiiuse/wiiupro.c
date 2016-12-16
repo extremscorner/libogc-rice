@@ -52,6 +52,7 @@ static void wiiu_pro_ctrl_pressed_buttons(struct wiiu_pro_ctrl_t* wup, uint now)
 /**
  *	@brief Handle the handshake data from the wiiu pro controller.
  *
+ *	@param wm		A pointer to a wiimote_t structure.
  *	@param wup		A pointer to a wiiu_pro_ctrl_t structure.
  *	@param data		The data read in from the device.
  *	@param len		The length of the data block, in bytes.
@@ -94,6 +95,7 @@ int wiiu_pro_ctrl_handshake(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, u
 /**
  *	@brief The wiiu pro controller disconnected.
  *
+ *	@param wm		A pointer to a wiimote_t structure.
  *	@param wup		A pointer to a wiiu_pro_ctrl_t structure.
  */
 void wiiu_pro_ctrl_disconnected(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup) 
@@ -105,11 +107,21 @@ void wiiu_pro_ctrl_disconnected(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wu
 /**
  *	@brief Handle wiiu pro controller event.
  *
+ *	@param wm		A pointer to a wiimote_t structure.
  *	@param wup		A pointer to a wiiu_pro_ctrl_t structure.
  *	@param msg		The message specified in the event packet.
+ *	@param len		The length of the message block, in bytes.
+ *
+ *	@return	Returns 1 if event was successful, 0 if not.
  */
-void wiiu_pro_ctrl_event(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, ubyte* msg)
+int wiiu_pro_ctrl_event(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, ubyte* msg, ubyte len)
 {
+	if (len < 11) {
+		WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_EXP_FAILED);
+		wiiuse_disable_expansion(wm);
+		return 0;
+	}
+
 	wiiu_pro_ctrl_pressed_buttons(wup, LITTLE_ENDIAN_LONG(*(uint*)(msg + 8)));
 
 	wup->battery_level = ((msg[10] & 0x70) >> 4);
@@ -120,7 +132,7 @@ void wiiu_pro_ctrl_event(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, ubyt
 	wup->rjs.pos.x = LITTLE_ENDIAN_SHORT(*(uword*)(msg + 2));
 	wup->rjs.pos.y = LITTLE_ENDIAN_SHORT(*(uword*)(msg + 6));
 
-	if (wm->expansion_state == 3) {
+	if (wm->expansion_state == 4) {
 		wm->expansion_state++;
 		wup->ljs.center.x = wup->ljs.pos.x;
 		wup->ljs.center.y = wup->ljs.pos.y;
@@ -136,6 +148,7 @@ void wiiu_pro_ctrl_event(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, ubyt
 		wup->ljs.min.y = wup->ljs.pos.y;
 	if (wup->ljs.max.y < wup->ljs.pos.y)
 		wup->ljs.max.y = wup->ljs.pos.y;
+
 	if (wup->rjs.min.x > wup->rjs.pos.x)
 		wup->rjs.min.x = wup->rjs.pos.x;
 	if (wup->rjs.max.x < wup->rjs.pos.x)
@@ -149,6 +162,8 @@ void wiiu_pro_ctrl_event(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, ubyt
 	calc_joystick_state(&wup->ljs, wup->ljs.pos.x, wup->ljs.pos.y);
 	calc_joystick_state(&wup->rjs, wup->rjs.pos.x, wup->rjs.pos.y);
 #endif
+
+	return 1;
 }
 
 

@@ -44,7 +44,7 @@ int wiiu_pro_ctrl_handshake(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, u
 
 void wiiu_pro_ctrl_disconnected(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup);
 
-void wiiu_pro_ctrl_event(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, ubyte* msg);
+int wiiu_pro_ctrl_event(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, ubyte* msg, ubyte len);
 
 #ifdef __cplusplus
 }

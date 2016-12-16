@@ -44,7 +44,7 @@ int classic_ctrl_handshake(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyt
 
 void classic_ctrl_disconnected(struct wiimote_t* wm, struct classic_ctrl_t* cc);
 
-void classic_ctrl_event(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyte* msg);
+int classic_ctrl_event(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyte* msg, ubyte len);
 
 #ifdef __cplusplus
 }

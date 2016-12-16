@@ -9,7 +9,7 @@ extern "C" {
 
 int nunchuk_handshake(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* data, uword len);
 void nunchuk_disconnected(struct wiimote_t* wm, struct nunchuk_t* nc);
-void nunchuk_event(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* msg);
+int nunchuk_event(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* msg, ubyte len);
 
 #ifdef __cplusplus
 }

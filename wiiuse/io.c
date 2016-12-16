@@ -108,10 +108,16 @@ void wiiuse_handshake_expansion(struct wiimote_t *wm,ubyte *data,uword len)
 			break;
 		case 2:
 			wm->expansion_state++;
+			if(WIIMOTE_IS_SET(wm,WIIMOTE_STATE_ACC) && WIIMOTE_IS_SET(wm,WIIMOTE_STATE_IR)) val = CLASSIC_CTRL_MODE_1;
+			else val = CLASSIC_CTRL_MODE_3;
+			wiiuse_write_data(wm,WM_EXP_CLASSIC_MODE,&val,1,wiiuse_handshake_expansion);
+			break;
+		case 3:
+			wm->expansion_state++;
 			buf = __lwp_wkspace_allocate(sizeof(ubyte)*EXP_HANDSHAKE_LEN);
 			wiiuse_read_data(wm,buf,WM_EXP_MEM_CALIBR,EXP_HANDSHAKE_LEN,wiiuse_handshake_expansion);
 			break;
-		case 3:
+		case 4:
 			if(!data || !len) return;
 			id = BIG_ENDIAN_LONG(*(uint*)(&data[220]));
 

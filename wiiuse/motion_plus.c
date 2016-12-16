@@ -82,7 +82,7 @@ void motion_plus_disconnected(struct wiimote_t* wm, struct motion_plus_t* mp)
 	memset(mp, 0, sizeof(struct motion_plus_t));
 }
 
-void motion_plus_event(struct wiimote_t* wm, struct motion_plus_t* mp, ubyte* msg)
+int motion_plus_event(struct wiimote_t* wm, struct motion_plus_t* mp, ubyte* msg, ubyte len)
 {
 	mp->rx = ((msg[5] & 0xFC) << 6) | msg[2]; // Pitch
 	mp->ry = ((msg[4] & 0xFC) << 6) | msg[1]; // Roll
@@ -90,4 +90,6 @@ void motion_plus_event(struct wiimote_t* wm, struct motion_plus_t* mp, ubyte* ms
 
 	mp->ext = msg[4] & 0x1;
 	mp->status = (msg[3] & 0x3) | ((msg[4] & 0x2) << 1); // roll, yaw, pitch
+
+	return 1;
 }

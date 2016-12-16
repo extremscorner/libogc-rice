@@ -116,6 +116,7 @@ enum {
 enum {
 	WPAD_FMT_BTNS = 0,
 	WPAD_FMT_BTNS_ACC,
+	WPAD_FMT_BTNS_IR,
 	WPAD_FMT_BTNS_ACC_IR
 };
 
