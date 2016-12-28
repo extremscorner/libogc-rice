@@ -253,7 +253,7 @@ int classic_ctrl_event(struct wiimote_t* wm, struct classic_ctrl_t* cc, ubyte* m
 			break;
 	}
 
-	if (wm->expansion_state == 4) {
+	if (wm->expansion_state == 5) {
 		wm->expansion_state++;
 		cc->ljs.center.x = cc->ljs.pos.x;
 		cc->ljs.center.y = cc->ljs.pos.y;

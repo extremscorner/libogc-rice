@@ -133,7 +133,7 @@ int nunchuk_event(struct wiimote_t* wm, struct nunchuk_t* nc, ubyte* msg, ubyte 
 	nc->js.pos.x = msg[0];
 	nc->js.pos.y = msg[1];
 
-	if (wm->expansion_state == 4) {
+	if (wm->expansion_state == 5) {
 		wm->expansion_state++;
 		nc->js.center.x = nc->js.pos.x;
 		nc->js.center.y = nc->js.pos.y;

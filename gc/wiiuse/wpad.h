@@ -103,6 +103,56 @@ enum {
 #define WPAD_WIIU_PRO_BUTTON_B					(0x4000<<16)
 #define WPAD_WIIU_PRO_BUTTON_ZL					(0x8000<<16)
 
+#define WPAD_NES_BUTTON_RIGHT					(0x0001<<16)
+#define WPAD_NES_BUTTON_LEFT					(0x0002<<16)
+#define WPAD_NES_BUTTON_DOWN					(0x0004<<16)
+#define WPAD_NES_BUTTON_UP						(0x0008<<16)
+#define WPAD_NES_BUTTON_START					(0x0010<<16)
+#define WPAD_NES_BUTTON_SELECT					(0x0020<<16)
+#define WPAD_NES_BUTTON_B						(0x0040<<16)
+#define WPAD_NES_BUTTON_A						(0x0080<<16)
+
+#define WPAD_SNES_BUTTON_RIGHT					(0x0001<<16)
+#define WPAD_SNES_BUTTON_LEFT					(0x0002<<16)
+#define WPAD_SNES_BUTTON_DOWN					(0x0004<<16)
+#define WPAD_SNES_BUTTON_UP						(0x0008<<16)
+#define WPAD_SNES_BUTTON_START					(0x0010<<16)
+#define WPAD_SNES_BUTTON_SELECT					(0x0020<<16)
+#define WPAD_SNES_BUTTON_Y						(0x0040<<16)
+#define WPAD_SNES_BUTTON_B						(0x0080<<16)
+#define WPAD_SNES_BUTTON_R						(0x1000<<16)
+#define WPAD_SNES_BUTTON_L						(0x2000<<16)
+#define WPAD_SNES_BUTTON_X						(0x4000<<16)
+#define WPAD_SNES_BUTTON_A						(0x8000<<16)
+
+#define WPAD_N64_BUTTON_RIGHT					(0x0001<<16)
+#define WPAD_N64_BUTTON_LEFT					(0x0002<<16)
+#define WPAD_N64_BUTTON_DOWN					(0x0004<<16)
+#define WPAD_N64_BUTTON_UP						(0x0008<<16)
+#define WPAD_N64_BUTTON_START					(0x0010<<16)
+#define WPAD_N64_BUTTON_Z						(0x0020<<16)
+#define WPAD_N64_BUTTON_B						(0x0040<<16)
+#define WPAD_N64_BUTTON_A						(0x0080<<16)
+#define WPAD_N64_BUTTON_C_RIGHT					(0x0100<<16)
+#define WPAD_N64_BUTTON_C_LEFT					(0x0200<<16)
+#define WPAD_N64_BUTTON_C_DOWN					(0x0400<<16)
+#define WPAD_N64_BUTTON_C_UP					(0x0800<<16)
+#define WPAD_N64_BUTTON_R						(0x1000<<16)
+#define WPAD_N64_BUTTON_L						(0x2000<<16)
+
+#define WPAD_GC_BUTTON_LEFT						(0x0001<<16)
+#define WPAD_GC_BUTTON_RIGHT					(0x0002<<16)
+#define WPAD_GC_BUTTON_DOWN						(0x0004<<16)
+#define WPAD_GC_BUTTON_UP						(0x0008<<16)
+#define WPAD_GC_BUTTON_Z						(0x0010<<16)
+#define WPAD_GC_BUTTON_R						(0x0020<<16)
+#define WPAD_GC_BUTTON_L						(0x0040<<16)
+#define WPAD_GC_BUTTON_A						(0x0100<<16)
+#define WPAD_GC_BUTTON_B						(0x0200<<16)
+#define WPAD_GC_BUTTON_X						(0x0400<<16)
+#define WPAD_GC_BUTTON_Y						(0x0800<<16)
+#define WPAD_GC_BUTTON_START					(0x1000<<16)
+
 enum {
 	WPAD_EXP_NONE = 0,
 	WPAD_EXP_NUNCHUK,
@@ -110,6 +160,11 @@ enum {
 	WPAD_EXP_GUITARHERO3,
 	WPAD_EXP_WIIUPRO,
  	WPAD_EXP_WIIBOARD,
+	WPAD_EXP_MOTIONPLUS,
+	WPAD_EXP_NES,
+	WPAD_EXP_SNES,
+	WPAD_EXP_N64,
+	WPAD_EXP_GC,
 	WPAD_EXP_UNKNOWN = 255
 };
 

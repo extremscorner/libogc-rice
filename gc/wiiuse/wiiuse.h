@@ -118,6 +118,64 @@
 #define WIIU_PRO_CTRL_BUTTON_CONNECTED	0x80000
 #define WIIU_PRO_CTRL_BUTTON_ALL		0xFFFFE
 
+/* extenmote nes button codes */
+#define EXTENMOTE_NES_BUTTON_RIGHT		0x01
+#define EXTENMOTE_NES_BUTTON_LEFT		0x02
+#define EXTENMOTE_NES_BUTTON_DOWN		0x04
+#define EXTENMOTE_NES_BUTTON_UP			0x08
+#define EXTENMOTE_NES_BUTTON_START		0x10
+#define EXTENMOTE_NES_BUTTON_SELECT		0x20
+#define EXTENMOTE_NES_BUTTON_B			0x40
+#define EXTENMOTE_NES_BUTTON_A			0x80
+#define EXTENMOTE_NES_BUTTON_ALL		0xFF
+
+/* extenmote snes button codes */
+#define EXTENMOTE_SNES_BUTTON_RIGHT		0x0001
+#define EXTENMOTE_SNES_BUTTON_LEFT		0x0002
+#define EXTENMOTE_SNES_BUTTON_DOWN		0x0004
+#define EXTENMOTE_SNES_BUTTON_UP		0x0008
+#define EXTENMOTE_SNES_BUTTON_START		0x0010
+#define EXTENMOTE_SNES_BUTTON_SELECT	0x0020
+#define EXTENMOTE_SNES_BUTTON_Y			0x0040
+#define EXTENMOTE_SNES_BUTTON_B			0x0080
+#define EXTENMOTE_SNES_BUTTON_R			0x1000
+#define EXTENMOTE_SNES_BUTTON_L			0x2000
+#define EXTENMOTE_SNES_BUTTON_X			0x4000
+#define EXTENMOTE_SNES_BUTTON_A			0x8000
+#define EXTENMOTE_SNES_BUTTON_ALL		0xF0FF
+
+/* extenmote n64 button codes */
+#define EXTENMOTE_N64_BUTTON_RIGHT		0x0001
+#define EXTENMOTE_N64_BUTTON_LEFT		0x0002
+#define EXTENMOTE_N64_BUTTON_DOWN		0x0004
+#define EXTENMOTE_N64_BUTTON_UP			0x0008
+#define EXTENMOTE_N64_BUTTON_START		0x0010
+#define EXTENMOTE_N64_BUTTON_Z			0x0020
+#define EXTENMOTE_N64_BUTTON_B			0x0040
+#define EXTENMOTE_N64_BUTTON_A			0x0080
+#define EXTENMOTE_N64_BUTTON_C_RIGHT	0x0100
+#define EXTENMOTE_N64_BUTTON_C_LEFT		0x0200
+#define EXTENMOTE_N64_BUTTON_C_DOWN		0x0400
+#define EXTENMOTE_N64_BUTTON_C_UP		0x0800
+#define EXTENMOTE_N64_BUTTON_R			0x1000
+#define EXTENMOTE_N64_BUTTON_L			0x2000
+#define EXTENMOTE_N64_BUTTON_ALL		0x3FFF
+
+/* extenmote gc button codes */
+#define EXTENMOTE_GC_BUTTON_LEFT		0x0001
+#define EXTENMOTE_GC_BUTTON_RIGHT		0x0002
+#define EXTENMOTE_GC_BUTTON_DOWN		0x0004
+#define EXTENMOTE_GC_BUTTON_UP			0x0008
+#define EXTENMOTE_GC_BUTTON_Z			0x0010
+#define EXTENMOTE_GC_BUTTON_R			0x0020
+#define EXTENMOTE_GC_BUTTON_L			0x0040
+#define EXTENMOTE_GC_BUTTON_A			0x0100
+#define EXTENMOTE_GC_BUTTON_B			0x0200
+#define EXTENMOTE_GC_BUTTON_X			0x0400
+#define EXTENMOTE_GC_BUTTON_Y			0x0800
+#define EXTENMOTE_GC_BUTTON_START		0x1000
+#define EXTENMOTE_GC_BUTTON_ALL			0x1F7F
+
 /* wiimote option flags */
 #define WIIUSE_SMOOTHING				0x01
 #define WIIUSE_CONTINUOUS				0x02
@@ -136,6 +194,10 @@
 #define EXP_WIIU_PRO					4
 #define EXP_WII_BOARD					5
 #define EXP_MOTION_PLUS					6
+#define EXP_EXTENMOTE_NES				7
+#define EXP_EXTENMOTE_SNES				8
+#define EXP_EXTENMOTE_N64				9
+#define EXP_EXTENMOTE_GC				10
 
 /* IR correction types */
 typedef enum ir_position_t {
@@ -575,12 +637,77 @@ typedef struct wii_board_t {
 	float y;
 } wii_board_t;
 
+
+/**
+  * @struct motion_plus_t
+  * @brief Wii Motion Plus expansion device.
+  */
 typedef struct motion_plus_t
 {
 	short rx, ry, rz;
 	ubyte status;
 	ubyte ext;
 } motion_plus_t;
+
+
+/**
+ *	@struct extenmote_nes_t
+ *	@brief Extenmote NES expansion device.
+ */
+typedef struct extenmote_nes_t {
+	ubyte btns;						/**< what buttons have just been pressed	*/
+	ubyte btns_last;				/**< what buttons have just been pressed	*/
+	ubyte btns_held;				/**< what buttons are being held down		*/
+	ubyte btns_released;			/**< what buttons were just released this	*/
+} extenmote_nes_t;
+
+
+/**
+ *	@struct extenmote_snes_t
+ *	@brief Extenmote SNES expansion device.
+ */
+typedef struct extenmote_snes_t {
+	uword btns;						/**< what buttons have just been pressed	*/
+	uword btns_last;				/**< what buttons have just been pressed	*/
+	uword btns_held;				/**< what buttons are being held down		*/
+	uword btns_released;			/**< what buttons were just released this	*/
+} extenmote_snes_t;
+
+
+/**
+ *	@struct extenmote_n64_t
+ *	@brief Extenmote N64 expansion device.
+ */
+typedef struct extenmote_n64_t {
+	uword btns;						/**< what buttons have just been pressed	*/
+	uword btns_last;				/**< what buttons have just been pressed	*/
+	uword btns_held;				/**< what buttons are being held down		*/
+	uword btns_released;			/**< what buttons were just released this	*/
+
+	struct joystick_t js;			/**< joystick calibration					*/
+} extenmote_n64_t;
+
+
+/**
+ *	@struct extenmote_gc_t
+ *	@brief Extenmote GC expansion device.
+ */
+typedef struct extenmote_gc_t {
+	uword btns;						/**< what buttons have just been pressed	*/
+	uword btns_last;				/**< what buttons have just been pressed	*/
+	uword btns_held;				/**< what buttons are being held down		*/
+	uword btns_released;			/**< what buttons were just released this	*/
+
+	ubyte rs_raw;
+	ubyte ls_raw;
+
+	float r_shoulder;				/**< right shoulder button (range 0-1)		*/
+	float l_shoulder;				/**< left shoulder button (range 0-1)		*/
+
+	struct joystick_t ljs;			/**< left joystick calibration				*/
+	struct joystick_t rjs;			/**< right joystick calibration				*/
+} extenmote_gc_t;
+
 
 /**
  *	@struct expansion_t
@@ -596,6 +723,10 @@ typedef struct expansion_t {
 		struct wiiu_pro_ctrl_t wup;
  		struct wii_board_t wb;
 		struct motion_plus_t mp;
+		struct extenmote_nes_t nes;
+		struct extenmote_snes_t snes;
+		struct extenmote_n64_t n64;
+		struct extenmote_gc_t gc;
 	};
 } expansion_t;
 
@@ -648,7 +779,15 @@ typedef enum WIIUSE_EVENT_TYPE {
  	WIIUSE_WII_BOARD_INSERTED,
  	WIIUSE_WII_BOARD_REMOVED,
  	WIIUSE_MOTION_PLUS_ACTIVATED,
- 	WIIUSE_MOTION_PLUS_REMOVED
+	WIIUSE_MOTION_PLUS_REMOVED,
+	WIIUSE_EXTENMOTE_NES_INSERTED,
+	WIIUSE_EXTENMOTE_NES_REMOVED,
+	WIIUSE_EXTENMOTE_SNES_INSERTED,
+	WIIUSE_EXTENMOTE_SNES_REMOVED,
+	WIIUSE_EXTENMOTE_N64_INSERTED,
+	WIIUSE_EXTENMOTE_N64_REMOVED,
+	WIIUSE_EXTENMOTE_GC_INSERTED,
+	WIIUSE_EXTENMOTE_GC_REMOVED
 } WIIUSE_EVENT_TYPE;
 
 /**

@@ -23,6 +23,10 @@
 #include "wiiupro.h"
 #include "wiiboard.h"
 #include "motion_plus.h"
+#include "extenmote_nes.h"
+#include "extenmote_snes.h"
+#include "extenmote_n64.h"
+#include "extenmote_gc.h"
 #include "ir.h"
 #include "io.h"
 
@@ -191,6 +195,18 @@ static void handle_expansion(struct wiimote_t *wm,ubyte *msg,ubyte len)
  		case EXP_MOTION_PLUS:
  			motion_plus_event(wm, &wm->exp.mp, msg, len);
  			break;
+		case EXP_EXTENMOTE_NES:
+			extenmote_nes_event(wm, &wm->exp.nes, msg, len);
+			break;
+		case EXP_EXTENMOTE_SNES:
+			extenmote_snes_event(wm, &wm->exp.snes, msg, len);
+			break;
+		case EXP_EXTENMOTE_N64:
+			extenmote_n64_event(wm, &wm->exp.n64, msg, len);
+			break;
+		case EXP_EXTENMOTE_GC:
+			extenmote_gc_event(wm, &wm->exp.gc, msg, len);
+			break;
 		default:
 			break;
 	}

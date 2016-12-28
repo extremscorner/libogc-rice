@@ -132,7 +132,7 @@ int wiiu_pro_ctrl_event(struct wiimote_t* wm, struct wiiu_pro_ctrl_t* wup, ubyte
 	wup->rjs.pos.x = LITTLE_ENDIAN_SHORT(*(uword*)(msg + 2));
 	wup->rjs.pos.y = LITTLE_ENDIAN_SHORT(*(uword*)(msg + 6));
 
-	if (wm->expansion_state == 4) {
+	if (wm->expansion_state == 5) {
 		wm->expansion_state++;
 		wup->ljs.center.x = wup->ljs.pos.x;
 		wup->ljs.center.y = wup->ljs.pos.y;

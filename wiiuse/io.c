@@ -9,6 +9,10 @@
 #include "wiiupro.h"
 #include "wiiboard.h"
 #include "motion_plus.h"
+#include "extenmote_nes.h"
+#include "extenmote_snes.h"
+#include "extenmote_n64.h"
+#include "extenmote_gc.h"
 #include "io.h"
 #include "lwp_wkspace.h"
 
@@ -114,10 +118,15 @@ void wiiuse_handshake_expansion(struct wiimote_t *wm,ubyte *data,uword len)
 			break;
 		case 3:
 			wm->expansion_state++;
+			val = 0x64;
+			wiiuse_write_data(wm,WM_EXP_EXTENMOTE_NATIVE,&val,1,wiiuse_handshake_expansion);
+			break;
+		case 4:
+			wm->expansion_state++;
 			buf = __lwp_wkspace_allocate(sizeof(ubyte)*EXP_HANDSHAKE_LEN);
 			wiiuse_read_data(wm,buf,WM_EXP_MEM_CALIBR,EXP_HANDSHAKE_LEN,wiiuse_handshake_expansion);
 			break;
-		case 4:
+		case 5:
 			if(!data || !len) return;
 			id = BIG_ENDIAN_LONG(*(uint*)(&data[220]));
 
@@ -137,6 +146,18 @@ void wiiuse_handshake_expansion(struct wiimote_t *wm,ubyte *data,uword len)
  				case EXP_ID_CODE_WIIBOARD:
  					if(!wii_board_handshake(wm,&wm->exp.wb,data,len)) return;
  					break;
+				case EXP_ID_CODE_EXTENMOTE_NES:
+					if(!extenmote_nes_handshake(wm,&wm->exp.nes,data,len)) return;
+					break;
+				case EXP_ID_CODE_EXTENMOTE_SNES:
+					if(!extenmote_snes_handshake(wm,&wm->exp.snes,data,len)) return;
+					break;
+				case EXP_ID_CODE_EXTENMOTE_N64:
+					if(!extenmote_n64_handshake(wm,&wm->exp.n64,data,len)) return;
+					break;
+				case EXP_ID_CODE_EXTENMOTE_GC:
+					if(!extenmote_gc_handshake(wm,&wm->exp.gc,data,len)) return;
+					break;
 				default:
 					if(!classic_ctrl_handshake(wm,&wm->exp.classic,data,len)) return;
 					break;
@@ -181,7 +202,22 @@ void wiiuse_disable_expansion(struct wiimote_t *wm)
  			motion_plus_disconnected(wm, &wm->exp.mp);
  			wm->event = WIIUSE_MOTION_PLUS_REMOVED;
  			break;
-
+		case EXP_EXTENMOTE_NES:
+			extenmote_nes_disconnected(wm, &wm->exp.nes);
+			wm->event = WIIUSE_EXTENMOTE_NES_REMOVED;
+			break;
+		case EXP_EXTENMOTE_SNES:
+			extenmote_snes_disconnected(wm, &wm->exp.snes);
+			wm->event = WIIUSE_EXTENMOTE_SNES_REMOVED;
+			break;
+		case EXP_EXTENMOTE_N64:
+			extenmote_n64_disconnected(wm, &wm->exp.n64);
+			wm->event = WIIUSE_EXTENMOTE_N64_REMOVED;
+			break;
+		case EXP_EXTENMOTE_GC:
+			extenmote_gc_disconnected(wm, &wm->exp.gc);
+			wm->event = WIIUSE_EXTENMOTE_GC_REMOVED;
+			break;
 		default:
 			break;
 	}

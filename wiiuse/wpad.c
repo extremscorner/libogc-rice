@@ -353,7 +353,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 				calc_joystick_state(&nc->js,nc->js.pos.x,nc->js.pos.y);
 				calculate_orientation(&nc->accel_calib,&nc->accel,&nc->orient,smoothed);
 				calculate_gforce(&nc->accel_calib,&nc->accel,&nc->gforce);
-				data->btns_h |= (data->exp.nunchuk.btns<<16);
+				data->btns_h |= (nc->btns<<16);
 			}
 			break;
 
@@ -365,7 +365,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 				cc->l_shoulder = ((f32)cc->ls_raw/0x1F);
 				calc_joystick_state(&cc->ljs, cc->ljs.pos.x, cc->ljs.pos.y);
 				calc_joystick_state(&cc->rjs, cc->rjs.pos.x, cc->rjs.pos.y);
-				data->btns_h |= (data->exp.classic.btns<<16);
+				data->btns_h |= (cc->btns<<16);
 			}
 			break;
 
@@ -397,7 +397,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 
 				gh3->whammy_bar = (gh3->wb_raw - GUITAR_HERO_3_WHAMMY_BAR_MIN) / (float)(GUITAR_HERO_3_WHAMMY_BAR_MAX - GUITAR_HERO_3_WHAMMY_BAR_MIN);
 				calc_joystick_state(&gh3->js, gh3->js.pos.x, gh3->js.pos.y);
-				data->btns_h |= (data->exp.gh3.btns<<16);
+				data->btns_h |= (gh3->btns<<16);
 			}
 			break;
 
@@ -407,7 +407,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 
 				calc_joystick_state(&wup->ljs, wup->ljs.pos.x, wup->ljs.pos.y);
 				calc_joystick_state(&wup->rjs, wup->rjs.pos.x, wup->rjs.pos.y);
-				data->btns_h |= (data->exp.wup.btns<<16);
+				data->btns_h |= (wup->btns<<16);
 			}
 			break;
 
@@ -417,6 +417,41 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 				calc_balanceboard_state(wb);
  			}
  			break;
+
+			case EXP_EXTENMOTE_NES:
+			{
+				struct extenmote_nes_t *nes = &data->exp.nes;
+				data->btns_h |= (nes->btns<<16);
+			}
+			break;
+
+			case EXP_EXTENMOTE_SNES:
+			{
+				struct extenmote_snes_t *snes = &data->exp.snes;
+				data->btns_h |= (snes->btns<<16);
+			}
+			break;
+
+			case EXP_EXTENMOTE_N64:
+			{
+				struct extenmote_n64_t *n64 = &data->exp.n64;
+
+				calc_joystick_state(&n64->js, n64->js.pos.x, n64->js.pos.y);
+				data->btns_h |= (n64->btns<<16);
+			}
+			break;
+
+			case EXP_EXTENMOTE_GC:
+			{
+				struct extenmote_gc_t *gc = &data->exp.gc;
+
+				gc->r_shoulder = ((f32)gc->rs_raw/0xFF);
+				gc->l_shoulder = ((f32)gc->ls_raw/0xFF);
+				calc_joystick_state(&gc->ljs, gc->ljs.pos.x, gc->ljs.pos.y);
+				calc_joystick_state(&gc->rjs, gc->rjs.pos.x, gc->rjs.pos.y);
+				data->btns_h |= (gc->btns<<16);
+			}
+			break;
 
 			default:
 				break;
@@ -457,6 +492,18 @@ static void __save_state(struct wiimote_t* wm) {
 			break;
 		case EXP_MOTION_PLUS:
 			wm->lstate.exp.mp = wm->exp.mp;
+			break;
+		case EXP_EXTENMOTE_NES:
+			wm->lstate.exp.nes = wm->exp.nes;
+			break;
+		case EXP_EXTENMOTE_SNES:
+			wm->lstate.exp.snes = wm->exp.snes;
+			break;
+		case EXP_EXTENMOTE_N64:
+			wm->lstate.exp.n64 = wm->exp.n64;
+			break;
+		case EXP_EXTENMOTE_GC:
+			wm->lstate.exp.gc = wm->exp.gc;
 			break;
 	}
 }
@@ -521,6 +568,30 @@ static u32 __wpad_read_expansion(struct wiimote_t *wm,WPADData *data, struct _wp
 			STATE_CHECK(thresh->mp,wm->exp.mp.rx,wm->lstate.exp.mp.rx);
 			STATE_CHECK(thresh->mp,wm->exp.mp.ry,wm->lstate.exp.mp.ry);
 			STATE_CHECK(thresh->mp,wm->exp.mp.rz,wm->lstate.exp.mp.rz);
+			break;
+		case EXP_EXTENMOTE_NES:
+			data->exp.nes = wm->exp.nes;
+			STATE_CHECK_SIMPLE(thresh->btns, wm->exp.nes.btns, wm->lstate.exp.nes.btns);
+			break;
+		case EXP_EXTENMOTE_SNES:
+			data->exp.snes = wm->exp.snes;
+			STATE_CHECK_SIMPLE(thresh->btns, wm->exp.snes.btns, wm->lstate.exp.snes.btns);
+			break;
+		case EXP_EXTENMOTE_N64:
+			data->exp.n64 = wm->exp.n64;
+			STATE_CHECK_SIMPLE(thresh->btns, wm->exp.n64.btns, wm->lstate.exp.n64.btns);
+			STATE_CHECK(thresh->js, wm->exp.n64.js.pos.x, wm->lstate.exp.n64.js.pos.x);
+			STATE_CHECK(thresh->js, wm->exp.n64.js.pos.y, wm->lstate.exp.n64.js.pos.y);
+			break;
+		case EXP_EXTENMOTE_GC:
+			data->exp.gc = wm->exp.gc;
+			STATE_CHECK_SIMPLE(thresh->btns, wm->exp.gc.btns, wm->lstate.exp.gc.btns);
+			STATE_CHECK(thresh->js, wm->exp.gc.rs_raw, wm->lstate.exp.gc.rs_raw);
+			STATE_CHECK(thresh->js, wm->exp.gc.ls_raw, wm->lstate.exp.gc.ls_raw);
+			STATE_CHECK(thresh->js, wm->exp.gc.ljs.pos.x, wm->lstate.exp.gc.ljs.pos.x);
+			STATE_CHECK(thresh->js, wm->exp.gc.ljs.pos.y, wm->lstate.exp.gc.ljs.pos.y);
+			STATE_CHECK(thresh->js, wm->exp.gc.rjs.pos.x, wm->lstate.exp.gc.rjs.pos.x);
+			STATE_CHECK(thresh->js, wm->exp.gc.rjs.pos.y, wm->lstate.exp.gc.rjs.pos.y);
 			break;
 	}
 	return state_changed;
@@ -1062,6 +1133,11 @@ s32 WPAD_Probe(s32 chan,u32 *type)
 					case WPAD_EXP_GUITARHERO3:
 					case WPAD_EXP_WIIUPRO:
  					case WPAD_EXP_WIIBOARD:
+					case WPAD_EXP_MOTIONPLUS:
+					case WPAD_EXP_NES:
+					case WPAD_EXP_SNES:
+					case WPAD_EXP_N64:
+					case WPAD_EXP_GC:
 						dev = wm->exp.type;
 						break;
 				}
