@@ -2333,8 +2333,8 @@ static const struct _timing {
 	u8 bs1,bs2,bs3,bs4;
 	u16 be1,be2,be3,be4;
 	u16 nhlines,hlw;
-	u8 hsy,hcs,hce,hbe;
-	u16 hbs;
+	u8 hsy,hcs,hce;
+	u16 hbs,hbe;
 } video_timing[] = {
 	{
 		0x06,0x00F3,
@@ -2342,8 +2342,8 @@ static const struct _timing {
 		0x0C,0x0D,0x0C,0x0D,
 		0x0208,0x0207,0x0208,0x0207,
 		0x020D,0x01AD,
-		0x40,0x47,0x69,0x7A,
-		0x019D
+		0x40,0x47,0x69,
+		0x019D,0x007A
 	},
 	{
 		0x06,0x00F3,
@@ -2351,8 +2351,8 @@ static const struct _timing {
 		0x0C,0x0C,0x0C,0x0C,
 		0x0208,0x0208,0x0208,0x0208,
 		0x020E,0x01AD,
-		0x40,0x47,0x69,0x7A,
-		0x019D
+		0x40,0x47,0x69,
+		0x019D,0x007A
 	},
 	{
 		0x05,0x0120,
@@ -2360,8 +2360,8 @@ static const struct _timing {
 		0x0D,0x0C,0x0B,0x0A,
 		0x026B,0x026A,0x0269,0x026C,
 		0x0271,0x01B0,
-		0x40,0x4B,0x6A,0x84,
-		0x01A4
+		0x40,0x4B,0x6A,
+		0x01A4,0x0084
 	},
 	{
 		0x05,0x0120,
@@ -2369,8 +2369,8 @@ static const struct _timing {
 		0x0D,0x0B,0x0D,0x0B,
 		0x026B,0x026D,0x026B,0x026D,
 		0x0270,0x01B0,
-		0x40,0x4B,0x6A,0x84,
-		0x01A4
+		0x40,0x4B,0x6A,
+		0x01A4,0x0084
 	},
 	{
 		0x06,0x00F3,
@@ -2378,8 +2378,8 @@ static const struct _timing {
 		0x10,0x0F,0x0E,0x0D,
 		0x0206,0x0205,0x0204,0x0207,
 		0x020D,0x01AD,
-		0x40,0x4E,0x70,0x7A,
-		0x019D
+		0x40,0x4E,0x70,
+		0x019D,0x007A
 	},
 	{
 		0x06,0x00F3,
@@ -2387,8 +2387,17 @@ static const struct _timing {
 		0x10,0x0E,0x10,0x0E,
 		0x0206,0x0208,0x0206,0x0208,
 		0x020E,0x01AD,
-		0x40,0x4E,0x70,0x7A,
-		0x019D
+		0x40,0x4E,0x70,
+		0x019D,0x007A
+	},
+	{
+		0x0C,0x01E6,
+		0x0029,0x002A,0x0001,0x0000,
+		0x18,0x19,0x18,0x19,
+		0x040F,0x040E,0x040F,0x040E,
+		0x041A,0x01AD,
+		0x40,0x47,0x69,
+		0x019D,0x007A
 	},
 	{
 		0x0C,0x01E6,
@@ -2396,8 +2405,17 @@ static const struct _timing {
 		0x18,0x18,0x18,0x18,
 		0x040E,0x040E,0x040E,0x040E,
 		0x041A,0x01AD,
-		0x40,0x47,0x69,0x7A,
-		0x019D
+		0x40,0x47,0x69,
+		0x019D,0x007A
+	},
+	{
+		0x0A,0x0240,
+		0x0043,0x0044,0x0001,0x0000,
+		0x14,0x15,0x14,0x15,
+		0x04D9,0x04D8,0x04D9,0x04D8,
+		0x04E2,0x01B0,
+		0x40,0x4B,0x6A,
+		0x01A4,0x0084
 	},
 	{
 		0x0A,0x0240,
@@ -2405,8 +2423,98 @@ static const struct _timing {
 		0x14,0x14,0x14,0x14,
 		0x04D8,0x04D8,0x04D8,0x04D8,
 		0x04E2,0x01B0,
-		0x40,0x4B,0x6A,0x84,
-		0x01A4
+		0x40,0x4B,0x6A,
+		0x01A4,0x0084
+	},
+	{
+		0x06,0x00F3,
+		0x0014,0x0015,0x0001,0x0000,
+		0x0C,0x0D,0x0C,0x0D,
+		0x0208,0x0207,0x0208,0x0207,
+		0x020D,0x035A,
+		0x7F,0x8E,0xD2,
+		0x033A,0x00F4
+	},
+	{
+		0x06,0x00F3,
+		0x0016,0x0016,0x0000,0x0000,
+		0x0C,0x0C,0x0C,0x0C,
+		0x0208,0x0208,0x0208,0x0208,
+		0x020E,0x035A,
+		0x7F,0x8E,0xD2,
+		0x033A,0x00F4
+	},
+	{
+		0x05,0x0120,
+		0x0021,0x0022,0x0001,0x0000,
+		0x0D,0x0C,0x0B,0x0A,
+		0x026B,0x026A,0x0269,0x026C,
+		0x0271,0x0360,
+		0x7F,0x96,0xD4,
+		0x0348,0x0108
+	},
+	{
+		0x05,0x0120,
+		0x0021,0x0021,0x0000,0x0000,
+		0x0D,0x0B,0x0D,0x0B,
+		0x026B,0x026D,0x026B,0x026D,
+		0x0270,0x0360,
+		0x7F,0x96,0xD4,
+		0x0348,0x0108
+	},
+	{
+		0x06,0x00F3,
+		0x0014,0x0015,0x0001,0x0000,
+		0x10,0x0F,0x0E,0x0D,
+		0x0206,0x0205,0x0204,0x0207,
+		0x020D,0x035A,
+		0x7F,0x9C,0xE0,
+		0x033A,0x00F4
+	},
+	{
+		0x06,0x00F3,
+		0x0016,0x0016,0x0000,0x0000,
+		0x10,0x0E,0x10,0x0E,
+		0x0206,0x0208,0x0206,0x0208,
+		0x020E,0x035A,
+		0x7F,0x9C,0xE0,
+		0x033A,0x00F4
+	},
+	{
+		0x0C,0x01E6,
+		0x0029,0x002A,0x0001,0x0000,
+		0x18,0x19,0x18,0x19,
+		0x040F,0x040E,0x040F,0x040E,
+		0x041A,0x035A,
+		0x7F,0x8E,0xD2,
+		0x033A,0x00F4
+	},
+	{
+		0x0C,0x01E6,
+		0x002A,0x002A,0x0000,0x0000,
+		0x18,0x18,0x18,0x18,
+		0x040E,0x040E,0x040E,0x040E,
+		0x041A,0x035A,
+		0x7F,0x8E,0xD2,
+		0x033A,0x00F4
+	},
+	{
+		0x0A,0x0240,
+		0x0043,0x0044,0x0001,0x0000,
+		0x14,0x15,0x14,0x15,
+		0x04D9,0x04D8,0x04D9,0x04D8,
+		0x04E2,0x0360,
+		0x7F,0x96,0xD4,
+		0x0348,0x0108
+	},
+	{
+		0x0A,0x0240,
+		0x0044,0x0044,0x0000,0x0000,
+		0x14,0x14,0x14,0x14,
+		0x04D8,0x04D8,0x04D8,0x04D8,
+		0x04E2,0x0360,
+		0x7F,0x96,0xD4,
+		0x0348,0x0108
 	}
 };
 
@@ -2515,55 +2623,92 @@ static void printDebugCalculations()
 
 static const struct _timing* __gettiming(u32 vimode)
 {
-	switch(vimode) {
-		case VI_TVMODE(VI_NTSC,VI_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_NTSC,VI_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[0];
-		case VI_TVMODE(VI_NTSC,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_NTSC,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[1];
-		case VI_TVMODE(VI_NTSC,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_NTSC,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_54MHZ):
-			return &video_timing[6];
-		case VI_TVMODE(VI_PAL,VI_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_PAL,VI_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[2];
-		case VI_TVMODE(VI_PAL,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_PAL,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[3];
-		case VI_TVMODE(VI_PAL,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_PAL,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_54MHZ):
-			return &video_timing[7];
-		case VI_TVMODE(VI_MPAL,VI_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_MPAL,VI_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[4];
-		case VI_TVMODE(VI_MPAL,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_MPAL,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[5];
-		case VI_TVMODE(VI_MPAL,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_MPAL,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_54MHZ):
-			return &video_timing[6];
-		case VI_TVMODE(VI_DEBUG_PAL,VI_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_DEBUG_PAL,VI_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[2];
-		case VI_TVMODE(VI_DEBUG_PAL,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_DEBUG_PAL,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[3];
-		case VI_TVMODE(VI_DEBUG_PAL,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_DEBUG_PAL,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_54MHZ):
-			return &video_timing[7];
-		case VI_TVMODE(VI_EURGB60,VI_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_EURGB60,VI_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[0];
-		case VI_TVMODE(VI_EURGB60,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_EURGB60,VI_NON_INTERLACE|VI_STANDARD|VI_CLOCK_54MHZ):
-			return &video_timing[1];
-		case VI_TVMODE(VI_EURGB60,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_27MHZ):
-		case VI_TVMODE(VI_EURGB60,VI_NON_INTERLACE|VI_ENHANCED|VI_CLOCK_54MHZ):
-			return &video_timing[6];
-		default:
-			return NULL;
+	switch (vimode >> 4) {
+		case VI_NTSC:
+		case VI_EURGB60:
+			if (vimode & VI_STEREO) {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[17];
+					else
+						return &video_timing[11];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[16];
+					else
+						return &video_timing[10];
+				}
+			} else {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[7];
+					else
+						return &video_timing[1];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[6];
+					else
+						return &video_timing[0];
+				}
+			}
+			break;
+		case VI_PAL:
+		case VI_DEBUG_PAL:
+			if (vimode & VI_STEREO) {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[19];
+					else
+						return &video_timing[13];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[18];
+					else
+						return &video_timing[12];
+				}
+			} else {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[9];
+					else
+						return &video_timing[3];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[8];
+					else
+						return &video_timing[2];
+				}
+			}
+			break;
+		case VI_MPAL:
+			if (vimode & VI_STEREO) {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[17];
+					else
+						return &video_timing[15];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[16];
+					else
+						return &video_timing[14];
+				}
+			} else {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[7];
+					else
+						return &video_timing[5];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[6];
+					else
+						return &video_timing[4];
+				}
+			}
+			break;
 	}
+	return NULL;
 }
 
 #if defined(HW_RVL)
@@ -2765,7 +2910,7 @@ static inline void __setHorizontalRegs(const struct _timing *tm,u16 dispPosX,u16
 	changed |= VI_REGCHANGE(3);
 
 	val1 = (tm->hbe+dispPosX)&0x01ff;
-	val2 = (tm->hbs+dispPosX)-(720-dispSizeX);
+	val2 = (tm->hbe+dispPosX)-(tm->hlw-dispSizeX);
 	regs[4] = (val1>>9)|(val2<<1);
 	regs[5] = (val1<<7)|tm->hsy;
 	changed |= VI_REGCHANGE(4);
@@ -2827,14 +2972,10 @@ static inline void __setVerticalRegs(u16 dispPosY,u16 dispSizeY,u8 equ,u16 acv,u
 static inline void __adjustPosition(u16 acv)
 {
 	u32 fact,field;
-	s16 dispPosX,dispPosY;
+	s16 dispPosY;
 	s16 dispSizeY,maxDispSizeY;
 
-	dispPosX = (HorVer.dispPosX+displayOffsetH);
-	if(dispPosX<=(720-HorVer.dispSizeX)) {
-		if(dispPosX>=0) HorVer.adjustedDispPosX = dispPosX;
-		else HorVer.adjustedDispPosX = 0;
-	} else HorVer.adjustedDispPosX = (720-HorVer.dispSizeX);
+	HorVer.adjustedDispPosX = HorVer.dispPosX+displayOffsetH;
 
 	fact = 1;
 	if(HorVer.fbMode==VI_XFBMODE_SF) fact = 2;
@@ -3374,11 +3515,11 @@ void VIDEO_Init()
 
 	__importAdjustingValues();
 
-	HorVer.nonInter = (_viReg[1]&VI_NON_INTERLACE)|((_viReg[0]&0x0f)>=10?VI_ENHANCED:VI_STANDARD)|(_viReg[54]&VI_CLOCK_54MHZ);
+	HorVer.nonInter = (_viReg[1]&(VI_STEREO|VI_NON_INTERLACE))|((_viReg[0]&0x0f)>=10?VI_ENHANCED:VI_STANDARD)|(_viReg[54]&VI_CLOCK_54MHZ);
 	HorVer.tv = _SHIFTR(_viReg[1],8,2);
 
 	vimode = HorVer.nonInter;
-	if(HorVer.tv<VI_DEBUG) vimode |= (HorVer.tv<<3);
+	if(HorVer.tv<VI_DEBUG) vimode |= (HorVer.tv<<4);
 	currTiming = __gettiming(vimode);
 	currTvMode = HorVer.tv;
 
@@ -3438,12 +3579,12 @@ void VIDEO_Configure(GXRModeObj *rmode)
 		&& (rmode->xfbHeight<<1)!=rmode->viHeight) printf("VIDEO_Configure(): xfbHeight(%d) is not as twice as viHeight(%d) when SF XFB mode is specified\n",rmode->xfbHeight,rmode->viHeight);
 #endif
 	_CPU_ISR_Disable(level);
-	nonint = (rmode->viTVMode&0x0007);
+	nonint = (rmode->viTVMode&0x000f);
 	if(nonint!=HorVer.nonInter) {
 		changeMode = 1;
 		HorVer.nonInter = nonint;
 	}
-	HorVer.tv = _SHIFTR(rmode->viTVMode,3,3);
+	HorVer.tv = _SHIFTR(rmode->viTVMode,4,3);
 	HorVer.dispPosX = rmode->viXOrigin;
 	HorVer.dispPosY = rmode->viYOrigin;
 	HorVer.dispSizeX = rmode->viWidth;
@@ -3589,6 +3730,23 @@ void VIDEO_SetBlack(bool black)
 	curtiming = HorVer.timing;
 	__setVerticalRegs(HorVer.adjustedDispPosY,HorVer.dispSizeY,curtiming->equ,curtiming->acv,curtiming->prbOdd,curtiming->prbEven,curtiming->psbOdd,curtiming->psbEven,HorVer.black);
 	_CPU_ISR_Restore(level);
+}
+
+void VIDEO_SetStereo(bool stereo)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	HorVer.threeD = stereo;
+	regs[1] = (regs[1]&~VI_STEREO)|(_SHIFTL(stereo,3,1));
+	changed |= VI_REGCHANGE(1);
+	__setScalingRegs(HorVer.panSizeX,HorVer.dispSizeX,HorVer.threeD);
+	_CPU_ISR_Restore(level);
+}
+
+u32 VIDEO_GetRetraceCount()
+{
+	return retraceCount;
 }
 
 u32 VIDEO_GetCurrentField()

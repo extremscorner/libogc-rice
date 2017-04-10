@@ -87,6 +87,16 @@ void VIDEO_Flush();
  */
 void VIDEO_SetBlack(bool black);
 
+void VIDEO_SetStereo(bool stereo);
+
+/*! 
+ * \fn u32 VIDEO_GetRetraceCount()
+ * \brief Get current retrace count
+ *
+ * \return retracecount
+ */
+u32 VIDEO_GetRetraceCount();
+
 
 /*! 
  * \fn u32 VIDEO_GetCurrentField()
