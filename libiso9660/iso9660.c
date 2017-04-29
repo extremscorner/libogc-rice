@@ -472,7 +472,7 @@ static int _ISO9660_open_r(struct _reent *r, void *fileStruct, const char *path,
 	return (int) file;
 }
 
-static int _ISO9660_close_r(struct _reent *r, int fd)
+static int _ISO9660_close_r(struct _reent *r, void *fd)
 {
 	FILE_STRUCT *file = (FILE_STRUCT*) fd;
 
@@ -486,7 +486,7 @@ static int _ISO9660_close_r(struct _reent *r, int fd)
 	return 0;
 }
 
-static ssize_t _ISO9660_read_r(struct _reent *r, int fd, char *ptr, size_t len)
+static ssize_t _ISO9660_read_r(struct _reent *r, void *fd, char *ptr, size_t len)
 {
 	u64 offset;
 	int ret;
@@ -525,7 +525,7 @@ static ssize_t _ISO9660_read_r(struct _reent *r, int fd, char *ptr, size_t len)
 	return len;
 }
 
-static off_t _ISO9660_seek_r(struct _reent *r, int fd, off_t pos, int dir)
+static off_t _ISO9660_seek_r(struct _reent *r, void *fd, off_t pos, int dir)
 {
 	off_t position;
 	FILE_STRUCT *file = (FILE_STRUCT*) fd;
@@ -568,7 +568,7 @@ static off_t _ISO9660_seek_r(struct _reent *r, int fd, off_t pos, int dir)
 	return position;
 }
 
-static int _ISO9660_fstat_r(struct _reent *r, int fd, struct stat *st)
+static int _ISO9660_fstat_r(struct _reent *r, void *fd, struct stat *st)
 {
 	FILE_STRUCT *file = (FILE_STRUCT*) fd;
 
