@@ -321,7 +321,7 @@ static void __wpad_calc_data(WPADData *data,WPADData *lstate,struct accel_t *acc
 		calculate_orientation(accel_calib, &data->accel, &data->orient, smoothed);
 		calculate_gforce(accel_calib, &data->accel, &data->gforce);
 	} else {
-		memset(&data->accel,0,sizeof(struct accel_t));
+		memset(&data->accel,0,sizeof(struct vec3w_t));
 		memset(&data->orient,0,sizeof(struct orient_t));
 		memset(&data->gforce,0,sizeof(struct gforce_t));
 	}

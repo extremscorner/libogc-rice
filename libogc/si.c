@@ -616,10 +616,10 @@ u32 SI_GetType(s32 chan)
 			return type;
 		}
 		si_type[chan] = type = SI_ERROR_BUSY;
-	} else if(diff==millisecs_to_ticks(50) && type!=SI_ERROR_NO_RESPONSE) {
+	} else if(diff<=millisecs_to_ticks(50) && type!=SI_ERROR_NO_RESPONSE) {
 		_CPU_ISR_Restore(level);
 		return type;
-	} else if(diff==millisecs_to_ticks(75)) si_type[chan] = SI_ERROR_BUSY;
+	} else if(diff<=millisecs_to_ticks(75)) si_type[chan] = SI_ERROR_BUSY;
 	else si_type[chan] = type = SI_ERROR_BUSY;
 
 	typeTime[chan] = gettime();

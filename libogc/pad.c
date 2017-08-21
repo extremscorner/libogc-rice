@@ -19,7 +19,7 @@
 #define _SHIFTR(v, s, w)	\
     ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 
-#define PAD_ENABLEDMASK(chan)		(0x80000000>>chan);
+#define PAD_ENABLEDMASK(chan)		(0x80000000>>chan)
 
 typedef struct _keyinput {
 	s8 stickX;
@@ -45,6 +45,7 @@ static u32 __pad_recalibratebits = 0;
 static u32 __pad_waitingbits = 0;
 static u32 __pad_pendingbits = 0;
 static u32 __pad_checkingbits = 0;
+static u32 __pad_barrelbits = 0;
 static u32 __pad_resettingchan = 32;
 static u32 __pad_spec = 5;
 
@@ -184,7 +185,7 @@ static u8 __pad_clampU8(u8 var,u8 org)
 
 static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 {
-	u32 mode;
+	u32 mode,type;
 
 	status->button = _SHIFTR(data[0],16,14);
 
@@ -235,12 +236,23 @@ static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 	status->stickY -= 128;
 	status->substickX -= 128;
 	status->substickY -= 128;
-	status->stickX = __pad_clampS8(status->stickX,__pad_origin[chan][2]);
-	status->stickY = __pad_clampS8(status->stickY,__pad_origin[chan][3]);
-	status->substickX = __pad_clampS8(status->substickX,__pad_origin[chan][4]);
-	status->substickY = __pad_clampS8(status->substickY,__pad_origin[chan][5]);
-	status->triggerL = __pad_clampU8(status->triggerL,__pad_origin[chan][6]);
-	status->triggerR = __pad_clampU8(status->triggerR,__pad_origin[chan][7]);
+
+	type = __pad_type[chan]&~0xffff;
+	if(type==SI_GC_CONTROLLER && !(status->button&0x80)) {
+		__pad_barrelbits |= PAD_ENABLEDMASK(chan);
+		status->stickX = 0;
+		status->stickY = 0;
+		status->substickX = 0;
+		status->substickY = 0;
+	} else {
+		__pad_barrelbits &= ~PAD_ENABLEDMASK(chan);
+		status->stickX = __pad_clampS8(status->stickX,__pad_origin[chan][2]);
+		status->stickY = __pad_clampS8(status->stickY,__pad_origin[chan][3]);
+		status->substickX = __pad_clampS8(status->substickX,__pad_origin[chan][4]);
+		status->substickY = __pad_clampS8(status->substickY,__pad_origin[chan][5]);
+		status->triggerL = __pad_clampU8(status->triggerL,__pad_origin[chan][6]);
+		status->triggerR = __pad_clampU8(status->triggerR,__pad_origin[chan][7]);
+	}
 }
 
 static void __pad_clampstick(s8 *px,s8 *py,s8 max,s8 xy,s8 min)
@@ -320,9 +332,9 @@ static void __pad_updateorigin(s32 chan)
 	__pad_origin[chan][4] -= 128;
 	__pad_origin[chan][5] -= 128;
 
-	if(__pad_xpatchbits&mask && (s32)__pad_origin[chan][2]>64) {
+	if(__pad_xpatchbits&mask && __pad_origin[chan][2]>64) {
 		type = SI_GetType(chan)&~0xffff;
-		if(!(type&~0x09ffffff)) __pad_origin[chan][2] = 0;
+		if(type==SI_GC_CONTROLLER) __pad_origin[chan][2] = 0;
 	}
 }
 
@@ -442,6 +454,7 @@ static void __pad_disable(u32 chan)
 	__pad_waitingbits &= ~mask;
 	__pad_pendingbits &= ~mask;
 	__pad_checkingbits &= ~mask;
+	__pad_barrelbits &= ~mask;
 	SYS_SetWirelessID(chan,0);
 	_CPU_ISR_Restore(level);
 }
@@ -601,6 +614,7 @@ u32 PAD_Reset(u32 mask)
 
 	en_bits = (__pad_resettingbits&__pad_enabledbits);
 	__pad_enabledbits &= ~pend_bits;
+	__pad_barrelbits &= ~pend_bits;
 
 	if(__pad_spec==4) __pad_recalibratebits |= pend_bits;
 
@@ -625,6 +639,7 @@ u32 PAD_Recalibrate(u32 mask)
 
 	en_bits = (__pad_resettingbits&__pad_enabledbits);
 	__pad_enabledbits &= ~pend_bits;
+	__pad_barrelbits &= ~pend_bits;
 
 	__pad_recalibratebits |= pend_bits;
 
@@ -647,14 +662,17 @@ u32 PAD_Sync()
 
 void PAD_SetSpec(u32 spec)
 {
-	if(__pad_initialized) return;
-
 	__pad_spec = 0;
 	if(spec==0) __pad_makestatus = SPEC0_MakeStatus;
 	else if(spec==1) __pad_makestatus = SPEC1_MakeStatus;
 	else if(spec<6) __pad_makestatus = SPEC2_MakeStatus;
 
 	__pad_spec = spec;
+}
+
+u32 PAD_GetSpec()
+{
+	return __pad_spec;
 }
 
 void PAD_ControlMotor(s32 chan,u32 cmd)
@@ -728,23 +746,28 @@ u32 PAD_ScanPads()
 			oldstate = __pad_keys[i].state; 
 			state = padstatus[i].button;
 
-			if(padstatus[i].stickX<-48)
+			if(padstatus[i].stickX<-50)
 				state |= PAD_STICK_LEFT;
-			if(padstatus[i].stickX>48)
+			if(padstatus[i].stickX>+50)
 				state |= PAD_STICK_RIGHT;
-			if(padstatus[i].stickY<-48)
+			if(padstatus[i].stickY<-50)
 				state |= PAD_STICK_DOWN;
-			if(padstatus[i].stickY>48)
+			if(padstatus[i].stickY>+50)
 				state |= PAD_STICK_UP;
 
-			if(padstatus[i].substickX<-48)
+			if(padstatus[i].substickX<-50)
 				state |= PAD_SUBSTICK_LEFT;
-			if(padstatus[i].substickX>48)
+			if(padstatus[i].substickX>+50)
 				state |= PAD_SUBSTICK_RIGHT;
-			if(padstatus[i].substickY<-48)
+			if(padstatus[i].substickY<-50)
 				state |= PAD_SUBSTICK_DOWN;
-			if(padstatus[i].substickY>48)
+			if(padstatus[i].substickY>+50)
 				state |= PAD_SUBSTICK_UP;
+
+			if(padstatus[i].triggerL>100)
+				state |= PAD_TRIGGER_L;
+			if(padstatus[i].triggerR>100)
+				state |= PAD_TRIGGER_R;
 
 			__pad_keys[i].stickX	= padstatus[i].stickX;
 			__pad_keys[i].stickY	= padstatus[i].stickY;
@@ -779,57 +802,62 @@ u32 PAD_ScanPads()
 	return connected;
 }
 
-
-u32 PAD_ButtonsUp(int pad)
+u32 PAD_ButtonsUp(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].up;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].up;
 }
 
-u32 PAD_ButtonsDown(int pad)
+u32 PAD_ButtonsDown(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].down;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].down;
 }
 
-u32 PAD_ButtonsHeld(int pad)
+u32 PAD_ButtonsHeld(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].state;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].state;
 }
 
-s8 PAD_SubStickX(int pad)
+s8 PAD_SubStickX(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].substickX;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].substickX;
 }
 
-s8 PAD_SubStickY(int pad)
+s8 PAD_SubStickY(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].substickY;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].substickY;
 }
 
-s8 PAD_StickX(int pad)
+s8 PAD_StickX(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].stickX;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].stickX;
 }
 
-s8 PAD_StickY(int pad)
+s8 PAD_StickY(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].stickY;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].stickY;
 }
 
-u8 PAD_TriggerL(int pad)
+u8 PAD_TriggerL(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].triggerL;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].triggerL;
 }
 
-u8 PAD_TriggerR(int pad)
+u8 PAD_TriggerR(s32 chan)
 {
-	if(pad<PAD_CHAN0 || pad>PAD_CHAN3 || __pad_keys[pad].chan==-1) return 0;
-	return __pad_keys[pad].triggerR;
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].triggerR;
+}
+
+u32 PAD_IsBarrel(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3) return 0;
+	return !!(__pad_barrelbits&PAD_ENABLEDMASK(chan));
 }
