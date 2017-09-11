@@ -221,8 +221,7 @@ void __reload()
 
 void __libogc_exit(int status)
 {
-	SYS_ResetSystem(SYS_SHUTDOWN);
-	__lwp_thread_stopmultitasking(__reload);
+	SYS_ResetSystem(SYS_HOTRESET);
 }
 #elif defined(HW_RVL)
 static void (*reload)() = (void(*)())0x80001800;
@@ -241,16 +240,12 @@ void __reload()
 		__exception_closeall();
 		reload();
 	}
-	SYS_ResetSystem(SYS_RETURNTOMENU);
+	WII_ReturnToMenu();
 }
 
 void __libogc_exit(int status)
 {
-	if(__stub_found()) {
-		SYS_ResetSystem(SYS_SHUTDOWN);
-		__lwp_thread_stopmultitasking(reload);
-	}
-	SYS_ResetSystem(SYS_RETURNTOMENU);
+	SYS_ResetSystem(__stub_found() ? SYS_RESTART : SYS_RETURNTOMENU);
 }
 #endif
 
@@ -930,14 +925,23 @@ u32 SYS_ResetButtonDown()
 #if defined(HW_DOL)
 void SYS_ResetSystem(s32 reset)
 {
-	__dsp_shutdown();
+	syssram *sram;
 
+	__dsp_shutdown();
 	while(__call_resetfuncs(FALSE)==0);
 
+	if(reset==SYS_RETURNTOMENU) {
+		sram = __SYS_LockSram();
+		sram->flags |= 0x40;
+		__SYS_UnlockSram(TRUE);
+		while(!__SYS_SyncSram());
+	}
 	__qoob_setconfig(0x00000000);
 
 	__exception_closeall();
 	__call_resetfuncs(TRUE);
+
+	if(reset==SYS_RETURNTOMENU || reset==SYS_HOTRESET) __reload();
 
 	__lwp_thread_dispatchdisable();
 	__lwp_thread_closeall();
@@ -945,20 +949,19 @@ void SYS_ResetSystem(s32 reset)
 #elif defined(HW_RVL)
 void SYS_ResetSystem(s32 reset)
 {
-	u32 ret = 0;
+	u32 ret;
 
 	__dsp_shutdown();
-
 	while(__call_resetfuncs(FALSE)==0);
 
 	switch(reset) {
-		case SYS_RESTART:
+		case SYS_HOTRESET:
 			STM_RebootSystem();
 			break;
 		case SYS_POWEROFF:
-			if(CONF_GetShutdownMode() == CONF_SHUTDOWN_IDLE) {
+			if(CONF_GetShutdownMode()==CONF_SHUTDOWN_IDLE) {
 				ret = CONF_GetIdleLedMode();
-				if(ret <= 2) STM_SetLedMode(ret);
+				if(ret<=2) STM_SetLedMode(ret);
 				STM_ShutdownToIdle();
 			} else {
 				STM_ShutdownToStandby();
@@ -969,14 +972,13 @@ void SYS_ResetSystem(s32 reset)
 			break;
 		case SYS_POWEROFF_IDLE:
 			ret = CONF_GetIdleLedMode();
-			if(ret <= 2) STM_SetLedMode(ret);
+			if(ret<=2) STM_SetLedMode(ret);
 			STM_ShutdownToIdle();
 			break;
 		case SYS_RETURNTOMENU:
 			WII_ReturnToMenu();
 			break;
 	}
-
 	__IOS_ShutdownSubsystems();
 
 	__exception_closeall();
@@ -984,6 +986,7 @@ void SYS_ResetSystem(s32 reset)
 
 	__lwp_thread_dispatchdisable();
 	__lwp_thread_closeall();
+	if(reset==SYS_RESTART) __lwp_thread_stopmultitasking(reload);
 }
 #endif
 
