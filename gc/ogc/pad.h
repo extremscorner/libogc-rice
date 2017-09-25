@@ -29,7 +29,6 @@
 #define PAD_BUTTON_B				0x0200
 #define PAD_BUTTON_X				0x0400
 #define PAD_BUTTON_Y				0x0800
-#define PAD_BUTTON_MENU				0x1000
 #define PAD_BUTTON_START			0x1000
 
 #define PAD_STICK_LEFT				(0x0001<<16)
@@ -80,9 +79,13 @@ u32 PAD_Read(PADStatus *status);
 u32 PAD_Reset(u32 mask);
 u32 PAD_Recalibrate(u32 mask);
 void PAD_Clamp(PADStatus *status);
+void PAD_ControlAllMotors(const u32 *cmds);
 void PAD_ControlMotor(s32 chan,u32 cmd);
+void PAD_SetAnalogMode(u32 mode);
+void PAD_SetSamplingRate(u32 samplingrate);
 void PAD_SetSpec(u32 spec);
 u32 PAD_GetSpec();
+u32 PAD_GetType(s32 chan,u32 *type);
 u32 PAD_IsBarrel(s32 chan);
 
 u32 PAD_ScanPads();

@@ -660,6 +660,21 @@ u32 PAD_Sync()
 	return ret;
 }
 
+void PAD_SetAnalogMode(u32 mode)
+{
+	u32 level;
+	u32 en_bits;
+
+	_CPU_ISR_Disable(level);
+	en_bits = __pad_enabledbits;
+	__pad_analogmode = mode<<8;
+	__pad_enabledbits &= ~en_bits;
+	__pad_waitingbits &= ~en_bits;
+	__pad_checkingbits &= ~en_bits;
+	SI_DisablePolling(en_bits);
+	_CPU_ISR_Restore(level);
+}
+
 void PAD_SetSpec(u32 spec)
 {
 	__pad_spec = 0;
@@ -673,6 +688,53 @@ void PAD_SetSpec(u32 spec)
 u32 PAD_GetSpec()
 {
 	return __pad_spec;
+}
+
+u32 PAD_GetType(s32 chan,u32 *type)
+{
+	u32 mask;
+
+	*type = SI_GetType(chan);
+	mask = PAD_ENABLEDMASK(chan);
+
+	if(__pad_resettingbits&mask || __pad_resettingchan==chan) {
+		return 0;
+	}
+	return !!(__pad_enabledbits&mask);
+}
+
+u32 PAD_IsBarrel(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3) return 0;
+	return !!(__pad_barrelbits&PAD_ENABLEDMASK(chan));
+}
+
+void PAD_ControlAllMotors(const u32 *cmds)
+{
+	u32 level;
+	u32 chan,cmd,ret;
+	u32 mask,type;
+
+	_CPU_ISR_Disable(level);
+	chan = 0;
+	ret = 0;
+	while(chan<4) {
+		mask = PAD_ENABLEDMASK(chan);
+		if(__pad_enabledbits&mask) {
+			type = SI_GetType(chan);
+			if(!(type&SI_GC_NOMOTOR)) {
+				cmd = cmds[chan];
+				if(__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) cmd = 0;
+
+				cmd = 0x00400000|__pad_analogmode|(cmd&0x03);
+				SI_SetCommand(chan,cmd);
+				ret = 1;
+			}
+		}
+		chan++;
+	}
+	if(ret) SI_TransferCommands();
+	_CPU_ISR_Restore(level);
 }
 
 void PAD_ControlMotor(s32 chan,u32 cmd)
@@ -694,6 +756,11 @@ void PAD_ControlMotor(s32 chan,u32 cmd)
 		}
 	}
 	_CPU_ISR_Restore(level);
+}
+
+void PAD_SetSamplingRate(u32 samplingrate)
+{
+	SI_SetSamplingRate(samplingrate);
 }
 
 sampling_callback PAD_SetSamplingCallback(sampling_callback cb)
@@ -854,10 +921,4 @@ u8 PAD_TriggerR(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
 	return __pad_keys[chan].triggerR;
-}
-
-u32 PAD_IsBarrel(s32 chan)
-{
-	if(chan<PAD_CHAN0 || chan>PAD_CHAN3) return 0;
-	return !!(__pad_barrelbits&PAD_ENABLEDMASK(chan));
 }
