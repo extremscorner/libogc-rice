@@ -67,6 +67,10 @@ distribution.
  *@}
  */
 
+#define SYS_BUTTON_RESET				0x00000001
+#define SYS_BUTTON_POWER				0x00000002
+#define SYS_BUTTON_EJECT				0x00000004
+
 
 /*!
  * \addtogroup sys_mprotchans OS memory protection channels
@@ -376,7 +380,12 @@ void* SYS_AllocArena2MemLo(u32 size,u32 align);
 void* SYS_AllocArena2MemHi(u32 size,u32 align);
 
 powercallback SYS_SetPowerCallback(powercallback cb);
+
+u32 SYS_PowerButtonDown();
+u32 SYS_EjectButtonDown();
 #endif
+
+u32 SYS_ButtonsDown();
 
 void kprintf(const char *str, ...);
 

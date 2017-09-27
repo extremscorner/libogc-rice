@@ -212,10 +212,9 @@ static void waitForReload()
 	{
 		PAD_ScanPads();
 
-		int buttonsDown = PAD_ButtonsDown(0);
+		u16 buttonsDown = PAD_ButtonsDown(0) | PAD_ButtonsDown(1) | PAD_ButtonsDown(2) | PAD_ButtonsDown(3);
 
-		if( buttonsDown || SYS_ResetButtonDown() || 
-			reload_timer == 0 )
+		if( buttonsDown || SYS_ButtonsDown() || reload_timer == 0 )
 		{
 			kprintf("\n\tReload\n\n\n");
 			__reload ();

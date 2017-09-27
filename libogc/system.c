@@ -141,6 +141,7 @@ static vu16* const _viReg = (u16*)0xCC002000;
 static vu32* const _piReg = (u32*)0xCC003000;
 static vu16* const _memReg = (u16*)0xCC004000;
 static vu16* const _dspReg = (u16*)0xCC005000;
+static vu32* const _gpioReg = (u32*)0xCD8000C0;
 
 void __SYS_ReadROM(void *buf,u32 len,u32 offset);
 
@@ -919,7 +920,30 @@ void __attribute__((weak)) SYS_PreMain()
 
 u32 SYS_ResetButtonDown()
 {
-	return (!(_piReg[0]&0x00010000));
+	return _SHIFTR(_piReg[0],16,1)^1;
+}
+
+#if defined(HW_RVL)
+u32 SYS_PowerButtonDown()
+{
+	return _SHIFTR(_gpioReg[10],0,1);
+}
+
+u32 SYS_EjectButtonDown()
+{
+	return _SHIFTR(_gpioReg[10],6,1);
+}
+#endif
+
+u32 SYS_ButtonsDown()
+{
+	u32 down;
+	down  = _SHIFTL(SYS_ResetButtonDown(),0,1);
+#if defined(HW_RVL)
+	down |= _SHIFTL(SYS_PowerButtonDown(),1,1);
+	down |= _SHIFTL(SYS_EjectButtonDown(),2,1);
+#endif
+	return down;
 }
 
 #if defined(HW_DOL)
