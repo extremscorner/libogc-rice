@@ -8,6 +8,7 @@
 #include "asm.h"
 #include "processor.h"
 #include "si.h"
+#include "si_steering.h"
 #include "pad.h"
 
 //#define _PAD_DEBUG
@@ -28,6 +29,8 @@ typedef struct _keyinput {
 	s8 substickY;
 	u8 triggerL;
 	u8 triggerR;
+	u8 analogA;
+	u8 analogB;
 	u32 up;
 	u32 down;
 	u32 state;
@@ -798,66 +801,106 @@ u32 PAD_ScanPads()
 	u32 resetBits;
 	u32 padBit,connected;
 	u32 state,oldstate;
-	PADStatus padstatus[PAD_CHANMAX];
+	PADStatus pad[PAD_CHANMAX];
+	SISteeringStatus steering;
 
 	resetBits = 0;
 	connected = 0;
 
-	PAD_Read(padstatus);
-	//PAD_Clamp(padstatus);
+	PAD_Read(pad);
+	//PAD_Clamp(pad);
 	for(i=0;i<PAD_CHANMAX;i++) {
 		padBit = (PAD_CHAN0_BIT>>i);
 
-		switch(padstatus[i].err) {
-		case PAD_ERR_NONE:
-			oldstate = __pad_keys[i].state; 
-			state = padstatus[i].button;
+		SI_ReadSteering(i,&steering);
+		switch(SI_Probe(i)) {
+			case SI_GC_CONTROLLER:
+			case SI_GC_WAVEBIRD:
+				switch(pad[i].err) {
+					case PAD_ERR_NONE:
+						oldstate = __pad_keys[i].state;
+						state = pad[i].button;
 
-			if(padstatus[i].stickX<-50)
-				state |= PAD_STICK_LEFT;
-			if(padstatus[i].stickX>+50)
-				state |= PAD_STICK_RIGHT;
-			if(padstatus[i].stickY<-50)
-				state |= PAD_STICK_DOWN;
-			if(padstatus[i].stickY>+50)
-				state |= PAD_STICK_UP;
+						if(pad[i].stickX<-50) state |= PAD_STICK_LEFT;
+						if(pad[i].stickX>+50) state |= PAD_STICK_RIGHT;
+						if(pad[i].stickY<-50) state |= PAD_STICK_DOWN;
+						if(pad[i].stickY>+50) state |= PAD_STICK_UP;
 
-			if(padstatus[i].substickX<-50)
-				state |= PAD_SUBSTICK_LEFT;
-			if(padstatus[i].substickX>+50)
-				state |= PAD_SUBSTICK_RIGHT;
-			if(padstatus[i].substickY<-50)
-				state |= PAD_SUBSTICK_DOWN;
-			if(padstatus[i].substickY>+50)
-				state |= PAD_SUBSTICK_UP;
+						if(pad[i].substickX<-50) state |= PAD_SUBSTICK_LEFT;
+						if(pad[i].substickX>+50) state |= PAD_SUBSTICK_RIGHT;
+						if(pad[i].substickY<-50) state |= PAD_SUBSTICK_DOWN;
+						if(pad[i].substickY>+50) state |= PAD_SUBSTICK_UP;
 
-			if(padstatus[i].triggerL>100)
-				state |= PAD_TRIGGER_L;
-			if(padstatus[i].triggerR>100)
-				state |= PAD_TRIGGER_R;
+						if(pad[i].triggerL>100) state |= PAD_TRIGGER_L;
+						if(pad[i].triggerR>100) state |= PAD_TRIGGER_R;
 
-			__pad_keys[i].stickX	= padstatus[i].stickX;
-			__pad_keys[i].stickY	= padstatus[i].stickY;
-			__pad_keys[i].substickX	= padstatus[i].substickX;
-			__pad_keys[i].substickY	= padstatus[i].substickY;
-			__pad_keys[i].triggerL	= padstatus[i].triggerL;
-			__pad_keys[i].triggerR	= padstatus[i].triggerR;
-			__pad_keys[i].up		= oldstate & ~state;
-			__pad_keys[i].down		= state & (state ^ oldstate);
-			__pad_keys[i].state		= state;
-			__pad_keys[i].chan		= i;
+						if(pad[i].analogA>100) state |= PAD_ANALOG_A;
+						if(pad[i].analogB>100) state |= PAD_ANALOG_B;
 
-			connected |= (1<<i);
-			break;
+						__pad_keys[i].stickX	= pad[i].stickX;
+						__pad_keys[i].stickY	= pad[i].stickY;
+						__pad_keys[i].substickX	= pad[i].substickX;
+						__pad_keys[i].substickY	= pad[i].substickY;
+						__pad_keys[i].triggerL	= pad[i].triggerL;
+						__pad_keys[i].triggerR	= pad[i].triggerR;
+						__pad_keys[i].analogA	= pad[i].analogA;
+						__pad_keys[i].analogB	= pad[i].analogB;
+						__pad_keys[i].up		= ~state & oldstate;
+						__pad_keys[i].down		= state & ~oldstate;
+						__pad_keys[i].state		= state;
+						__pad_keys[i].chan		= i;
 
-		case PAD_ERR_NO_CONTROLLER:
-			if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
-			__pad_keys[i].chan = -1;
-			resetBits |= padBit;
-			break;
+						connected |= padBit;
+						break;
+					case PAD_ERR_TRANSFER:
+						__pad_keys[i].up = __pad_keys[i].down = 0;
+						connected |= padBit;
+						break;
+					case PAD_ERR_NO_CONTROLLER:
+						if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
+						__pad_keys[i].chan = -1;
+						resetBits |= padBit;
+						break;
+				}
+				break;
+			case SI_GC_STEERING:
+				switch(steering.err) {
+					case PAD_ERR_NONE:
+						oldstate = __pad_keys[i].state;
+						state = steering.button;
 
-		default:
-			break;
+						if(steering.wheel<-25) state |= PAD_WHEEL_LEFT;
+						if(steering.wheel>+25) state |= PAD_WHEEL_RIGHT;
+
+						if(steering.paddleL>50) state |= PAD_PADDLE_L;
+						if(steering.paddleR>50) state |= PAD_PADDLE_R;
+
+						if(steering.pedalL>50) state |= PAD_PEDAL_L;
+						if(steering.pedalR>50) state |= PAD_PEDAL_R;
+
+						__pad_keys[i].stickX	= steering.wheel;
+						__pad_keys[i].triggerL	= steering.paddleL;
+						__pad_keys[i].triggerR	= steering.paddleR;
+						__pad_keys[i].analogA	= steering.pedalL;
+						__pad_keys[i].analogB	= steering.pedalR;
+						__pad_keys[i].up		= ~state & oldstate;
+						__pad_keys[i].down		= state & ~oldstate;
+						__pad_keys[i].state		= state;
+						__pad_keys[i].chan		= i;
+
+						connected |= padBit;
+						break;
+					case PAD_ERR_TRANSFER:
+						__pad_keys[i].up = __pad_keys[i].down = 0;
+						connected |= padBit;
+						break;
+					case PAD_ERR_NO_CONTROLLER:
+						if(__pad_keys[i].chan!=-1) memset(&__pad_keys[i],0,sizeof(keyinput));
+						__pad_keys[i].chan = -1;
+						SI_ResetSteeringAsync(i,NULL);
+						break;
+				}
+				break;
 		}
 	}
 #ifdef _PAD_DEBUG
@@ -921,4 +964,16 @@ u8 PAD_TriggerR(s32 chan)
 {
 	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
 	return __pad_keys[chan].triggerR;
+}
+
+u8 PAD_AnalogA(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].analogA;
+}
+
+u8 PAD_AnalogB(s32 chan)
+{
+	if(chan<PAD_CHAN0 || chan>PAD_CHAN3 || __pad_keys[chan].chan==-1) return 0;
+	return __pad_keys[chan].analogB;
 }

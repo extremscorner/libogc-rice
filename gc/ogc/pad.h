@@ -9,6 +9,11 @@
 #define PAD_CHAN3					3
 #define PAD_CHANMAX					4
 
+#define PAD_CHAN0_BIT				0x80000000
+#define PAD_CHAN1_BIT				0x40000000
+#define PAD_CHAN2_BIT				0x20000000
+#define PAD_CHAN3_BIT				0x10000000
+
 #define PAD_MOTOR_STOP				0
 #define PAD_MOTOR_RUMBLE			1
 #define PAD_MOTOR_STOP_HARD			2
@@ -44,10 +49,18 @@
 #define PAD_ANALOG_A				(0x0400<<16)
 #define PAD_ANALOG_B				(0x0800<<16)
 
-#define PAD_CHAN0_BIT				0x80000000
-#define PAD_CHAN1_BIT				0x40000000
-#define PAD_CHAN2_BIT				0x20000000
-#define PAD_CHAN3_BIT				0x10000000
+#define PAD_WHEEL_LEFT				PAD_STICK_LEFT
+#define PAD_WHEEL_RIGHT				PAD_STICK_RIGHT
+#define PAD_PADDLE_L				PAD_TRIGGER_L
+#define PAD_PADDLE_R				PAD_TRIGGER_R
+#define PAD_PEDAL_L					PAD_ANALOG_A
+#define PAD_PEDAL_R					PAD_ANALOG_B
+
+#define PAD_Wheel					PAD_StickX
+#define PAD_PaddleL					PAD_TriggerL
+#define PAD_PaddleR					PAD_TriggerR
+#define PAD_PedalL					PAD_AnalogA
+#define PAD_PedalR					PAD_AnalogB
 /*+----------------------------------------------------------------------------------------------+*/
 /*+----------------------------------------------------------------------------------------------+*/
 /*+----------------------------------------------------------------------------------------------+*/
@@ -103,6 +116,8 @@ s8 PAD_StickY(s32 chan);
 u8 PAD_TriggerL(s32 chan);
 u8 PAD_TriggerR(s32 chan);
 
+u8 PAD_AnalogA(s32 chan);
+u8 PAD_AnalogB(s32 chan);
 
 sampling_callback PAD_SetSamplingCallback(sampling_callback cb);
 
