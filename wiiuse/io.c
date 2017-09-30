@@ -87,7 +87,7 @@ void wiiuse_handshake_expansion_start(struct wiimote_t *wm)
 	if(WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP) || WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP_FAILED) || WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP_HANDSHAKE))
 		return;
 
-	wm->expansion_state = 0;
+	wm->expansion_state = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP_ONLY) ? 4 : 0;
 	WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_EXP_HANDSHAKE);
 	wiiuse_handshake_expansion(wm, NULL, 0);
 }
