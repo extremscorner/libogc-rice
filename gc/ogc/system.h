@@ -275,8 +275,11 @@ void* SYS_AllocateFramebuffer(GXRModeObj *rmode);
 
 void SYS_ProtectRange(u32 chan,void *addr,u32 bytes,u32 cntrl);
 void SYS_StartPMC(u32 mcr0val,u32 mcr1val);
-void SYS_DumpPMC();
 void SYS_StopPMC();
+void SYS_ResetPMC();
+void SYS_DumpPMC();
+f32 SYS_GetCoreMultiplier();
+u32 SYS_GetCoreFrequency();
 
 
 /*! \fn s32 SYS_CreateAlarm(syswd_t *thealarm)
