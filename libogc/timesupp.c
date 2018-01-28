@@ -21,8 +21,7 @@ extern u32 __SYS_GetRTC(u32 *gctime);
 extern syssram* __SYS_LockSram();
 extern u32 __SYS_UnlockSram(u32 write);
 
-u64 _DEFUN(gettime,(),
-						  _NOARGS)
+u64 gettime()
 {
 	u32 tmp;
 	union uulc {
@@ -41,8 +40,7 @@ u64 _DEFUN(gettime,(),
 	return v.ull;
 }
 
-void _DEFUN(settime,(t),
-			u64 t)
+void settime(u64 t)
 {
 	u32 tmp;
 	union uulc {
@@ -154,8 +152,7 @@ int clock_gettime(struct timespec *tp)
 }
 
 // this function spins till timeout is reached
-void _DEFUN(udelay,(us),
-			unsigned us)
+void udelay(unsigned us)
 {
 	unsigned long long start, end;
 	start = gettime();
@@ -167,8 +164,7 @@ void _DEFUN(udelay,(us),
 	}
 }
 
-unsigned int _DEFUN(nanosleep,(tb),
-           struct timespec *tb)
+unsigned int nanosleep(struct timespec *tb)
 {
 	u64 timeout;
 
@@ -248,8 +244,7 @@ static u32 __getRTC(u32 *gctime)
 	return 0;
 }
 
-time_t _DEFUN(time,(timer),
-			  time_t *timer)
+time_t time(time_t *timer)
 {
 	time_t gctime = 0;
 #if defined(HW_RVL)
@@ -272,8 +267,7 @@ time_t _DEFUN(time,(timer),
 	return gctime;
 }
 
-unsigned int _DEFUN(sleep,(s),
-		   unsigned int s)
+unsigned int sleep(unsigned int s)
 {
 	struct timespec tb;
 
@@ -282,8 +276,7 @@ unsigned int _DEFUN(sleep,(s),
 	return nanosleep(&tb);
 }
 
-unsigned int _DEFUN(usleep,(us),
-           unsigned int us)
+unsigned int usleep(unsigned int us)
 {
 	u32 sec,rem;
 	struct timespec tb;
