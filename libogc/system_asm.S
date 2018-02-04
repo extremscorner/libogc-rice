@@ -12,13 +12,13 @@ __InitBATS:
 	rfi
 
 configBATS:
-	// HID0 = 00510EAC:
-	// bus checkstops on, doze mode on,
+	// HID0 = 00910EAC:
+	// bus checkstops off, doze mode on,
 	// caches off, caches invalidate,
 	// store gathering on, enable data cache
 	// flush assist, enable branch target cache,
 	// enable branch history table
-	lis		r3,0xF091
+	lis		r3,0x0091
 	ori		r3,r3,0x0EAC
 	mtspr	HID0,r3
 	isync
@@ -288,7 +288,7 @@ __InitCache:
 	clrlwi.	r0,r3,31
 	bne		1b
 
-	lis		r3,0xC008
+	lis		r3,0x8008
 	mtspr	L2CR,r3
 	sync
 	blr
