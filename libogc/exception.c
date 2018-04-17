@@ -227,7 +227,7 @@ static void waitForReload()
 }
 
 //just implement core for unrecoverable exceptions.
-void c_default_exceptionhandler(frame_context *pCtx)
+void __attribute__((weak)) c_default_exceptionhandler(frame_context *pCtx)
 {
 	AUDIO_StopDMA();
 	GX_AbortFrame();

@@ -1283,7 +1283,7 @@ static void __read_callback(s32 chn,s32 result)
 					ret = CARD_ERROR_BROKEN;
 					goto exit;
 				}
-				len = file->len<card->sector_size?card->sector_size:file->len;
+				len = file->len<card->sector_size?file->len:card->sector_size;
 				if(__card_read(chn,(file->iblock*card->sector_size),len,card->cmd_usr_buf,__read_callback)>=0) return;
 				
 			}
