@@ -21,8 +21,6 @@
 #endif
 // SDHC support
 // added by emu_kidid
-#define SECTOR_ADDRESSING					0
-#define BYTE_ADDRESSING						1
 #define TYPE_SD								0
 #define TYPE_SDHC							1
 
@@ -1237,12 +1235,12 @@ static s32 __card_retrycb(s32 drv_no)
 
 static void __convert_sector(s32 drv_no,u32 sector_no,u8 *arg)
 {
-	if(_ioAddressingType[drv_no]==BYTE_ADDRESSING) {
+	if(_ioAddressingType[drv_no]==CARDIO_ADDRESSING_BYTE) {
 		arg[0] = (sector_no>>15)&0xff;
 		arg[1] = (sector_no>>7)&0xff;
 		arg[2] = (sector_no<<1)&0xff;
 		arg[3] = (sector_no<<9)&0xff;
-	} else if(_ioAddressingType[drv_no]==SECTOR_ADDRESSING) {
+	} else if(_ioAddressingType[drv_no]==CARDIO_ADDRESSING_BLOCK) {
 		arg[0] = (sector_no>>24)&0xff;
 		arg[1] = (sector_no>>16)&0xff;
 		arg[2] = (sector_no>>8)&0xff;
@@ -1263,7 +1261,7 @@ void sdgecko_initIODefault()
 		_ioError[i] = 0;
 		_ioCardInserted[i] = FALSE;
 		_ioFlag[i] = NOT_INITIALIZED;
-		_ioAddressingType[i] = BYTE_ADDRESSING;
+		_ioAddressingType[i] = CARDIO_ADDRESSING_BYTE;
 		_initType[i] = TYPE_SD;
 		_ioCardFreq[i] = EXI_SPEED16MHZ;
 		LWP_InitQueue(&_ioEXILock[i]);
@@ -1284,7 +1282,7 @@ s32 sdgecko_initIO(s32 drv_no)
 	if(_ioCardInserted[drv_no]==TRUE) {
 		_initType[drv_no] = TYPE_SD;
 		_ioFlag[drv_no] = INITIALIZING;
-		_ioAddressingType[drv_no] = BYTE_ADDRESSING;
+		_ioAddressingType[drv_no] = CARDIO_ADDRESSING_BYTE;
 		if(__card_softreset(drv_no)!=0) goto exit;
 
 		if(__card_sendCMD8(drv_no)!=0) goto exit;
@@ -1300,7 +1298,7 @@ s32 sdgecko_initIO(s32 drv_no)
 #ifdef _CARDIO_DEBUG
 			printf("Response %02X,%02X,%02X,%02X,%02X\n",_ioResponse[drv_no][0],_ioResponse[drv_no][1],_ioResponse[drv_no][2],_ioResponse[drv_no][3],_ioResponse[drv_no][4]);
 #endif
-			if(_ioResponse[drv_no][1]&0x40) _ioAddressingType[drv_no] = SECTOR_ADDRESSING;     
+			if(_ioResponse[drv_no][1]&0x40) _ioAddressingType[drv_no] = CARDIO_ADDRESSING_BLOCK;
 		}
 
 		_ioPageSize[drv_no] = PAGE_SIZE512;

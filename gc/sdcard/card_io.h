@@ -22,6 +22,11 @@
    extern "C" {
 #endif /* __cplusplus */
 
+enum {
+	CARDIO_ADDRESSING_BYTE = 0,
+	CARDIO_ADDRESSING_BLOCK
+};
+
 extern u8 g_CSD[MAX_DRIVE][16];
 extern u8 g_CID[MAX_DRIVE][16];
 extern u8 g_mCode[MAX_MI_NUM];
@@ -43,6 +48,14 @@ s32 sdgecko_doUnmount(s32 drv_no);
 
 void sdgecko_insertedCB(s32 drv_no);
 void sdgecko_ejectedCB(s32 drv_no);
+
+u32 sdgecko_getSpeed(s32 drv_no);
+void sdgecko_setSpeed(s32 drv_no, u32 freq);
+
+u32 sdgecko_getPageSize(s32 drv_no);
+s32 sdgecko_setPageSize(s32 drv_no, u32 size);
+
+u32 sdgecko_getAddressingType(s32 drv_no);
 
 bool sdgecko_isInserted(s32 drv_no);
 bool sdgecko_isInitialized(s32 drv_no);
