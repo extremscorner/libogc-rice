@@ -3677,12 +3677,12 @@ static bool __gcode_Shutdown(DISC_INTERFACE *disc)
 DISC_INTERFACE __io_gcdvd = {
 	DEVICE_TYPE_GAMECUBE_DVD,
 	FEATURE_MEDIUM_CANREAD | FEATURE_GAMECUBE_DVD,
-	(FN_MEDIUM_STARTUP)&__gcdvd_Startup,
-	(FN_MEDIUM_ISINSERTED)&__gcdvd_IsInserted,
-	(FN_MEDIUM_READSECTORS)&__gcdvd_ReadSectors,
-	(FN_MEDIUM_WRITESECTORS)&__gcdvd_WriteSectors,
-	(FN_MEDIUM_CLEARSTATUS)&__gcdvd_ClearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcdvd_Shutdown,
+	__gcdvd_Startup,
+	__gcdvd_IsInserted,
+	__gcdvd_ReadSectors,
+	__gcdvd_WriteSectors,
+	__gcdvd_ClearStatus,
+	__gcdvd_Shutdown,
 	0x800000,
 	2048
 };
@@ -3690,12 +3690,12 @@ DISC_INTERFACE __io_gcdvd = {
 DISC_INTERFACE __io_gcode = {
 	DEVICE_TYPE_GAMECUBE_GCODE,
 	FEATURE_MEDIUM_CANREAD | FEATURE_GAMECUBE_DVD,
-	(FN_MEDIUM_STARTUP)&__gcode_Startup,
-	(FN_MEDIUM_ISINSERTED)&__gcode_IsInserted,
-	(FN_MEDIUM_READSECTORS)&__gcode_ReadSectors,
-	(FN_MEDIUM_WRITESECTORS)&__gcode_WriteSectors,
-	(FN_MEDIUM_CLEARSTATUS)&__gcode_ClearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcode_Shutdown,
+	__gcode_Startup,
+	__gcode_IsInserted,
+	__gcode_ReadSectors,
+	__gcode_WriteSectors,
+	__gcode_ClearStatus,
+	__gcode_Shutdown,
 	0x100000000,
 	512
 };

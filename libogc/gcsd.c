@@ -184,12 +184,12 @@ static bool __gcsd_shutdown(DISC_INTERFACE *disc)
 DISC_INTERFACE __io_gcsda = {
 	DEVICE_TYPE_GAMECUBE_SD(0),
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_SLOTA,
-	(FN_MEDIUM_STARTUP)&__gcsd_startup,
-	(FN_MEDIUM_ISINSERTED)&__gcsd_isInserted,
-	(FN_MEDIUM_READSECTORS)&__gcsd_readSectors,
-	(FN_MEDIUM_WRITESECTORS)&__gcsd_writeSectors,
-	(FN_MEDIUM_CLEARSTATUS)&__gcsd_clearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcsd_shutdown,
+	__gcsd_startup,
+	__gcsd_isInserted,
+	__gcsd_readSectors,
+	__gcsd_writeSectors,
+	__gcsd_clearStatus,
+	__gcsd_shutdown,
 	0,
 	PAGE_SIZE512
 };
@@ -197,12 +197,12 @@ DISC_INTERFACE __io_gcsda = {
 DISC_INTERFACE __io_gcsdb = {
 	DEVICE_TYPE_GAMECUBE_SD(1),
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_SLOTB,
-	(FN_MEDIUM_STARTUP)&__gcsd_startup,
-	(FN_MEDIUM_ISINSERTED)&__gcsd_isInserted,
-	(FN_MEDIUM_READSECTORS)&__gcsd_readSectors,
-	(FN_MEDIUM_WRITESECTORS)&__gcsd_writeSectors,
-	(FN_MEDIUM_CLEARSTATUS)&__gcsd_clearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcsd_shutdown,
+	__gcsd_startup,
+	__gcsd_isInserted,
+	__gcsd_readSectors,
+	__gcsd_writeSectors,
+	__gcsd_clearStatus,
+	__gcsd_shutdown,
 	0,
 	PAGE_SIZE512
 };
@@ -210,12 +210,12 @@ DISC_INTERFACE __io_gcsdb = {
 DISC_INTERFACE __io_gcsd2 = {
 	DEVICE_TYPE_GAMECUBE_SD(2),
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_GAMECUBE_PORT2,
-	(FN_MEDIUM_STARTUP)&__gcsd_startup,
-	(FN_MEDIUM_ISINSERTED)&__gcsd_isInserted,
-	(FN_MEDIUM_READSECTORS)&__gcsd_readSectors,
-	(FN_MEDIUM_WRITESECTORS)&__gcsd_writeSectors,
-	(FN_MEDIUM_CLEARSTATUS)&__gcsd_clearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcsd_shutdown,
+	__gcsd_startup,
+	__gcsd_isInserted,
+	__gcsd_readSectors,
+	__gcsd_writeSectors,
+	__gcsd_clearStatus,
+	__gcsd_shutdown,
 	0,
 	PAGE_SIZE512
 };
