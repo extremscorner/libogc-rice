@@ -85,6 +85,10 @@ distribution.
 #define VI_EURGB60                  5		/*!< RGB 60Hz, 480 lines mode (same timing and aspect ratio as NTSC) used in Europe */
 #define VI_CUSTOM                   6
 
+#define VI_HD60                     8
+#define VI_HD50                     9
+#define VI_HD48                     10
+
 /*!
  * @}
  */
@@ -120,6 +124,9 @@ distribution.
 
 #define VI_MAX_WIDTH_EURGB60        VI_MAX_WIDTH_NTSC
 #define VI_MAX_HEIGHT_EURGB60       VI_MAX_HEIGHT_NTSC
+
+#define VI_MAX_WIDTH_HD             464
+#define VI_MAX_HEIGHT_HD            720
 
 #define VIDEO_PadFramebufferWidth(width)     ((u16)(((u16)(width) + 15) & ~15))			/*!< macro to pad the width to a multiple of 16 */
 
