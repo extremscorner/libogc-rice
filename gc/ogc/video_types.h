@@ -125,10 +125,10 @@ distribution.
 #define VI_MAX_WIDTH_EURGB60        VI_MAX_WIDTH_NTSC
 #define VI_MAX_HEIGHT_EURGB60       VI_MAX_HEIGHT_NTSC
 
-#define VI_MAX_WIDTH_HD             464
+#define VI_MAX_WIDTH_HD             480
 #define VI_MAX_HEIGHT_HD            720
 
-#define VI_MAX_WIDTH_FHD            698
+#define VI_MAX_WIDTH_FHD            720
 #define VI_MAX_HEIGHT_FHD           540
 
 #define VIDEO_PadFramebufferWidth(width)     ((u16)(((u16)(width) + 15) & ~15))			/*!< macro to pad the width to a multiple of 16 */
