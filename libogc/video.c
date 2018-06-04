@@ -2748,8 +2748,8 @@ static u16 shdw_regs[60];
 static u32 fbSet = 0;
 static s16 displayOffsetH;
 static s16 displayOffsetV;
-static u32 currTvMode,changeMode;
-static u32 shdw_changeMode,flushFlag;
+static u32 currTvMode,currViMode;
+static u32 changeMode,shdw_changeMode,flushFlag;
 static u64 changed,shdw_changed;
 static vu32 retraceCount;
 static const struct _timing *currTiming;
@@ -3615,6 +3615,7 @@ static inline u32 __VISetRegs()
 	}
 	shdw_changeMode = 0;
 	currTiming = HorVer.timing;
+	currViMode = HorVer.nonInter;
 	currTvMode = HorVer.tv;
 
 	currentFb = nextFb;
@@ -3632,64 +3633,27 @@ static void __VIDisplayPositionToXY(s32 xpos,s32 ypos,s32 *px,s32 *py)
 	hline = ((vpos<<1)+(hpos/currTiming->hlw));
 
 	*px = (s32)hpos;
-	if(HorVer.nonInter==0x0000) {
-		if(hline<currTiming->nhlines) {
-			val = currTiming->prbOdd+(currTiming->equ*3);
-			if(hline>=val) {
-				val = (currTiming->nhlines-currTiming->psbOdd);
-				if(hline<val) {
-					*py = (s32)(((hline-(currTiming->equ*3))-currTiming->prbOdd)&~0x01);
-				} else
-					*py = -1;
-			} else
-				*py = -1;
-		} else {
-			hline -= currTiming->psbOdd;
-			val = (currTiming->prbEven+(currTiming->equ*3));
-			if(hline>=val) {
-				val = (currTiming->nhlines-currTiming->psbEven);
-				if(hline<val) {
-					*py = (s32)((((hline-(currTiming->equ*3))-currTiming->prbEven)&~0x01)+1);
-				} else
-					*py = -1;
-			} else
-				*py = -1;
-		}
-	} else if(HorVer.nonInter==0x0001) {
-		if(hline>=currTiming->nhlines) hline -= currTiming->nhlines;
-
+	if(hline<currTiming->nhlines) {
 		val = (currTiming->prbOdd+(currTiming->equ*3));
 		if(hline>=val) {
 			val = (currTiming->nhlines-currTiming->psbOdd);
 			if(hline<val) {
-				*py = (s32)(((hline-(currTiming->equ*3))-currTiming->prbOdd)&~0x01);
+				*py = (s32)((hline-(currTiming->equ*3))-currTiming->prbOdd);
 			} else
 				*py = -1;
 		} else
 			*py = -1;
-	} else if(HorVer.nonInter==0x0002) {
-		if(hline<currTiming->nhlines) {
-			val = currTiming->prbOdd+(currTiming->equ*3);
-			if(hline>=val) {
-				val = (currTiming->nhlines-currTiming->psbOdd);
-				if(hline<val) {
-					*py = (s32)((hline-(currTiming->equ*3))-currTiming->prbOdd);
-				} else
-					*py = -1;
+	} else {
+		hline -= currTiming->nhlines;
+		val = (currTiming->prbEven+(currTiming->equ*3));
+		if(hline>=val) {
+			val = (currTiming->nhlines-currTiming->psbEven);
+			if(hline<val) {
+				*py = (s32)((hline-(currTiming->equ*3))-currTiming->prbEven);
 			} else
 				*py = -1;
-		} else {
-			hline -= currTiming->psbOdd;
-			val = (currTiming->prbEven+(currTiming->equ*3));
-			if(hline>=val) {
-				val = (currTiming->nhlines-currTiming->psbEven);
-				if(hline<val) {
-					*py = (s32)(((hline-(currTiming->equ*3))-currTiming->prbEven)&~0x01);
-				} else
-					*py = -1;
-			} else
-				*py = -1;
-		}
+		} else
+			*py = -1;
 	}
 }
 
@@ -3739,6 +3703,7 @@ static void __VIRetraceHandler(u32 nIrq,frame_context *pCtx)
 			__VIGetCurrentPosition(&xpos,&ypos);
 			positionCB(xpos,ypos);
 		}
+		return;
 	}
 
 	retraceCount++;
@@ -3818,6 +3783,7 @@ void VIDEO_Init()
 	vimode = HorVer.nonInter;
 	if(HorVer.tv<VI_DEBUG) vimode |= (HorVer.tv<<4);
 	currTiming = __gettiming(vimode);
+	currViMode = HorVer.nonInter;
 	currTvMode = HorVer.tv;
 
 	regs[1] = _viReg[1];
@@ -4060,6 +4026,11 @@ u32 VIDEO_GetCurrentField()
 u32 VIDEO_GetCurrentTvMode()
 {
 	return currTvMode;
+}
+
+u32 VIDEO_GetCurrentViMode()
+{
+	return currViMode;
 }
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode)

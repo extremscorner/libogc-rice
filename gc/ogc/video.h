@@ -126,6 +126,15 @@ u32 VIDEO_GetCurrentTvMode();
 
 
 /*! 
+ * \fn u32 VIDEO_GetCurrentViMode()
+ * \brief Get current configured video mode
+ *
+ * \return \ref vi_modetypedef "vimode"
+ */
+u32 VIDEO_GetCurrentViMode();
+
+
+/*! 
  * \fn void VIDEO_Configure(GXRModeObj *rmode)
  * \brief Configure the VI with the given render mode object
  *
