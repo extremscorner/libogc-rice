@@ -965,6 +965,8 @@ void SYS_ResetSystem(s32 reset)
 	__exception_closeall();
 	__call_resetfuncs(TRUE);
 
+	LCDisable();
+
 	if(reset==SYS_RETURNTOMENU || reset==SYS_HOTRESET) __reload();
 
 	__lwp_thread_dispatchdisable();
@@ -1007,6 +1009,8 @@ void SYS_ResetSystem(s32 reset)
 
 	__exception_closeall();
 	__call_resetfuncs(TRUE);
+
+	LCDisable();
 
 	__lwp_thread_dispatchdisable();
 	__lwp_thread_closeall();
