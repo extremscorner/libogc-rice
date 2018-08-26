@@ -19,9 +19,4 @@
 #define TB_NSPERUS					1000
 #define TB_USPERTICK				10000
 
-#include <sys/types.h>
-
-time_t time(time_t *timer);
-unsigned int nanosleep(struct timespec *tb);
-
 #endif
