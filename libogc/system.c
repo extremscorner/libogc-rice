@@ -178,6 +178,7 @@ extern int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct time
 extern int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern int __libogc_clock_settime(clockid_t clock_id, const struct timespec *tp);
 extern int __libogc_clock_getres(clockid_t clock_id, struct timespec *res);
+extern int __libogc_nanosleep(const struct timespec *tb, struct timespec *rem);
 
 extern u8 __Arena1Lo[], __Arena1Hi[];
 #if defined(HW_RVL)
@@ -271,6 +272,7 @@ static void __init_syscall_array() {
 	__syscalls.clock_gettime = __libogc_clock_gettime;
 	__syscalls.clock_settime = __libogc_clock_settime;
 	__syscalls.clock_getres = __libogc_clock_getres;
+	__syscalls.nanosleep = __libogc_nanosleep;
 }
 
 static alarm_st* __lwp_syswd_allocate()
