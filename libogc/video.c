@@ -2391,6 +2391,24 @@ static const struct _timing {
 		0x019D,0x007A
 	},
 	{
+		0x06,0x0120,
+		0x0022,0x0023,0x0001,0x0000,
+		0x0D,0x0C,0x0B,0x0A,
+		0x026B,0x026A,0x0269,0x026C,
+		0x0275,0x01AD,
+		0x40,0x47,0x69,
+		0x019D,0x007A
+	},
+	{
+		0x06,0x0120,
+		0x0024,0x0024,0x0000,0x0000,
+		0x0D,0x0B,0x0D,0x0B,
+		0x026B,0x026D,0x026B,0x026D,
+		0x0276,0x01AD,
+		0x40,0x47,0x69,
+		0x019D,0x007A
+	},
+	{
 		0x06,0x01E6,
 		0x003A,0x003B,0x0001,0x0000,
 		0x18,0x19,0x18,0x19,
@@ -2478,6 +2496,24 @@ static const struct _timing {
 		0x0206,0x0208,0x0206,0x0208,
 		0x020E,0x035A,
 		0x7F,0x9C,0xE0,
+		0x033A,0x00F4
+	},
+	{
+		0x06,0x0120,
+		0x0022,0x0023,0x0001,0x0000,
+		0x0D,0x0C,0x0B,0x0A,
+		0x026B,0x026A,0x0269,0x026C,
+		0x0275,0x035A,
+		0x7F,0x8E,0xD2,
+		0x033A,0x00F4
+	},
+	{
+		0x06,0x0120,
+		0x0024,0x0024,0x0000,0x0000,
+		0x0D,0x0B,0x0D,0x0B,
+		0x026B,0x026D,0x026B,0x026D,
+		0x0276,0x035A,
+		0x7F,0x8E,0xD2,
 		0x033A,0x00F4
 	},
 	{
@@ -2845,40 +2881,12 @@ static const struct _timing* __gettiming(u32 vimode)
 			if (vimode & VI_STEREO) {
 				if (vimode & VI_NON_INTERLACE) {
 					if (vimode & VI_ENHANCED)
-						return &video_timing[17];
-					else
-						return &video_timing[11];
-				} else {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[16];
-					else
-						return &video_timing[10];
-				}
-			} else {
-				if (vimode & VI_NON_INTERLACE) {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[7];
-					else
-						return &video_timing[1];
-				} else {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[6];
-					else
-						return &video_timing[0];
-				}
-			}
-			break;
-		case VI_PAL:
-		case VI_DEBUG_PAL:
-			if (vimode & VI_STEREO) {
-				if (vimode & VI_NON_INTERLACE) {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[19];
+						return &video_timing[21];
 					else
 						return &video_timing[13];
 				} else {
 					if (vimode & VI_ENHANCED)
-						return &video_timing[18];
+						return &video_timing[20];
 					else
 						return &video_timing[12];
 				}
@@ -2887,10 +2895,37 @@ static const struct _timing* __gettiming(u32 vimode)
 					if (vimode & VI_ENHANCED)
 						return &video_timing[9];
 					else
-						return &video_timing[3];
+						return &video_timing[1];
 				} else {
 					if (vimode & VI_ENHANCED)
 						return &video_timing[8];
+					else
+						return &video_timing[0];
+				}
+			}
+			break;
+		case VI_PAL:
+			if (vimode & VI_STEREO) {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[23];
+					else
+						return &video_timing[15];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[22];
+					else
+						return &video_timing[14];
+				}
+			} else {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[11];
+					else
+						return &video_timing[3];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[10];
 					else
 						return &video_timing[2];
 				}
@@ -2900,84 +2935,57 @@ static const struct _timing* __gettiming(u32 vimode)
 			if (vimode & VI_STEREO) {
 				if (vimode & VI_NON_INTERLACE) {
 					if (vimode & VI_ENHANCED)
-						return &video_timing[17];
+						return &video_timing[21];
 					else
-						return &video_timing[15];
+						return &video_timing[17];
 				} else {
 					if (vimode & VI_ENHANCED)
-						return &video_timing[16];
+						return &video_timing[20];
 					else
-						return &video_timing[14];
+						return &video_timing[16];
 				}
 			} else {
 				if (vimode & VI_NON_INTERLACE) {
 					if (vimode & VI_ENHANCED)
-						return &video_timing[7];
+						return &video_timing[9];
 					else
 						return &video_timing[5];
 				} else {
 					if (vimode & VI_ENHANCED)
-						return &video_timing[6];
+						return &video_timing[8];
 					else
 						return &video_timing[4];
 				}
 			}
 			break;
-		case VI_HD60:
+		case VI_DEBUG_PAL:
 			if (vimode & VI_STEREO) {
 				if (vimode & VI_NON_INTERLACE) {
 					if (vimode & VI_ENHANCED)
-						return &video_timing[39];
-					else
-						return &video_timing[33];
-				} else {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[38];
-					else
-						return &video_timing[32];
-				}
-			} else {
-				if (vimode & VI_NON_INTERLACE) {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[27];
-					else
-						return &video_timing[21];
-				} else {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[26];
-					else
-						return &video_timing[20];
-				}
-			}
-			break;
-		case VI_HD50:
-			if (vimode & VI_STEREO) {
-				if (vimode & VI_NON_INTERLACE) {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[41];
-					else
-						return &video_timing[35];
-				} else {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[40];
-					else
-						return &video_timing[34];
-				}
-			} else {
-				if (vimode & VI_NON_INTERLACE) {
-					if (vimode & VI_ENHANCED)
-						return &video_timing[29];
-					else
 						return &video_timing[23];
+					else
+						return &video_timing[19];
 				} else {
 					if (vimode & VI_ENHANCED)
-						return &video_timing[28];
-					else
 						return &video_timing[22];
+					else
+						return &video_timing[18];
+				}
+			} else {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[11];
+					else
+						return &video_timing[7];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[10];
+					else
+						return &video_timing[6];
 				}
 			}
 			break;
-		case VI_HD48:
+		case VI_HD60:
 			if (vimode & VI_STEREO) {
 				if (vimode & VI_NON_INTERLACE) {
 					if (vimode & VI_ENHANCED)
@@ -3001,6 +3009,60 @@ static const struct _timing* __gettiming(u32 vimode)
 						return &video_timing[30];
 					else
 						return &video_timing[24];
+				}
+			}
+			break;
+		case VI_HD50:
+			if (vimode & VI_STEREO) {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[45];
+					else
+						return &video_timing[39];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[44];
+					else
+						return &video_timing[38];
+				}
+			} else {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[33];
+					else
+						return &video_timing[27];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[32];
+					else
+						return &video_timing[26];
+				}
+			}
+			break;
+		case VI_HD48:
+			if (vimode & VI_STEREO) {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[47];
+					else
+						return &video_timing[41];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[46];
+					else
+						return &video_timing[40];
+				}
+			} else {
+				if (vimode & VI_NON_INTERLACE) {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[35];
+					else
+						return &video_timing[29];
+				} else {
+					if (vimode & VI_ENHANCED)
+						return &video_timing[34];
+					else
+						return &video_timing[28];
 				}
 			}
 			break;
@@ -3604,7 +3666,7 @@ static inline u32 __VISetRegs()
 	u64 mask;
 
 	if(shdw_changeMode==1){
-		if(!__getCurrentFieldEvenOdd()) return 0;
+		if(__getCurrentHalfLine()) return 0;
 	}
 
 	while(shdw_changed) {
