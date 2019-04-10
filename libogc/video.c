@@ -2774,7 +2774,8 @@ static const struct _timing {
 static u32 vdacFlagRegion;
 static u32 i2cIdentFirst = 0;
 static u32 i2cIdentFlag = 1;
-static u32 oldTvStatus = 0x03e7;
+static u32 oldViMode = 0x03e7;
+static u32 oldTvMode = 0x03e7;
 static u32 oldDtvStatus = 0x03e7;
 static vu32* const _i2cReg = (u32*)0xCD800000;
 #endif
@@ -3544,6 +3545,11 @@ static void __VIWriteI2CRegisterBuf(u8 reg, int size, u8 *data)
 	udelay(2);
 }
 
+static void __VISetOverSampling(u8 enable)
+{
+	__VIWriteI2CRegister8(0x65, enable);
+}
+
 static void __VISetVolume(u8 left, u8 right)
 {
 	__VIWriteI2CRegister16(0x71, (left<<8)|right);
@@ -3581,18 +3587,21 @@ static void __VISetupEncoder(void)
 		0x00
 	};
 
-	u8 dtv, tv;
+	u8 dtv, tvmode, vimode;
 
-	tv = VIDEO_GetCurrentTvMode();
+	vimode = VIDEO_GetCurrentViMode();
+	tvmode = VIDEO_GetCurrentTvMode();
 	dtv = VIDEO_HaveComponentCable();
-	oldDtvStatus = dtv;
 
 	// SetRevolutionModeSimple
 
 	memset(macrobuf, 0, 0x1a);
 
 	__VIWriteI2CRegister8(0x6a, 1);
-	__VIWriteI2CRegister8(0x65, 1);
+
+	if(vimode&VI_CLOCK_54MHZ) __VISetOverSampling(3);
+	else __VISetOverSampling(1);
+
 	__VISetYUVSEL(dtv);
 	__VIWriteI2CRegister8(0x00, 0);
 	__VISetVolume(0x8e, 0x8e);
@@ -3613,10 +3622,8 @@ static void __VISetupEncoder(void)
 
 	__VIWriteI2CRegister8(0x04, 1);
 
-	if(tv==VI_EURGB60) __VISetFilterEURGB60(1);
+	if(tvmode==VI_EURGB60) __VISetFilterEURGB60(1);
 	else __VISetFilterEURGB60(0);
-	oldTvStatus = tv;
-
 }
 #endif
 
@@ -3730,7 +3737,7 @@ static inline void __VIGetCurrentPosition(s32 *px,s32 *py)
 static void __VIRetraceHandler(u32 nIrq,frame_context *pCtx)
 {
 #if defined(HW_RVL)
-	u8 dtv, tv;
+	u8 dtv, tvmode, vimode;
 #endif
 	u32 ret = 0;
 	u32 intr;
@@ -3779,16 +3786,24 @@ static void __VIRetraceHandler(u32 nIrq,frame_context *pCtx)
 		}
 	}
 #if defined(HW_RVL)
-	tv = VIDEO_GetCurrentTvMode();
+	vimode = VIDEO_GetCurrentViMode();
+	tvmode = VIDEO_GetCurrentTvMode();
 	dtv = VIDEO_HaveComponentCable();
-	if(dtv!=oldDtvStatus || tv!=oldTvStatus) __VISetYUVSEL(dtv);
+
+	if(vimode!=oldViMode) {
+		if(vimode&VI_CLOCK_54MHZ) __VISetOverSampling(3);
+		else __VISetOverSampling(1);
+	}
+	oldViMode = vimode;
+
+	if(dtv!=oldDtvStatus || tvmode!=oldTvMode) __VISetYUVSEL(dtv);
 	oldDtvStatus = dtv;
 
-	if(tv!=oldTvStatus) {
-		if(tv==VI_EURGB60) __VISetFilterEURGB60(1);
+	if(tvmode!=oldTvMode) {
+		if(tvmode==VI_EURGB60) __VISetFilterEURGB60(1);
 		else __VISetFilterEURGB60(0);
 	}
-	oldTvStatus = tv;
+	oldTvMode = tvmode;
 #endif
 	if(postRetraceCB)
 		postRetraceCB(retraceCount);
