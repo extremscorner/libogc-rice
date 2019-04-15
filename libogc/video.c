@@ -2774,7 +2774,6 @@ static const struct _timing {
 static u32 vdacFlagRegion;
 static u32 i2cIdentFirst = 0;
 static u32 i2cIdentFlag = 1;
-static u32 oldViMode = 0x03e7;
 static u32 oldTvMode = 0x03e7;
 static u32 oldDtvStatus = 0x03e7;
 static vu32* const _i2cReg = (u32*)0xCD800000;
@@ -3545,9 +3544,9 @@ static void __VIWriteI2CRegisterBuf(u8 reg, int size, u8 *data)
 	udelay(2);
 }
 
-static void __VISetOverSampling(u8 enable)
+static void __VISetOverSampling(u8 mode)
 {
-	__VIWriteI2CRegister8(0x65, enable);
+	__VIWriteI2CRegister8(0x65, mode);
 }
 
 static void __VISetVolume(u8 left, u8 right)
@@ -3570,9 +3569,9 @@ static void __VISetFilterEURGB60(u8 enable)
 	__VIWriteI2CRegister8(0x6e, enable);
 }
 
-static void __VISetTrapFilter(u8 enable)
+static void __VISetTrapFilter(u8 disable)
 {
-	__VIWriteI2CRegister8(0x03, enable);
+	__VIWriteI2CRegister8(0x03, disable);
 }
 
 static void __VISetupEncoder(void)
@@ -3587,9 +3586,8 @@ static void __VISetupEncoder(void)
 		0x00
 	};
 
-	u8 dtv, tvmode, vimode;
+	u8 dtv, tvmode;
 
-	vimode = VIDEO_GetCurrentViMode();
 	tvmode = VIDEO_GetCurrentTvMode();
 	dtv = VIDEO_HaveComponentCable();
 
@@ -3598,10 +3596,7 @@ static void __VISetupEncoder(void)
 	memset(macrobuf, 0, 0x1a);
 
 	__VIWriteI2CRegister8(0x6a, 1);
-
-	if(vimode&VI_CLOCK_54MHZ) __VISetOverSampling(3);
-	else __VISetOverSampling(1);
-
+	__VISetOverSampling(3);
 	__VISetYUVSEL(dtv);
 	__VIWriteI2CRegister8(0x00, 0);
 	__VISetVolume(0x8e, 0x8e);
@@ -3737,7 +3732,7 @@ static inline void __VIGetCurrentPosition(s32 *px,s32 *py)
 static void __VIRetraceHandler(u32 nIrq,frame_context *pCtx)
 {
 #if defined(HW_RVL)
-	u8 dtv, tvmode, vimode;
+	u8 dtv, tvmode;
 #endif
 	u32 ret = 0;
 	u32 intr;
@@ -3786,15 +3781,8 @@ static void __VIRetraceHandler(u32 nIrq,frame_context *pCtx)
 		}
 	}
 #if defined(HW_RVL)
-	vimode = VIDEO_GetCurrentViMode();
 	tvmode = VIDEO_GetCurrentTvMode();
 	dtv = VIDEO_HaveComponentCable();
-
-	if(vimode!=oldViMode) {
-		if(vimode&VI_CLOCK_54MHZ) __VISetOverSampling(3);
-		else __VISetOverSampling(1);
-	}
-	oldViMode = vimode;
 
 	if(dtv!=oldDtvStatus || tvmode!=oldTvMode) __VISetYUVSEL(dtv);
 	oldDtvStatus = dtv;
