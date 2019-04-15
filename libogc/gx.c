@@ -17,7 +17,7 @@
 #define TEXCACHE_TESTING
 
 
-#define GUARD_BAND		342
+#define GUARD_BAND		340
 
 #if defined(HW_DOL)
 	#define LARGE_NUMBER	(-1048576.0f)
@@ -1748,7 +1748,7 @@ void GX_SetViewportJitter(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ,u
 {
 	f32 x0,y0,x1,y1,n,f,z;
 	static f32 Xfactor = 0.5f;
-	static f32 Yfactor = 1.0f/12.0f+GUARD_BAND;
+	static f32 Yfactor = 1.0f/24.0f+GUARD_BAND;
 	static f32 Zfactor = 16777215.0f;
 
 	if(field) yOrig += Xfactor;
