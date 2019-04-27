@@ -631,10 +631,10 @@ void CON_GetPosition(int *col, int *row)
 
 void CON_EnableGecko(int channel,int safe)
 {
-	if(!usb_isgeckoalive(channel)) channel = -1;
-
-	__gecko_status = channel;
-	__gecko_safe = safe;
+	if(usb_isgeckoalive(channel)) {
+		__gecko_status = channel;
+		__gecko_safe = safe;
+	}
 
 	devoptab_list[STD_OUT] = &dotab_stdout;
 	devoptab_list[STD_ERR] = &dotab_stdout;
