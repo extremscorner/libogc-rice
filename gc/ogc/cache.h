@@ -40,6 +40,8 @@ distribution.
 
 #include <gctypes.h>
 
+#define LC_BSS				__attribute__((section(".lc_bss")))
+
 #ifdef __cplusplus
    extern "C" {
 #endif /* __cplusplus */
@@ -263,6 +265,7 @@ void ICInvalidateRange(void *startaddress,u32 len);
 
 void LCEnable();
 void LCDisable();
+BOOL LCIsEnable();
 void LCLoadBlocks(void *,void *,u32);
 void LCStoreBlocks(void *,void *,u32);
 u32 LCQueueLength();

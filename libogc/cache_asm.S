@@ -244,17 +244,46 @@ ICUnfreeze:
 	.section	.text.LCEnable,"ax",@progbits
 	.globl LCEnable
 LCEnable:
-	mfspr	r3,HID2
-	oris	r3,r3,0x100f
-	mtspr	HID2,r3
+	mfspr	r4,HID2
+	oris	r4,r4,0x100f
+	mtspr	HID2,r4
+	lis		r3,__lc_bss_start@ha
+	lis		r4,__lc_bss_end@ha
+	addi	r3,r3,__lc_bss_start@l
+	addi	r4,r4,__lc_bss_end@l
+	sub		r4,r4,r3
+	srwi.	r4,r4,5
+	mtctr	r4
+	beqlr
+1:	dcbz_l	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	blr
 
 	.section	.text.LCDisable,"ax",@progbits
 	.globl LCDisable
 LCDisable:
-	mfspr	r3,HID2
-	rlwinm	r3,r3,0,4,2
-	mtspr	HID2,r3
+	lis		r3,__lc_bss_start@ha
+	lis		r4,__lc_bss_end@ha
+	addi	r3,r3,__lc_bss_start@l
+	addi	r4,r4,__lc_bss_end@l
+	sub		r4,r4,r3
+	srwi.	r4,r4,5
+	mtctr	r4
+	beq		2f
+1:	dcbi	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
+2:	mfspr	r4,HID2
+	rlwinm	r4,r4,0,4,2
+	mtspr	HID2,r4
+	blr
+
+	.section	.text.LCIsEnable,"ax",@progbits
+	.globl LCIsEnable
+LCIsEnable:
+	mfspr	r4,HID2
+	extrwi	r3,r4,1,3
 	blr
 
 	.section	.text.LCAllocOneTag,"ax",@progbits
