@@ -3964,6 +3964,28 @@ void VIDEO_Configure(GXRModeObj *rmode)
 	_CPU_ISR_Restore(level);
 }
 
+void VIDEO_ConfigurePan(u16 xOrg, u16 yOrg, u16 width, u16 height)
+{
+	u32 level;
+	const struct _timing *curtiming;
+
+	_CPU_ISR_Disable(level);
+	HorVer.panPosX = xOrg;
+	HorVer.panPosY = yOrg;
+	HorVer.panSizeX = width;
+	HorVer.panSizeY = height;
+
+	curtiming = HorVer.timing;
+	__adjustPosition(curtiming->acv);
+	__setScalingRegs(HorVer.panSizeX,HorVer.dispSizeX,HorVer.threeD);
+	__setPicConfig(HorVer.fbSizeX,HorVer.fbMode,HorVer.panPosX,HorVer.panSizeX,&HorVer.wordPerLine,&HorVer.std,&HorVer.wpl,&HorVer.xof);
+
+	if(fbSet) __setFbbRegs(&HorVer,&HorVer.tfbb,&HorVer.bfbb,&HorVer.rtfbb,&HorVer.rbfbb);
+
+	__setVerticalRegs(HorVer.adjustedDispPosY,HorVer.adjustedDispSizeY,curtiming->equ,curtiming->acv,curtiming->prbOdd,curtiming->prbEven,curtiming->psbOdd,curtiming->psbEven,HorVer.black);
+	_CPU_ISR_Restore(level);
+}
+
 void VIDEO_WaitVSync(void)
 {
 	u32 level;
@@ -4249,10 +4271,19 @@ u32 VIDEO_HaveComponentCable(void)
 void VIDEO_SetAdjustingValues(s16 hor,s16 ver)
 {
 	u32 level;
+	const struct _timing *curtiming;
 
 	_CPU_ISR_Disable(level);
 	displayOffsetH = hor;
 	displayOffsetV = ver;
+
+	curtiming = HorVer.timing;
+	__adjustPosition(curtiming->acv);
+	__setHorizontalRegs(curtiming,HorVer.adjustedDispPosX,HorVer.dispSizeX);
+
+	if(fbSet) __setFbbRegs(&HorVer,&HorVer.tfbb,&HorVer.bfbb,&HorVer.rtfbb,&HorVer.rbfbb);
+
+	__setVerticalRegs(HorVer.adjustedDispPosY,HorVer.adjustedDispSizeY,curtiming->equ,curtiming->acv,curtiming->prbOdd,curtiming->prbEven,curtiming->psbOdd,curtiming->psbEven,HorVer.black);
 	_CPU_ISR_Restore(level);
 }
 
