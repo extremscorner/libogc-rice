@@ -29,11 +29,11 @@ static s32 __SISteeringTransfer(s32 chan,u32 out_len,u32 in_len,SISteeringTransf
 static void __SISteeringEnable(s32 chan);
 static void __SISteeringDisable(s32 chan);
 
-static s32 __steering_onreset(s32 final);
+static s32 __sisteering_onreset(s32 final);
 
-static sys_resetinfo __steering_resetinfo = {
+static sys_resetinfo __sisteering_resetinfo = {
 	{},
-	__steering_onreset,
+	__sisteering_onreset,
 	127
 };
 
@@ -54,7 +54,7 @@ void SI_InitSteering()
 
 	SI_RefreshSamplingRate();
 	__SIResetSteering = 0;
-	SYS_RegisterResetFunc(&__steering_resetinfo);
+	SYS_RegisterResetFunc(&__sisteering_resetinfo);
 }
 
 static void __SISteeringDefaultCallback(s32 chan,s32 err)
@@ -101,7 +101,7 @@ s32 SI_ResetSteering(s32 chan)
 	return ret;
 }
 
-static s32 __steering_onreset(s32 final)
+static s32 __sisteering_onreset(s32 final)
 {
 	s32 chan;
 	static u32 count;
@@ -129,20 +129,25 @@ static s32 __steering_onreset(s32 final)
 
 static void __SISteeringCallback(s32 chan,u32 type)
 {
+	SISteeringTransferCallback xfer_cb;
+	SISteeringSyncCallback sync_cb;
+
 	if(__SIResetSteering) return;
 
 	if(type&SI_ERROR_NO_RESPONSE) __SISteering[chan].err = SI_STEERING_ERR_NO_CONTROLLER;
 	else if(type&0x0f) __SISteering[chan].err = SI_STEERING_ERR_TRANSFER;
 	else __SISteering[chan].err = SI_STEERING_ERR_NONE;
 
-	if(__SISteering[chan].xfer_cb) {
-		__SISteering[chan].xfer_cb(chan);
+	xfer_cb = __SISteering[chan].xfer_cb;
+	if(xfer_cb) {
 		__SISteering[chan].xfer_cb = NULL;
+		xfer_cb(chan);
 	}
 
-	if(__SISteering[chan].sync_cb) {
-		__SISteering[chan].sync_cb(chan,__SISteering[chan].err);
+	sync_cb = __SISteering[chan].sync_cb;
+	if(sync_cb) {
 		__SISteering[chan].sync_cb = NULL;
+		sync_cb(chan,__SISteering[chan].err);
 	}
 }
 
@@ -169,6 +174,9 @@ static s32 __SISteeringSync(s32 chan)
 
 static void __SISteeringTypeCallback(s32 chan,u32 type)
 {
+	SISteeringTransferCallback xfer_cb;
+	SISteeringSyncCallback sync_cb;
+
 	if(__SIResetSteering) return;
 
 	type &= ~0xffff;
@@ -177,14 +185,16 @@ static void __SISteeringTypeCallback(s32 chan,u32 type)
 		else __SISteering[chan].err = SI_STEERING_ERR_NOT_READY;
 	} else __SISteering[chan].err = SI_STEERING_ERR_NO_CONTROLLER;
 
-	if(__SISteering[chan].xfer_cb) {
-		__SISteering[chan].xfer_cb(chan);
+	xfer_cb = __SISteering[chan].xfer_cb;
+	if(xfer_cb) {
 		__SISteering[chan].xfer_cb = NULL;
+		xfer_cb(chan);
 	}
 
-	if(__SISteering[chan].sync_cb) {
-		__SISteering[chan].sync_cb(chan,__SISteering[chan].err);
+	sync_cb = __SISteering[chan].sync_cb;
+	if(sync_cb) {
 		__SISteering[chan].sync_cb = NULL;
+		sync_cb(chan,__SISteering[chan].err);
 	}
 }
 
