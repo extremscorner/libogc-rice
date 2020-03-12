@@ -1222,8 +1222,6 @@ s32 sdgecko_initIO(s32 drv_no)
 		if((_ioResponse[drv_no][3]==1) && (_ioResponse[drv_no][4]==0xAA)) _initType[drv_no] = TYPE_SDHC;
 
 		if(__card_sendopcond(drv_no)!=0) goto exit;
-		if(__card_readcsd(drv_no)!=0) goto exit;
-		if(__card_readcid(drv_no)!=0) goto exit;
 
 		if(_initType[drv_no]==TYPE_SDHC) {
 			if(__card_sendCMD58(drv_no)!=0) goto exit;
@@ -1233,7 +1231,7 @@ s32 sdgecko_initIO(s32 drv_no)
 			if(_ioResponse[drv_no][1]&0x40) _ioAddressingType[drv_no] = SECTOR_ADDRESSING;     
 		}
 
-		_ioPageSize[drv_no] = 1<<WRITE_BL_LEN(drv_no);
+		_ioPageSize[drv_no] = PAGE_SIZE512;
 		if(__card_setblocklen(drv_no,_ioPageSize[drv_no])!=0) goto exit; 
 
 		if(__card_sd_status(drv_no)!=0) goto exit;
