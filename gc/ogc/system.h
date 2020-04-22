@@ -207,7 +207,8 @@ struct _syssram {
  * \param dvderr_code last non-recoverable error from DVD interface
  * \param __padding0 padding
  * \param flashID_chksum[2] 8bit checksum of unlock flash ID
- * \param __padding1[4] padding
+ * \param gbs Game Boy Player Start-Up Disc settings
+ * \param __padding1 padding
  */
 typedef struct _syssramex syssramex;
 
@@ -218,7 +219,8 @@ struct _syssramex {
 	u8 dvderr_code;
 	u8 __padding0;
 	u8 flashID_chksum[2];
-	u8 __padding1[4];
+	u16 gbs;
+	u16 __padding1;
 } ATTRIBUTE_PACKED;
 
 typedef void (*alarmcallback)(syswd_t alarm,void *cb_arg);
@@ -340,6 +342,7 @@ void SYS_SetEuRGB60(u8 enable);
 void SYS_SetDisplayOffsetH(s8 offset);
 void SYS_SetCounterBias(u32 bias);
 void SYS_SetWirelessID(u32 chan,u16 id);
+void SYS_SetGBSMode(u16 mode);
 u8 SYS_GetSoundMode();
 u8 SYS_GetProgressiveScan();
 u8 SYS_GetVideoMode();
@@ -348,6 +351,7 @@ u8 SYS_GetEuRGB60();
 s8 SYS_GetDisplayOffsetH();
 u32 SYS_GetCounterBias();
 u16 SYS_GetWirelessID(u32 chan);
+u16 SYS_GetGBSMode();
 
 u32 SYS_SetFontEncoding(u32 enc);
 u32 SYS_GetFontEncoding();
