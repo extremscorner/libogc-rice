@@ -131,6 +131,8 @@ static void event_status(struct wiimote_t *wm,ubyte *msg)
 
 	wm->battery_level = msg[5];
 
+	if(!WIIMOTE_IS_SET(wm,WIIMOTE_STATE_HANDSHAKE_COMPLETE)) goto done;
+
 	if(!ir && WIIMOTE_IS_SET(wm,WIIMOTE_STATE_IR_INIT)) {
 		WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_IR_INIT);
 		wiiuse_set_ir(wm, 1);
