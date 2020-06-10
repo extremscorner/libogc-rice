@@ -2725,6 +2725,9 @@ void DVD_Init()
 
 		SYS_CreateAlarm(&__dvd_timeoutalarm);
 		LWP_InitQueue(&__dvd_wait_queue);
+
+		_diReg[0] = (DVD_DE_MSK|DVD_TC_MSK|DVD_BRK_MSK);
+		_diReg[1] = 0;
 	}
 }
 
