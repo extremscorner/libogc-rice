@@ -168,8 +168,8 @@ void AUDIO_Init()
 		buffer = nanosecs_to_ticks(3000);
 
 		_aiReg[AI_CONTROL] &= ~(AI_AIINTVLD|AI_AIINTMSK|AI_PSTAT);
-		_aiReg[1] = 0;
-		_aiReg[3] = 0;
+		_aiReg[AI_STREAM_VOL] = 0;
+		_aiReg[AI_INT_TIMING] = 0;
 
 		_aiReg[AI_CONTROL] = (_aiReg[AI_CONTROL]&~AI_SCRESET)|AI_SCRESET;
 
@@ -199,22 +199,22 @@ void AUDIO_Init()
 #if defined(HW_DOL)
 void AUDIO_SetStreamVolLeft(u8 vol)
 {
-	_aiReg[1] = (_aiReg[1]&~0x000000ff)|(vol&0xff);
+	_aiReg[AI_STREAM_VOL] = (_aiReg[AI_STREAM_VOL]&~0x000000ff)|(vol&0xff);
 }
 
 u8 AUDIO_GetStreamVolLeft()
 {
-	return (u8)(_aiReg[1]&0xff);
+	return (u8)(_aiReg[AI_STREAM_VOL]&0xff);
 }
 
 void AUDIO_SetStreamVolRight(u8 vol)
 {
-	_aiReg[1] = (_aiReg[1]&~0x0000ff00)|(_SHIFTL(vol,8,8));
+	_aiReg[AI_STREAM_VOL] = (_aiReg[AI_STREAM_VOL]&~0x0000ff00)|(_SHIFTL(vol,8,8));
 }
 
 u8 AUDIO_GetStreamVolRight()
 {
-	return (u8)(_SHIFTR(_aiReg[1],8,8));
+	return (u8)(_SHIFTR(_aiReg[AI_STREAM_VOL],8,8));
 }
 
 void AUDIO_SetStreamSampleRate(u32 rate)
@@ -229,7 +229,7 @@ u32 AUDIO_GetStreamSampleRate()
 
 void AUDIO_SetStreamTrigger(u32 cnt)
 {
-	_aiReg[3] = cnt;
+	_aiReg[AI_INT_TIMING] = (_aiReg[AI_INT_TIMING]&~0x7fffffff)|(cnt&0x7fffffff);
 }
 
 void AUDIO_ResetStreamSampleCnt()
@@ -321,7 +321,7 @@ u32 AUDIO_GetDMALength()
 	return ((_dspReg[27]&0x7fff)<<5);
 }
 
-void AUDIO_SetDSPSampleRate(u8 rate)
+void AUDIO_SetDSPSampleRate(u32 rate)
 {
 	u32 level;
 
@@ -340,3 +340,15 @@ u32 AUDIO_GetDSPSampleRate()
 {
 	return (_SHIFTR(_aiReg[AI_CONTROL],6,1))^1;		//0^1(1) = 48Khz, 1^1(0) = 32Khz
 }
+
+#if defined(HW_DOL)
+void AUDIO_SetHighResolution(u32 enable)
+{
+	_aiReg[AI_INT_TIMING] = (_aiReg[AI_INT_TIMING]&~0x80000000)|(_SHIFTL(enable,31,1));
+}
+
+u32 AUDIO_GetHighResolution()
+{
+	return (_SHIFTR(_aiReg[AI_INT_TIMING],31,1));
+}
+#endif
