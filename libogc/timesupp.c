@@ -137,9 +137,7 @@ int clock_gettime(struct timespec *tp)
 	if(!__SYS_GetRTC(&gctime)) return -1;
 
 #if defined(HW_DOL)
-	syssram* sram = __SYS_LockSram();
-	gctime += sram->counter_bias;
-	__SYS_UnlockSram(0);
+	gctime += SYS_GetCounterBias();
 #else
 	if(CONF_GetCounterBias(&wii_bias)>=0) gctime += wii_bias;
 #endif
@@ -254,9 +252,7 @@ time_t time(time_t *timer)
 	if(__getRTC((u32*)&gctime)==0) return (time_t)0;
 
 #if defined(HW_DOL)
-	syssram* sram = __SYS_LockSram();
-	gctime += sram->counter_bias;
-	__SYS_UnlockSram(0);
+	gctime += SYS_GetCounterBias();
 #else
 	if(CONF_GetCounterBias(&wii_bias)>=0) gctime += wii_bias;
 #endif

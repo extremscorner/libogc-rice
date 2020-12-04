@@ -1511,7 +1511,8 @@ u32 SYS_GetCounterBias()
 	syssram *sram;
 
 	sram = __SYS_LockSram();
-	bias = sram->counter_bias;
+	if(!(sram->flags&0x08)) bias = 0;
+	else bias = sram->counter_bias;
 	__SYS_UnlockSram(0);
 	return bias;
 }
@@ -1523,8 +1524,9 @@ void SYS_SetCounterBias(u32 bias)
 
 	write = 0;
 	sram = __SYS_LockSram();
-	if(sram->counter_bias!=bias) {
+	if(sram->counter_bias!=bias || !(sram->flags&0x08)) {
 		sram->counter_bias = bias;
+		sram->flags |= 0x28;
 		write = 1;
 	}
 	__SYS_UnlockSram(write);
