@@ -165,6 +165,7 @@ configBATS:
 #endif
 
 	mflr	r0
+	oris	r0,r0,0x8000
 	mtsrr0	r0
 	li		r0,MSR_FP|MSR_IR|MSR_DR
 	mtsrr1	r0

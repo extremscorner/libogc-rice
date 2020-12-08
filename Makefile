@@ -8,9 +8,9 @@ endif
 
 export PATH	:=	$(DEVKITRICE)/bin:$(PATH)
 
-export LIBOGC_MAJOR	:= 2
-export LIBOGC_MINOR	:= 0
-export LIBOGC_PATCH	:= 0
+export LIBOGC_MAJOR	:= 9
+export LIBOGC_MINOR	:= 9
+export LIBOGC_PATCH	:= 9
 
 include	$(DEVKITRICE)/rules
 
