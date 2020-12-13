@@ -214,22 +214,22 @@ static __inline__ void __lwp_syswd_free(alarm_st *alarm)
 }
 
 #if defined(HW_DOL)
-void __reload()
+static void __reset()
 {
 	_piReg[9] = 0;
 	ppchalt();
 }
+#endif
 
-void __libogc_exit(int status)
-{
-	SYS_ResetSystem(SYS_HOTRESET);
-}
-#elif defined(HW_RVL)
 static void (*reload)() = (void(*)())0x80001800;
 
 static bool __stub_found()
 {
+#if defined(HW_DOL)
+	u64 sig = *(u64*)0x80001808;
+#else
 	u64 sig = *(u64*)0x80001804;
+#endif
 	if (sig == 0x5354554248415858ULL) // 'STUBHAXX'
 		return true;
 	return false;
@@ -241,14 +241,21 @@ void __reload()
 		__exception_closeall();
 		reload();
 	}
-	WII_ReturnToMenu();
+#if defined(HW_DOL)
+	__reset();
+#else
+	STM_RebootSystem();
+#endif
 }
 
 void __libogc_exit(int status)
 {
-	SYS_ResetSystem(__stub_found() ? SYS_RESTART : SYS_RETURNTOMENU);
-}
+#if defined(HW_DOL)
+	SYS_ResetSystem(__stub_found() ? SYS_RELOAD : SYS_HOTRESET);
+#else
+	SYS_ResetSystem(__stub_found() ? SYS_RELOAD : SYS_RETURNTOMENU);
 #endif
+}
 
 static void __init_syscall_array() {
 	__syscalls.sbrk_r = __libogc_sbrk_r;
@@ -982,10 +989,12 @@ void SYS_ResetSystem(s32 reset)
 
 	LCDisable();
 
-	if(reset==SYS_RETURNTOMENU || reset==SYS_HOTRESET) __reload();
+	if(reset==SYS_RETURNTOMENU || reset==SYS_HOTRESET) __reset();
 
 	__lwp_thread_dispatchdisable();
 	__lwp_thread_closeall();
+	if(reset==SYS_RELOAD)
+		__lwp_thread_stopmultitasking(reload);
 }
 #elif defined(HW_RVL)
 void SYS_ResetSystem(s32 reset)
@@ -1029,7 +1038,8 @@ void SYS_ResetSystem(s32 reset)
 
 	__lwp_thread_dispatchdisable();
 	__lwp_thread_closeall();
-	if(reset==SYS_RESTART) __lwp_thread_stopmultitasking(reload);
+	if(reset==SYS_RELOAD)
+		__lwp_thread_stopmultitasking(reload);
 }
 #endif
 
