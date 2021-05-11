@@ -246,6 +246,7 @@ install-headers:
 #---------------------------------------------------------------------------------
 	@mkdir -p $(INCDIR)
 	@mkdir -p $(INCDIR)/ogc/machine
+	@mkdir -p $(INCDIR)/sys
 	@mkdir -p $(INCDIR)/bte
 	@mkdir -p $(INCDIR)/wiiuse
 	@mkdir -p $(INCDIR)/modplay
@@ -255,6 +256,7 @@ install-headers:
 	@cp ./gc/*.h $(INCDIR)
 	@cp ./gc/ogc/*.h $(INCDIR)/ogc
 	@cp ./gc/ogc/machine/*.h $(INCDIR)/ogc/machine
+	@cp ./gc/sys/*.h $(INCDIR)/sys
 	@cp ./gc/bte/*.h $(INCDIR)/bte
 	@cp ./gc/wiiuse/*.h $(INCDIR)/wiiuse
 	@cp ./gc/modplay/*.h $(INCDIR)/modplay
