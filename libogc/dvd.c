@@ -1783,7 +1783,7 @@ s32 __issuecommand(s32 prio,dvdcmdblk *block)
 		if(block->cmd==0x0001 || block->cmd==0x0004
 		|| block->cmd==0x0005 || block->cmd==0x000e
 		|| block->cmd==0x0014) DCInvalidateRange(block->buf,block->len);
-		else if(block->cmd==0x0015) DCFlushRange(block->buf,block->len*DVD_GCODE_BLKSIZE);
+		else if(block->cmd==0x0015) DCStoreRange(block->buf,block->len*DVD_GCODE_BLKSIZE);
 	}
 
 	_CPU_ISR_Disable(level);
@@ -2879,6 +2879,9 @@ static bool __gcdvd_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 {
 	dvdcmdblk blk;
 
+	if((u32)buffer & 0x1f)
+		return false;
+
 	if(DVD_ReadPrio(&blk, buffer, numSectors << 11, sector << 11, 2) < 0)
 		return false;
 
@@ -2932,6 +2935,9 @@ static bool __gcode_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 {
 	dvdcmdblk blk;
 
+	if((u32)buffer & 0x1f)
+		return false;
+
 	if(DVD_GcodeRead(&blk, buffer, numSectors << 9, sector) < 0)
 		return false;
 
@@ -2941,6 +2947,9 @@ static bool __gcode_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 static bool __gcode_WriteSectors(sec_t sector,sec_t numSectors,const void *buffer)
 {
 	dvdcmdblk blk;
+
+	if((u32)buffer & 0x1f)
+		return false;
 
 	if(DVD_GcodeWrite(&blk, buffer, numSectors, sector) < 0)
 		return false;
