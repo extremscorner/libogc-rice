@@ -128,7 +128,7 @@ static void* idle_func(void *arg)
 	u32 msr = mfmsr()|MSR_POW;
 	while(1) {
 		_sync();
-		_CPU_MSR_SET(msr);
+		mtmsr(msr);
 		_isync();
 	}
 	return 0;
