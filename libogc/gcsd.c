@@ -67,9 +67,12 @@ static bool __gcsd_startup(int n)
 }
 
 
-static bool __gcsd_readSectors(int n, u32 sector, u32 numSectors, void *buffer)
+static bool __gcsd_readSectors(int n, sec_t sector, sec_t numSectors, void *buffer)
 {
 	s32 ret;
+
+	if((u32)sector != sector) return false;
+	if((u32)numSectors != numSectors) return false;
 
 	ret = sdgecko_readSectors(n,sector,numSectors,buffer);
 	if(ret == CARDIO_ERROR_READY)
@@ -78,9 +81,12 @@ static bool __gcsd_readSectors(int n, u32 sector, u32 numSectors, void *buffer)
 	return false;
 }
 
-static bool __gcsd_writeSectors(int n, u32 sector, u32 numSectors, const void *buffer)
+static bool __gcsd_writeSectors(int n, sec_t sector, sec_t numSectors, const void *buffer)
 {
 	s32 ret;
+
+	if((u32)sector != sector) return false;
+	if((u32)numSectors != numSectors) return false;
 
 	ret = sdgecko_writeSectors(n,sector,numSectors,buffer);
 	if(ret == CARDIO_ERROR_READY)
@@ -111,12 +117,12 @@ static bool __gcsda_isInserted(void)
 	return __gcsd_isInserted(0);
 }
 
-static bool __gcsda_readSectors(u32 sector, u32 numSectors, void *buffer)
+static bool __gcsda_readSectors(sec_t sector, sec_t numSectors, void *buffer)
 {
 	return __gcsd_readSectors(0, sector, numSectors, buffer);
 }
 
-static bool __gcsda_writeSectors(u32 sector, u32 numSectors, void *buffer)
+static bool __gcsda_writeSectors(sec_t sector, sec_t numSectors, const void *buffer)
 {
 	return __gcsd_writeSectors(0, sector, numSectors, buffer);
 }
@@ -143,12 +149,12 @@ static bool __gcsdb_isInserted(void)
 	return __gcsd_isInserted(1);
 }
 
-static bool __gcsdb_readSectors(u32 sector, u32 numSectors, void *buffer)
+static bool __gcsdb_readSectors(sec_t sector, sec_t numSectors, void *buffer)
 {
 	return __gcsd_readSectors(1, sector, numSectors, buffer);
 }
 
-static bool __gcsdb_writeSectors(u32 sector, u32 numSectors, void *buffer)
+static bool __gcsdb_writeSectors(sec_t sector, sec_t numSectors, const void *buffer)
 {
 	return __gcsd_writeSectors(1, sector, numSectors, buffer);
 }
@@ -175,12 +181,12 @@ static bool __gcsd2_isInserted(void)
 	return __gcsd_isInserted(2);
 }
 
-static bool __gcsd2_readSectors(u32 sector, u32 numSectors, void *buffer)
+static bool __gcsd2_readSectors(sec_t sector, sec_t numSectors, void *buffer)
 {
 	return __gcsd_readSectors(2, sector, numSectors, buffer);
 }
 
-static bool __gcsd2_writeSectors(u32 sector, u32 numSectors, void *buffer)
+static bool __gcsd2_writeSectors(sec_t sector, sec_t numSectors, const void *buffer)
 {
 	return __gcsd_writeSectors(2, sector, numSectors, buffer);
 }
