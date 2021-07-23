@@ -405,9 +405,6 @@ void __irq_init()
 	_piReg[1] = 0xf0;
 
 	__MaskIrq(-32);
-
-	_piReg[0] = 0x01;
-	__UnmaskIrq(IM_PI_ERROR);
 }
 
 irq_handler_t IRQ_Request(u32 nIrq,irq_handler_t pHndl)
