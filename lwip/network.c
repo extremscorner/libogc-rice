@@ -1527,23 +1527,18 @@ s32 if_configex(struct in_addr *local_ip,struct in_addr *netmask,struct in_addr 
 	//last and least start the tcpip layer
 	ret = net_init();
 
-	if ( ret == 0 && use_dhcp == TRUE ) {
-		
-		int retries = 0;
+	if ( ret == 0 && g_hNetIF.dhcp != NULL ) {
 		// wait for dhcp to bind
-		while ( g_hNetIF.dhcp->state != DHCP_BOUND && retries < 20 ) {
-			retries++;
+		while ( g_hNetIF.ip_addr.addr == 0 && g_hNetIF.dhcp->tries <= 5 )
 			usleep(500000);
-		}
-		
-		if ( retries < 20 ) {
+
+		if ( g_hNetIF.ip_addr.addr != 0 ) {
 			//copy back network addresses
 			if ( local_ip != NULL ) local_ip->s_addr = g_hNetIF.ip_addr.addr;
 			if ( gateway != NULL ) gateway->s_addr = g_hNetIF.gw.addr;
 			if ( netmask != NULL ) netmask->s_addr = g_hNetIF.netmask.addr;
-		} else {
-			ret = -2;
-		}
+		} else
+			return -2;
 	}
 
 	return ret;
