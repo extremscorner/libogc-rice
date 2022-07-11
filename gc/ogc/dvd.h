@@ -236,6 +236,7 @@ struct _dvdfileinfo {
  */
 void DVD_Init();
 void DVD_Pause();
+void DVD_Resume();
 
 
 /*! 
@@ -247,6 +248,7 @@ void DVD_Pause();
  * \return none
  */
 void DVD_Reset(u32 reset_mode);
+u32 DVD_ResetRequired();
 
 
 /*! 
