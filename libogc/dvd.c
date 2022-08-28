@@ -2882,6 +2882,7 @@ dvddrvinfo* DVD_GetDriveInfo()
 
 void DVD_Init()
 {
+	u32 i;
 #ifdef _DVD_DEBUG
 	printf("DVD_Init()\n");
 #endif
@@ -2895,6 +2896,8 @@ void DVD_Init()
 
 		SYS_CreateAlarm(&__dvd_timeoutalarm);
 		LWP_InitQueue(&__dvd_wait_queue);
+
+		for(i=0;i<9;i++) _diReg[i] = 0;
 
 		_piReg[9] |= 0x0005;
 		__dvd_resetoccured = 1;
