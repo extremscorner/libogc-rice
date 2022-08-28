@@ -43,6 +43,9 @@ s32 sdgecko_doUnmount(s32 drv_no);
 void sdgecko_insertedCB(s32 drv_no);
 void sdgecko_ejectedCB(s32 drv_no);
 
+bool sdgecko_isInserted(s32 drv_no);
+bool sdgecko_isInitialized(s32 drv_no);
+
 
 #ifdef __cplusplus
    }

@@ -1494,3 +1494,13 @@ u32 sdgecko_getAddressingType(s32 drv_no)
 {
 	return _ioAddressingType[drv_no];
 }
+
+bool sdgecko_isInserted(s32 drv_no)
+{
+	return (_ioCardInserted[drv_no] = __card_check(drv_no));
+}
+
+bool sdgecko_isInitialized(s32 drv_no)
+{
+	return (_ioFlag[drv_no]==INITIALIZED);
+}
