@@ -1,7 +1,7 @@
 #include <gu.h>
 #include <math.h>
 
-extern void __ps_guMtxRotAxisRadInternal(register Mtx mt,const register guVector *axis,register f32 sT,register f32 cT);
+extern void __ps_guMtxRotAxisRadInternal(register Mtx mt,register guVector *axis,register f32 sT,register f32 cT);
 
 void guFrustum(Mtx44 mt,f32 t,f32 b,f32 l,f32 r,f32 n,f32 f)
 {
@@ -334,10 +334,10 @@ void guLookAt(Mtx mt,guVector *camPos,guVector *camUp,guVector *target)
 	vLook.x = camPos->x - target->x;
 	vLook.y = camPos->y - target->y;
 	vLook.z = camPos->z - target->z;
-	guVecNormalize(&vLook);
+	guVecNormalize(&vLook,&vLook);
 
 	guVecCross(camUp,&vLook,&vRight);
-	guVecNormalize(&vRight);
+	guVecNormalize(&vRight,&vRight);
 	
 	guVecCross(&vLook,&vRight,&vUp);
 
@@ -369,7 +369,7 @@ void c_guMtxIdentity(Mtx mt)
 	}
 }
 
-void c_guMtxRotRad(Mtx mt,const char axis,f32 rad)
+void c_guMtxRotRad(Mtx mt,char axis,f32 rad)
 {
 	f32 sinA,cosA;
 
@@ -380,7 +380,7 @@ void c_guMtxRotRad(Mtx mt,const char axis,f32 rad)
 }
 
 #ifdef GEKKO
-void ps_guMtxRotRad(register Mtx mt,const register char axis,register f32 rad)
+void ps_guMtxRotRad(register Mtx mt,register char axis,register f32 rad)
 {
 	register f32 sinA,cosA;
 
@@ -390,7 +390,7 @@ void ps_guMtxRotRad(register Mtx mt,const register char axis,register f32 rad)
 	ps_guMtxRotTrig(mt,axis,sinA,cosA);
 }
 
-void ps_guMtxRotAxisRad(Mtx mt,guVector *axis,f32 rad)
+void ps_guMtxRotAxisRad(register Mtx mt,register guVector *axis,register f32 rad)
 {
 	f32 sinT,cosT;
  
@@ -402,7 +402,7 @@ void ps_guMtxRotAxisRad(Mtx mt,guVector *axis,f32 rad)
 
 #endif
 
-void c_guMtxRotTrig(Mtx mt,const char axis,f32 sinA,f32 cosA)
+void c_guMtxRotTrig(Mtx mt,char axis,f32 sinA,f32 cosA)
 {
 	switch(axis) {
 		case 'x':
@@ -430,6 +430,7 @@ void c_guMtxRotTrig(Mtx mt,const char axis,f32 sinA,f32 cosA)
 
 void c_guMtxRotAxisRad(Mtx mt,guVector *axis,f32 rad)
 {
+	guVector vN;
 	f32 s,c;
 	f32 t;
 	f32 x,y,z;
@@ -439,11 +440,11 @@ void c_guMtxRotAxisRad(Mtx mt,guVector *axis,f32 rad)
 	c = cosf(rad);
 	t = 1.0f-c;
 	
-	c_guVecNormalize(axis);
+	c_guVecNormalize(axis,&vN);
 	
-	x = axis->x;
-	y = axis->y;
-	z = axis->z;
+	x = vN.x;
+	y = vN.y;
+	z = vN.z;
 
 	xSq = x*x;
 	ySq = y*y;
@@ -743,15 +744,15 @@ void c_guVecScale(guVector *src,guVector *dst,f32 scale)
 }
 
 
-void c_guVecNormalize(guVector *v)
+void c_guVecNormalize(guVector *src,guVector *unit)
 {
-	f32 m;
+	f32 mag;
 
-	m = ((v->x)*(v->x)) + ((v->y)*(v->y)) + ((v->z)*(v->z));
-	m = 1/sqrtf(m);
-	v->x *= m;
-	v->y *= m;
-	v->z *= m;
+	mag = (src->x*src->x) + (src->y*src->y) + (src->z*src->z);
+	mag = 1.0f/sqrtf(mag);
+	unit->x = src->x*mag;
+	unit->y = src->y*mag;
+	unit->z = src->z*mag;
 }
 
 void c_guVecCross(guVector *a,guVector *b,guVector *axb)
@@ -1077,11 +1078,10 @@ void guVecHalfAngle(guVector *a,guVector *b,guVector *half)
 	tmp2.y = -b->y;
 	tmp2.z = -b->z;
 
-	guVecNormalize(&tmp1);
-	guVecNormalize(&tmp2);
+	guVecNormalize(&tmp1,&tmp1);
+	guVecNormalize(&tmp2,&tmp2);
 
 	guVecAdd(&tmp1,&tmp2,&tmp3);
-	if(guVecDotProduct(&tmp3,&tmp3)>0.0f) guVecNormalize(&tmp3);
-
-	*half = tmp3;
+	if(guVecDotProduct(&tmp3,&tmp3)>0.0f) guVecNormalize(&tmp3,half);
+	else *half = tmp3;
 }

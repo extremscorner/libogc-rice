@@ -348,9 +348,9 @@ void guVecHalfAngle(guVector *a,guVector *b,guVector *half);
 void c_guVecAdd(guVector *a,guVector *b,guVector *ab);
 void c_guVecSub(guVector *a,guVector *b,guVector *ab);
 void c_guVecScale(guVector *src,guVector *dst,f32 scale);
-void c_guVecNormalize(guVector *v);
-void c_guVecMultiply(Mtx mt,guVector *src,guVector *dst);
+void c_guVecNormalize(guVector *src,guVector *unit);
 void c_guVecCross(guVector *a,guVector *b,guVector *axb);
+void c_guVecMultiply(Mtx mt,guVector *src,guVector *dst);
 void c_guVecMultiplySR(Mtx mt,guVector *src,guVector *dst);
 f32 c_guVecDotProduct(guVector *a,guVector *b);
 
@@ -358,7 +358,7 @@ f32 c_guVecDotProduct(guVector *a,guVector *b);
 void ps_guVecAdd(register guVector *a,register guVector *b,register guVector *ab);
 void ps_guVecSub(register guVector *a,register guVector *b,register guVector *ab);
 void ps_guVecScale(register guVector *src,register guVector *dst,f32 scale);
-void ps_guVecNormalize(register guVector *v);
+void ps_guVecNormalize(register guVector *src,guVector *unit);
 void ps_guVecCross(register guVector *a,register guVector *b,register guVector *axb);
 void ps_guVecMultiply(register Mtx mt,register guVector *src,register guVector *dst);
 void ps_guVecMultiplySR(register Mtx mt,register guVector *src,register guVector *dst);
@@ -392,8 +392,8 @@ void c_guMtxApplyTrans(Mtx src,Mtx dst,f32 xT,f32 yT,f32 zT);
 u32 c_guMtxInverse(Mtx src,Mtx inv);
 u32 c_guMtxInvXpose(Mtx src,Mtx xPose);
 void c_guMtxTranspose(Mtx src,Mtx xPose);
-void c_guMtxRotRad(Mtx mt,const char axis,f32 rad);
-void c_guMtxRotTrig(Mtx mt,const char axis,f32 sinA,f32 cosA);
+void c_guMtxRotRad(Mtx mt,char axis,f32 rad);
+void c_guMtxRotTrig(Mtx mt,char axis,f32 sinA,f32 cosA);
 void c_guMtxRotAxisRad(Mtx mt,guVector *axis,f32 rad);
 void c_guMtxReflect(Mtx m,guVector *p,guVector *n);
 void c_guMtxQuat(Mtx m,guQuaternion *a);
@@ -411,9 +411,9 @@ void ps_guMtxApplyScale(register Mtx src,register Mtx dst,register f32 xS,regist
 void ps_guMtxTrans(register Mtx mt,register f32 xT,register f32 yT,register f32 zT);
 void ps_guMtxTransApply(register Mtx src,register Mtx dst,register f32 xT,register f32 yT,register f32 zT);
 void ps_guMtxApplyTrans(register Mtx src,register Mtx dst,register f32 xT,register f32 yT,register f32 zT);
-void ps_guMtxRotRad(register Mtx mt,register const char axis,register f32 rad);
-void ps_guMtxRotTrig(register Mtx mt,register const char axis,register f32 sinA,register f32 cosA);
-void ps_guMtxRotAxisRad(register Mtx mt,register guVector *axis,register f32 tmp0);
+void ps_guMtxRotRad(register Mtx mt,register char axis,register f32 rad);
+void ps_guMtxRotTrig(register Mtx mt,register char axis,register f32 sinA,register f32 cosA);
+void ps_guMtxRotAxisRad(register Mtx mt,register guVector *axis,register f32 rad);
 void ps_guMtxReflect(register Mtx m,register guVector *p,register guVector *n);
 #endif	//GEKKO
 
