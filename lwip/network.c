@@ -2128,6 +2128,13 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 				case SO_TYPE:
 					if(*optlen<sizeof(u32)) err = EINVAL;
 					break;
+				case SO_NO_CHECK:
+					if(*optlen<sizeof(u32)) {
+						err = EINVAL;
+						break;
+					}
+					if(sock->conn->type!=NETCONN_UDP) err = ENOPROTOOPT;
+					break;
 				default:
 					LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getsockopt(%d, SOL_SOCKET, UNIMPL: optname=0x%x, ..)\n", s, optname));
 					err = ENOPROTOOPT;
@@ -2210,6 +2217,9 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 					sock->err = 0;
 					LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getsockopt(%d, SOL_SOCKET, SO_ERROR) = %d\n", s, *(u32*)optval));
 					break;
+				case SO_NO_CHECK:
+					*(u32*)optval = (sock->conn->pcb.udp->flags&UDP_FLAGS_NOCHKSUM)?1:0;
+					break;
 			}
 		}
 		break;
@@ -2264,6 +2274,13 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 				case SO_REUSEADDR:
 				case SO_REUSEPORT:
 					if(optlen<sizeof(u32)) err = EINVAL;
+					break;
+				case SO_NO_CHECK:
+					if(optlen<sizeof(u32)) {
+						err = EINVAL;
+						break;
+					}
+					if(sock->conn->type!=NETCONN_UDP) err = ENOPROTOOPT;
 					break;
 				default:
 					LWIP_DEBUGF(SOCKETS_DEBUG, ("net_setsockopt(%d, SOL_SOCKET, UNIMPL: optname=0x%x, ..)\n", s, optname));
@@ -2324,6 +2341,12 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 					else
 						sock->conn->pcb.tcp->so_options &= ~optname;
 					LWIP_DEBUGF(SOCKETS_DEBUG, ("net_setsockopt(%d, SOL_SOCKET, optname=0x%x, ..) -> %s\n", s, optname, (*(u32*)optval?"on":"off")));
+					break;
+				case SO_NO_CHECK:
+					if(*(u32*)optval)
+						sock->conn->pcb.udp->flags |= UDP_FLAGS_NOCHKSUM;
+					else
+						sock->conn->pcb.udp->flags &= ~UDP_FLAGS_NOCHKSUM;
 					break;
 			}
 		}
