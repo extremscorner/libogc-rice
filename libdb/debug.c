@@ -328,6 +328,37 @@ static void process_query(const char *inp,char *outp,s32 thread)
 				packqq(outp,mask,rthread,&info);
 			}
 			break;
+		case 'f':
+			if(!strncmp(&inp[2],"ThreadInfo",10))
+			{
+				s32 rthread;
+
+				rthread = gdbstub_getnextthread(0);
+				if(rthread<=0) {
+					optr = outp;
+					*optr++ = 'l';
+					*optr = 0;
+					break;
+				}
+				optr = outp;
+				*optr++ = 'm';
+				optr = thread2vhstr(optr,rthread);
+
+				while((rthread=gdbstub_getnextthread(rthread))>0) {
+					*optr++ = ',';
+					optr = thread2vhstr(optr,rthread);
+				}
+				*optr = 0;
+			}
+			break;
+		case 's':
+			if(!strncmp(&inp[2],"ThreadInfo",10))
+			{
+				optr = outp;
+				*optr++ = 'l';
+				*optr = 0;
+			}
+			break;
 		case 'L':
 			{
 				s32 ret,athread,first,max_cnt,i,done,rthread;
