@@ -3205,7 +3205,7 @@ static inline void __calcFbbs(u32 bufAddr,u16 panPosX,u16 panPosY,u8 wordperline
 
 	panPosX &= 0xfff0;
 	bytesPerLine = (wordperline<<5)&0x1fe0;
-	*tfbb = bufAddr+((panPosX<<5)+(panPosY*bytesPerLine));
+	*tfbb = bufAddr+((panPosX*VI_DISPLAY_PIX_SZ)+(panPosY*bytesPerLine));
 	*bfbb = *tfbb;
 	if(xfbMode>VI_XFBMODE_SF) *bfbb = *tfbb+bytesPerLine;
 
@@ -3974,6 +3974,14 @@ void VIDEO_ConfigurePan(u16 xOrg, u16 yOrg, u16 width, u16 height)
 	HorVer.panPosY = yOrg;
 	HorVer.panSizeX = width;
 	HorVer.panSizeY = height;
+
+	if(HorVer.nonInter&VI_ENHANCED) {
+		if(HorVer.fbMode!=VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY>>1;
+		else HorVer.dispSizeY = HorVer.panSizeY;
+	} else {
+		if(HorVer.fbMode==VI_XFBMODE_SF) HorVer.dispSizeY = HorVer.panSizeY<<1;
+		else HorVer.dispSizeY = HorVer.panSizeY;
+	}
 
 	curtiming = HorVer.timing;
 	__adjustPosition(curtiming->acv);
