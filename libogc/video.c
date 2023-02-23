@@ -3330,7 +3330,7 @@ static inline void __setVerticalRegs(u16 dispPosY,u16 dispSizeY,u8 equ,u16 acv,u
 
 static inline void __adjustPosition(u16 acv)
 {
-	u32 fact,field;
+	s32 fact,field;
 	s16 dispPosY;
 	s16 dispSizeY,maxDispSizeY;
 
@@ -3339,14 +3339,14 @@ static inline void __adjustPosition(u16 acv)
 	fact = 1;
 	if(HorVer.fbMode==VI_XFBMODE_SF) fact = 2;
 
-	field = HorVer.dispPosY&0x0001;
 	dispPosY = HorVer.dispPosY+displayOffsetV;
+	field = dispPosY&0x0001;
 	if(dispPosY>field) HorVer.adjustedDispPosY = dispPosY;
 	else HorVer.adjustedDispPosY = field;
 
 	dispSizeY = HorVer.dispPosY+HorVer.dispSizeY+displayOffsetV;
 	maxDispSizeY = ((acv<<1)-field);
-	if(dispSizeY>maxDispSizeY) dispSizeY -= (acv<<1)-field;
+	if(dispSizeY>maxDispSizeY) dispSizeY -= maxDispSizeY;
 	else dispSizeY = 0;
 
 	dispPosY = HorVer.dispPosY+displayOffsetV;
