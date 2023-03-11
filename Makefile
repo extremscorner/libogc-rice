@@ -27,7 +27,6 @@ export LWIPDIR		:= $(BASEDIR)/lwip
 export OGCDIR		:= $(BASEDIR)/libogc
 export MODDIR		:= $(BASEDIR)/libmodplay
 export MADDIR		:= $(BASEDIR)/libmad
-export SAMPLEDIR	:= $(BASEDIR)/libsamplerate
 export DBDIR		:= $(BASEDIR)/libdb
 export DIDIR		:= $(BASEDIR)/libdi
 export BTEDIR		:= $(BASEDIR)/lwbt
@@ -37,7 +36,6 @@ export LIBASNDDIR	:= $(BASEDIR)/libasnd
 export LIBAESNDDIR	:= $(BASEDIR)/libaesnd
 export LIBISODIR	:= $(BASEDIR)/libiso9660
 export LIBWIIKEYB	:= $(BASEDIR)/libwiikeyboard
-export STUBSDIR		:= $(BASEDIR)/lockstubs
 export DEPS			:=	$(BASEDIR)/deps
 export LIBS			:=	$(BASEDIR)/lib
 
@@ -69,7 +67,6 @@ ASNDLIB		:= $(LIBDIR)/libasnd
 AESNDLIB	:= $(LIBDIR)/libaesnd
 ISOLIB		:= $(LIBDIR)/libiso9660
 WIIKEYBLIB	:= $(LIBDIR)/libwiikeyboard
-STUBSLIB	:= $(LIBDIR)/libgclibstubs
 
 #---------------------------------------------------------------------------------
 DEFINCS		:= -I$(BASEDIR) -I$(BASEDIR)/gc
@@ -93,19 +90,16 @@ VPATH :=	$(LWIPDIR)				\
 			$(OGCDIR)			\
 			$(MODDIR)			\
 			$(MADDIR)			\
-			$(SAMPLEDIR)			\
 			$(DBDIR)			\
 			$(DBDIR)/uIP		\
 			$(DIDIR)		\
 			$(BTEDIR)		\
 			$(WIIUSEDIR)		\
-			$(SDCARDDIR)			\
 			$(TINYSMBDIR)		\
 			$(LIBASNDDIR)		\
 			$(LIBAESNDDIR)		\
 			$(LIBISODIR)		\
-			$(LIBWIIKEYB)		\
-			$(STUBSDIR)
+			$(LIBWIIKEYB)
 
 
 #---------------------------------------------------------------------------------
@@ -213,8 +207,6 @@ gc/ogc/libversion.h : Makefile
 $(BBALIB).a: $(LWIPOBJ)
 #---------------------------------------------------------------------------------
 $(OGCLIB).a: $(OGCOBJ)
-#---------------------------------------------------------------------------------
-$(MP3LIB).a: $(MP3OBJ)
 #---------------------------------------------------------------------------------
 $(MODLIB).a: $(MODOBJ)
 #---------------------------------------------------------------------------------
