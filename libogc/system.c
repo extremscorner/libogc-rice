@@ -902,6 +902,23 @@ s64 __SYS_GetSystemTime()
 	return now;
 }
 
+void __SYS_SetBootTime()
+{
+	u32 gctime;
+#if defined(HW_RVL)
+	u32 bias;
+#endif
+
+	if(__SYS_GetRTC(&gctime)==1) {
+#if defined(HW_RVL)
+		if(CONF_GetCounterBias(&bias)==0) gctime += bias;
+#else
+		gctime += SYS_GetCounterBias();
+#endif
+		__SYS_SetTime(secs_to_ticks(gctime));
+	}
+}
+
 u32 __SYS_LoadFont(void *src,void *dest)
 {
 	if(__read_font(src)==0) return 0;
@@ -979,6 +996,7 @@ void __attribute__((weak)) SYS_PreMain()
 {
 #if defined(HW_DOL)
 	__qoob_setconfig(0x02000000);
+	__SYS_SetBootTime();
 #elif defined(HW_RVL)
 	u32 i;
 
@@ -988,6 +1006,7 @@ void __attribute__((weak)) SYS_PreMain()
 	__IOS_InitializeSubsystems();
 	STM_RegisterEventHandler(__STMEventHandler);
 	CONF_Init();
+	__SYS_SetBootTime();
 	WII_Initialize();
 #endif
 }
