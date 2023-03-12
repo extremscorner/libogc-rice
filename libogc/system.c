@@ -873,6 +873,35 @@ u32 __SYS_SetRTC(u32 gctime)
 	return 1;
 }
 
+void __SYS_SetTime(s64 time)
+{
+	u32 level;
+	s64 now;
+	s64 *pBootTime = (s64*)0x800030d8;
+
+	_CPU_ISR_Disable(level);
+	now = gettime();
+	now -= time;
+	now += *pBootTime;
+	*pBootTime = now;
+	settime(time);
+	EXI_ProbeReset();
+	_CPU_ISR_Restore(level);
+}
+
+s64 __SYS_GetSystemTime()
+{
+	u32 level;
+	s64 now;
+	s64 *pBootTime = (s64*)0x800030d8;
+
+	_CPU_ISR_Disable(level);
+	now = gettime();
+	now += *pBootTime;
+	_CPU_ISR_Restore(level);
+	return now;
+}
+
 u32 __SYS_LoadFont(void *src,void *dest)
 {
 	if(__read_font(src)==0) return 0;
