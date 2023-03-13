@@ -3386,7 +3386,7 @@ static inline void __importAdjustingValues()
 
 static void __VIInit(u32 vimode)
 {
-	u32 cnt;
+	vu32 cnt;
 	u32 vi_mode,interlace,progressive;
 	const struct _timing *cur_timing = NULL;
 
@@ -3397,8 +3397,8 @@ static void __VIInit(u32 vimode)
 	cur_timing = __gettiming(vimode);
 
 	//reset the interface
-	cnt = 0;
 	_viReg[1] = 0x02;
+	cnt = 0;
 	while(cnt<1000) cnt++;
 	_viReg[1] = 0x00;
 
