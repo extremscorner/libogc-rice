@@ -175,6 +175,9 @@ extern int __libogc_lock_acquire(int *lock);
 extern void __libogc_exit(int status);
 extern void * __libogc_sbrk_r(struct _reent *ptr, ptrdiff_t incr);
 extern int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz);
+extern int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp);
+extern int __libogc_clock_settime(clockid_t clock_id, const struct timespec *tp);
+extern int __libogc_clock_getres(clockid_t clock_id, struct timespec *res);
 
 extern u8 __Arena1Lo[], __Arena1Hi[];
 #if defined(HW_RVL)
@@ -265,6 +268,9 @@ static void __init_syscall_array() {
 	__syscalls.lock_acquire = __libogc_lock_acquire;
 	__syscalls.exit = __libogc_exit;
 	__syscalls.gettod_r = __libogc_gettod_r;
+	__syscalls.clock_gettime = __libogc_clock_gettime;
+	__syscalls.clock_settime = __libogc_clock_settime;
+	__syscalls.clock_getres = __libogc_clock_getres;
 }
 
 static alarm_st* __lwp_syswd_allocate()

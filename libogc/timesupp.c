@@ -1,5 +1,6 @@
 #include <_ansi.h>
 #include <_syslist.h>
+#include <errno.h>
 
 #include "asm.h"
 #include "processor.h"
@@ -125,28 +126,53 @@ unsigned long long timespec_to_ticks(const struct timespec *tp)
 	return __lwp_wd_calc_ticks(tp);
 }
 
-int clock_gettime(struct timespec *tp)
+int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp)
 {
-	u32 gctime;
-#if defined(HW_RVL)
-	u32 wii_bias = 0;
-#endif
+	u64 now;
+	switch (clock_id) {
+		case CLOCK_REALTIME:
+			now = gettime();
+			tp->tv_sec = ticks_to_secs(now) + 946684800;
+			tp->tv_nsec = tick_nanosecs(now);
+			return 0;
+		case CLOCK_MONOTONIC:
+			now = __SYS_GetSystemTime();
+			tp->tv_sec = ticks_to_secs(now);
+			tp->tv_nsec = tick_nanosecs(now);
+			return 0;
+		default:
+			errno = EINVAL;
+			return -1;
+	}
+}
 
-	if(!tp) return -1;
+int __libogc_clock_settime(clockid_t clock_id, const struct timespec *tp)
+{
+	u64 now;
+	switch (clock_id) {
+		case CLOCK_REALTIME:
+			now = secs_to_ticks(tp->tv_sec - 946684800);
+			now += nanosecs_to_ticks(tp->tv_nsec);
+			__SYS_SetTime(now);
+			return 0;
+		default:
+			errno = EINVAL;
+			return -1;
+	}
+}
 
-	if(!__SYS_GetRTC(&gctime)) return -1;
-
-#if defined(HW_DOL)
-	gctime += SYS_GetCounterBias();
-#else
-	if(CONF_GetCounterBias(&wii_bias)>=0) gctime += wii_bias;
-#endif
-	gctime += 946684800;
-
-	tp->tv_sec = gctime;
-	tp->tv_nsec = ticks_to_nanosecs(gettick());
-
-	return 0;
+int __libogc_clock_getres(clockid_t clock_id, struct timespec *res)
+{
+	switch (clock_id) {
+		case CLOCK_REALTIME:
+		case CLOCK_MONOTONIC:
+			res->tv_sec = 0;
+			res->tv_nsec = ticks_to_nanosecs(1);
+			return 0;
+		default:
+			errno = EINVAL;
+			return -1;
+	}
 }
 
 // this function spins till timeout is reached
@@ -283,10 +309,6 @@ unsigned int usleep(unsigned int us)
 	tb.tv_sec = sec;
 	tb.tv_nsec = rem*TB_NSPERUS;
 	return nanosleep(&tb);
-}
-
-clock_t clock(void) {
-	return -1;
 }
 
 int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz)
