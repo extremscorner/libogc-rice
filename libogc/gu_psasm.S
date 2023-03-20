@@ -41,7 +41,7 @@
 	.globl	ps_guMtxConcat
 	//r3 = mtxA, r4 = mtxB, r5 = mtxAB
 ps_guMtxConcat:
-	stwu		sp,-32(sp)
+	stwu		sp,-64(sp)
 	psq_l		A00_A01,0(r3),0,0
 	stfd		fr14,8(sp)
 	psq_l		B00_B01,0(r4),0,0
