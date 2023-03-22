@@ -1,5 +1,6 @@
 #include <time.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <ogcsys.h>
 #include <lwp.h>
@@ -1643,7 +1644,25 @@ s32 net_shutdown(s32 s,u32 how)
 
 s32 net_fcntl(s32 s, u32 cmd, u32 flags)
 {
-	return -1;
+	struct netsocket *sock = get_socket(s);
+
+	if(!sock) return -EBADF;
+
+	switch(cmd) {
+		case F_GETFL:
+			return sock->flags;
+
+		case F_SETFL:
+			if((flags&~O_NONBLOCK)==0) {
+				sock->flags = flags;
+				return 0;
+			}
+			return -ENOSYS;
+
+		default:
+			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_fcntl(%d, UNIMPL: %d, %d)\n", s, cmd, flags));
+			return -ENOSYS;
+	}
 }
 
 s32 net_socket(u32 domain,u32 type,u32 protocol)
@@ -1709,7 +1728,7 @@ s32 net_accept(s32 s,struct sockaddr *addr,socklen_t *addrlen)
 	newsock = alloc_socket(newconn);
 	if(newsock==-1) {
 		netconn_delete(newconn);
-		return -(sock->err = ENOBUFS);
+		return -ENOBUFS;
 	}
 
 	newconn->callback = evt_callback;
@@ -1720,7 +1739,6 @@ s32 net_accept(s32 s,struct sockaddr *addr,socklen_t *addrlen)
 	newconn->socket = newsock;
 	LWP_SemPost(netsocket_sem);
 
-	sock->err = 0;
 	return newsock;
 }
 
@@ -1738,9 +1756,9 @@ s32 net_bind(s32 s,struct sockaddr *name,socklen_t namelen)
 	loc_port = ((struct sockaddr_in*)name)->sin_port;
 
 	err = netconn_bind(sock->conn,&loc_addr,ntohs(loc_port));
-	if(err!=ERR_OK) return -(sock->err = err_to_errno(err));
+	if(err!=ERR_OK) return -err_to_errno(err);
 
-	return (sock->err = 0);
+	return 0;
 }
 
 s32 net_listen(s32 s,u32 backlog)
@@ -1755,9 +1773,9 @@ s32 net_listen(s32 s,u32 backlog)
 	err = netconn_listen(sock->conn);
 	if(err!=ERR_OK) {
 	    LWIP_DEBUGF(SOCKETS_DEBUG, ("net_listen(%d) failed, err=%d\n", s, err));
-		return -(sock->err = err_to_errno(err));
+		return -err_to_errno(err);
 	}
-	return (sock->err = 0);
+	return 0;
 }
 
 s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen_t *fromlen)
@@ -1777,12 +1795,12 @@ s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen
 	else {
 		if(((flags&MSG_DONTWAIT) || (sock->flags&O_NONBLOCK)) && !sock->rcvevt) {
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_recvfrom(%d): returning EWOULDBLOCK\n", s));
-			return -(sock->err = EWOULDBLOCK);
+			return -EWOULDBLOCK;
 		}
 		buf = netconn_recv(sock->conn);
 		if(!buf) {
 		    LWIP_DEBUGF(SOCKETS_DEBUG, ("net_recvfrom(%d): buf == NULL!\n", s));
-			return (sock->err = 0);
+			return 0;
 		}
 	}
 	
@@ -1825,7 +1843,6 @@ s32 net_recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,socklen
 		sock->lastoffset = 0;
 		netbuf_delete(buf);
 	}
-	sock->err = 0;
 	return copylen;
 }
 
@@ -1891,7 +1908,7 @@ s32 net_send(s32 s,const void *data,s32 len,u32 flags)
 			buf = netbuf_new();
 			if(!buf) {
 				LWIP_DEBUGF(SOCKETS_DEBUG, ("net_send(%d) ENOBUFS\n", s));
-				return -(sock->err = ENOBUFS);
+				return -ENOBUFS;
 			}
 			netbuf_ref(buf,data,len);
 			err = netconn_send(sock->conn,buf);
@@ -1906,11 +1923,10 @@ s32 net_send(s32 s,const void *data,s32 len,u32 flags)
 	}
 	if(err!=ERR_OK) {
 		LWIP_DEBUGF(SOCKETS_DEBUG, ("net_send(%d) err=%d\n", s, err));
-		return -(sock->err = err_to_errno(err));
+		return -err_to_errno(err);
 	}
 
 	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_send(%d) ok size=%d\n", s, len));
-	sock->err = 0;
 	return len;
 }
 
@@ -1945,11 +1961,11 @@ s32 net_connect(s32 s,struct sockaddr *name,socklen_t namelen)
 	}
 	if(err!=ERR_OK) {
 	    LWIP_DEBUGF(SOCKETS_DEBUG, ("net_connect(%d) failed, err=%d\n", s, err));
-		return -(sock->err = err_to_errno(err));
+		return -err_to_errno(err);
 	}
 
 	LWIP_DEBUGF(SOCKETS_DEBUG, ("net_connect(%d) succeeded\n", s));
-	return (sock->err = 0);
+	return 0;
 }
 
 s32 net_close(s32 s)
@@ -1974,7 +1990,7 @@ s32 net_close(s32 s)
 	sock->conn = NULL;
 	
 	LWP_SemPost(netsocket_sem);
-	return (sock->err = 0);
+	return 0;
 }
 
 static s32 net_selscan(s32 maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset)
@@ -2153,7 +2169,7 @@ s32 net_getpeername(s32 s,struct sockaddr *name,socklen_t *namelen)
 		*namelen = sizeof(sin);
 
 	memcpy(name,&sin,*namelen);
-	return (sock->err = 0);
+	return 0;
 }
 
 s32 net_getsockname(s32 s,struct sockaddr *name,socklen_t *namelen)
@@ -2182,7 +2198,7 @@ s32 net_getsockname(s32 s,struct sockaddr *name,socklen_t *namelen)
 		*namelen = sizeof(sin);
 
 	memcpy(name,&sin,*namelen);
-	return (sock->err = 0);
+	return 0;
 }
 
 s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
@@ -2192,7 +2208,7 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 
 	sock = get_socket(s);
 	if(sock==NULL) return -EBADF;
-	if(optval==NULL || optlen==NULL) return -(sock->err = EFAULT);
+	if(optval==NULL || optlen==NULL) return -EFAULT;
 
 	switch(level) {
 		case SOL_SOCKET:
@@ -2258,7 +2274,7 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getsockopt(%d, level=0x%x, UNIMPL: optname=0x%x, ..)\n", s, level, optname));
 			err = ENOPROTOOPT;
 	}
-	if(err) return -(sock->err = err);
+	if(err) return -err;
 
 	switch(level) {
 		case SOL_SOCKET:
@@ -2292,8 +2308,7 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 					LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getsockopt(%d, SOL_SOCKET, SO_TYPE) = %d\n", s, *(u32*)optval));
 					break;
 				case SO_ERROR:
-					*(u32*)optval = sock->err;
-					sock->err = 0;
+					*(u32*)optval = err_to_errno(sock->conn->err);
 					LWIP_DEBUGF(SOCKETS_DEBUG, ("net_getsockopt(%d, SOL_SOCKET, SO_ERROR) = %d\n", s, *(u32*)optval));
 					break;
 				case SO_NO_CHECK:
@@ -2332,7 +2347,7 @@ s32 net_getsockopt(s32 s,u32 level,u32 optname,void *optval,socklen_t *optlen)
 			}
 		}
 	}
-	return -(sock->err = err);
+	return -err;
 }
 
 s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optlen)
@@ -2342,7 +2357,7 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 
 	sock = get_socket(s);
 	if(sock==NULL) return -EBADF;
-	if(optval==NULL) return -(sock->err = EFAULT);
+	if(optval==NULL) return -EFAULT;
 
 	switch(level) {
 		case SOL_SOCKET:
@@ -2405,7 +2420,7 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_setsockopt(%d, level=0x%x, UNIMPL: optname=0x%x, ..)\n", s, level, optname));
 			err = ENOPROTOOPT;
 	}
-	if(err) return -(sock->err = err);
+	if(err) return -err;
 
 	switch(level) {
 		case SOL_SOCKET:
@@ -2463,7 +2478,7 @@ s32 net_setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optl
 			}
 		}
 	}
-	return -(sock->err = err);
+	return -err;
 }
 
 s32 net_ioctl(s32 s, u32 cmd, void *argp)
@@ -2474,12 +2489,12 @@ s32 net_ioctl(s32 s, u32 cmd, void *argp)
 
 	switch (cmd) {
 		case FIONREAD:
-			if(!argp) return -(sock->err = EINVAL);
+			if(!argp) return -EINVAL;
 
 			*((u16_t*)argp) = sock->conn->recvavail;
 
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_ioctl(%d, FIONREAD, %p) = %u\n", s, argp, *((u16*)argp)));
-			return (sock->err = 0);
+			return 0;
 
 		case FIONBIO:
 			if(argp && *(u32*)argp)
@@ -2487,10 +2502,10 @@ s32 net_ioctl(s32 s, u32 cmd, void *argp)
 			else
 				sock->flags &= ~O_NONBLOCK;
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_ioctl(%d, FIONBIO, %d)\n", s, !!(sock->flags&O_NONBLOCK)));
-			return (sock->err = 0);
+			return 0;
 
 		default:
 			LWIP_DEBUGF(SOCKETS_DEBUG, ("net_ioctl(%d, UNIMPL: 0x%lx, %p)\n", s, cmd, argp));
-			return -(sock->err = ENOSYS);
+			return -ENOSYS;
 	}
 }
