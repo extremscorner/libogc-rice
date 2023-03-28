@@ -478,6 +478,42 @@ static void __pad_samplinghandler(u32 irq,void *ctx)
 		__pad_samplingcallback();
 }
 
+u32 __PADDisableRecalibration(u32 disable)
+{
+	u32 level,ret;
+	u8 *flags = (u8*)0x800030e3;
+
+	_CPU_ISR_Disable(level);
+
+	if(*flags&0x40) ret = 1;
+	else ret = 0;
+
+	*flags &= ~0x40;
+	if(disable) *flags |= 0x40;
+
+	_CPU_ISR_Restore(level);
+
+	return ret;
+}
+
+u32 __PADDisableRumble(u32 disable)
+{
+	u32 level,ret;
+	u8 *flags = (u8*)0x800030e3;
+
+	_CPU_ISR_Disable(level);
+
+	if(*flags&0x20) ret = 1;
+	else ret = 0;
+
+	*flags &= ~0x20;
+	if(disable) *flags |= 0x20;
+
+	_CPU_ISR_Restore(level);
+
+	return ret;
+}
+
 void __PADDisableXPatch()
 {
 	__pad_xpatchbits = 0;
@@ -634,6 +670,7 @@ u32 PAD_Recalibrate(u32 mask)
 {
 	u32 level;
 	u32 pend_bits,en_bits;
+	u8 *flags = (u8*)0x800030e3;
 
 	_CPU_ISR_Disable(level);
 	pend_bits = (__pad_pendingbits|mask);
@@ -646,7 +683,7 @@ u32 PAD_Recalibrate(u32 mask)
 	__pad_enabledbits &= ~pend_bits;
 	__pad_barrelbits &= ~pend_bits;
 
-	__pad_recalibratebits |= pend_bits;
+	if(!(*flags&0x40)) __pad_recalibratebits |= pend_bits;
 
 	SI_DisablePolling(en_bits);
 	if(__pad_resettingchan==32) __pad_doreset();
@@ -721,6 +758,7 @@ void PAD_ControlAllMotors(const u32 *cmds)
 	u32 level;
 	u32 chan,cmd,ret;
 	u32 mask,type;
+	u8 *flags = (u8*)0x800030e3;
 
 	_CPU_ISR_Disable(level);
 	chan = 0;
@@ -731,7 +769,7 @@ void PAD_ControlAllMotors(const u32 *cmds)
 			type = SI_GetType(chan);
 			if(!(type&SI_GC_NOMOTOR)) {
 				cmd = cmds[chan];
-				if(__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) cmd = PAD_MOTOR_STOP;
+				if((__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) || *flags&0x20) cmd = PAD_MOTOR_STOP;
 
 				cmd = 0x00400000|__pad_analogmode|(cmd&0x03);
 				SI_SetCommand(chan,cmd);
@@ -748,6 +786,7 @@ void PAD_ControlMotor(s32 chan,u32 cmd)
 {
 	u32 level;
 	u32 mask,type;
+	u8 *flags = (u8*)0x800030e3;
 
 	_CPU_ISR_Disable(level);
 
@@ -755,7 +794,7 @@ void PAD_ControlMotor(s32 chan,u32 cmd)
 	if(__pad_enabledbits&mask) {
 		type = SI_GetType(chan);
 		if(!(type&SI_GC_NOMOTOR)) {
-			if(__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) cmd = PAD_MOTOR_STOP;
+			if((__pad_spec<2 && cmd==PAD_MOTOR_STOP_HARD) || *flags&0x20) cmd = PAD_MOTOR_STOP;
 
 			cmd = 0x00400000|__pad_analogmode|(cmd&0x03);
 			SI_SetCommand(chan,cmd);
