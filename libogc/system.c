@@ -162,7 +162,6 @@ extern void __exi_init(void);
 extern void __si_init(void);
 extern void __irq_init(void);
 extern void __lwp_start_multitasking(void);
-extern void __timesystem_init(void);
 extern void __libc_init(int);
 
 extern u32 __IPC_ClntInit(void);
@@ -984,7 +983,6 @@ void SYS_Init()
 	__lwp_sema_init();
 	__lwp_mutex_init();
 	__lwp_cond_init();
-	__timesystem_init();
 	__dsp_bootstrap();
 	__memprotect_init();
 

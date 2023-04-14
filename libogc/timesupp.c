@@ -4,23 +4,10 @@
 
 #include "asm.h"
 #include "processor.h"
-#include "lwp.h"
-#include "lwp_threadq.h"
-#include "timesupp.h"
-#include "exi.h"
-#include "system.h"
-#include "conf.h"
+#include "lwp_threads.h"
+#include "lwp_watchdog.h"
 
-#include <stdio.h>
 #include <sys/time.h>
-
-/* time variables */
-static u32 exi_wait_inited = 0;
-static lwpq_t time_exi_wait;
-
-extern u32 __SYS_GetRTC(u32 *gctime);
-extern syssram* __SYS_LockSram();
-extern u32 __SYS_UnlockSram(u32 write);
 
 u64 gettime()
 {
@@ -90,40 +77,6 @@ u32 diff_nsec(u64 start,u64 end)
 
 	diff = diff_ticks(start,end);
 	return ticks_to_nanosecs(diff);
-}
-
-void __timesystem_init()
-{
-	if(!exi_wait_inited) {
-		exi_wait_inited = 1;
-		LWP_InitQueue(&time_exi_wait);
-	}
-}
-
-void timespec_subtract(const struct timespec *tp_start,const struct timespec *tp_end,struct timespec *result)
-{
-	struct timespec start_st = *tp_start;
-	struct timespec *start = &start_st;
-	u32 nsecpersec = TB_NSPERSEC;
-
-	if(tp_end->tv_nsec<start->tv_nsec) {
-		int secs = (start->tv_nsec - tp_end->tv_nsec)/nsecpersec+1;
-		start->tv_nsec -= nsecpersec * secs;
-		start->tv_sec += secs;
-	}
-	if((tp_end->tv_nsec - start->tv_nsec)>nsecpersec) {
-		int secs = (start->tv_nsec - tp_end->tv_nsec)/nsecpersec;
-		start->tv_nsec += nsecpersec * secs;
-		start->tv_sec -= secs;
-	}
-
-	result->tv_sec = (tp_end->tv_sec - start->tv_sec);
-	result->tv_nsec = (tp_end->tv_nsec - start->tv_nsec);
-}
-
-unsigned long long timespec_to_ticks(const struct timespec *tp)
-{
-	return __lwp_wd_calc_ticks(tp);
 }
 
 int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp)
