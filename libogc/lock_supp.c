@@ -51,6 +51,15 @@ int __libogc_lock_acquire(int *lock)
 	return LWP_MutexLock(plock);
 }
 
+int __libogc_lock_try_acquire(int *lock)
+{
+	mutex_t plock;
+	
+	if(!lock || *lock==0) return -1;
+
+	plock = (mutex_t)*lock;
+	return LWP_MutexTryLock(plock);
+}
 
 int __libogc_lock_release(int *lock)
 {

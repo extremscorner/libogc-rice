@@ -169,8 +169,9 @@ extern void __VIClearFramebuffer(void*,u32,u32);
 
 extern int __libogc_lock_init(int *lock,int recursive);
 extern int __libogc_lock_close(int *lock);
-extern int __libogc_lock_release(int *lock);
 extern int __libogc_lock_acquire(int *lock);
+extern int __libogc_lock_try_acquire(int *lock);
+extern int __libogc_lock_release(int *lock);
 extern void __libogc_exit(int status);
 extern void * __libogc_sbrk_r(struct _reent *ptr, ptrdiff_t incr);
 extern int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct timezone *tz);
@@ -247,8 +248,9 @@ static void __init_syscall_array() {
 	__syscalls.sbrk_r = __libogc_sbrk_r;
 	__syscalls.lock_init = __libogc_lock_init;
 	__syscalls.lock_close = __libogc_lock_close;
-	__syscalls.lock_release = __libogc_lock_release;
 	__syscalls.lock_acquire = __libogc_lock_acquire;
+	__syscalls.lock_try_acquire = __libogc_lock_try_acquire;
+	__syscalls.lock_release = __libogc_lock_release;
 	__syscalls.exit = __libogc_exit;
 	__syscalls.gettod_r = __libogc_gettod_r;
 	__syscalls.clock_gettime = __libogc_clock_gettime;
