@@ -47,7 +47,7 @@ __set_iabr:
 	rlwinm	r5,r4,0,18,16
 	mtmsr	r5
 	clrrwi	r3,r3,2
-	mtspr	1010,r3
+	mtspr	IABR,r3
 	isync
 	sync
 	mtmsr	r4
@@ -59,9 +59,9 @@ __enable_iabr:
 	mfmsr	r4
 	rlwinm	r5,r4,0,18,16
 	mtmsr	r5
-	mfspr	r3,1010
+	mfspr	r3,IABR
 	ori		r3,r3,0x0003
-	mtspr	1010,r3
+	mtspr	IABR,r3
 	isync
 	sync
 	mtmsr	r4
@@ -73,9 +73,9 @@ __disable_iabr:
 	mfmsr	r4
 	rlwinm	r5,r4,0,18,16
 	mtmsr	r5
-	mfspr	r3,1010
+	mfspr	r3,IABR
 	clrrwi	r3,r3,2
-	mtspr	1010,r3
+	mtspr	IABR,r3
 	isync
 	sync
 	mtmsr	r4
@@ -87,7 +87,7 @@ __clr_iabr:
 	mfmsr	r4
 	rlwinm	r5,r4,0,18,16
 	mtmsr	r5
-	mtspr	1010,0
+	mtspr	IABR,0
 	isync
 	sync
 	mtmsr	r4
