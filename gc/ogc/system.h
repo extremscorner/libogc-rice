@@ -116,6 +116,7 @@ distribution.
 #define SYS_LANG_ITALIAN				4
 #define SYS_LANG_DUTCH					5
 #define SYS_LANG_JAPANESE				6
+#define SYS_LANG_ENGLISH_US				7
 
 #define SYS_FONTENC_ANSI				0
 #define SYS_FONTENC_SJIS				1
