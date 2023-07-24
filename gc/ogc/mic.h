@@ -1,5 +1,5 @@
-#ifndef __MIC_H__
-#define __MIC_H__
+#ifndef __OGC_MIC_H__
+#define __OGC_MIC_H__
 
 #include <gctypes.h>
 

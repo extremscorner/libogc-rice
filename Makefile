@@ -189,8 +189,8 @@ cube: gc/ogc/libversion.h
 #---------------------------------------------------------------------------------
 gc/ogc/libversion.h : Makefile
 #---------------------------------------------------------------------------------
-	@echo "#ifndef __LIBVERSION_H__" > $@
-	@echo "#define __LIBVERSION_H__" >> $@
+	@echo "#ifndef __OGC_LIBVERSION_H__" > $@
+	@echo "#define __OGC_LIBVERSION_H__" >> $@
 	@echo >> $@
 	@echo "#define _V_MAJOR_	$(LIBOGC_MAJOR)" >> $@
 	@echo "#define _V_MINOR_	$(LIBOGC_MINOR)" >> $@
@@ -201,7 +201,7 @@ gc/ogc/libversion.h : Makefile
 	@echo >> $@
 	@echo '#define _V_STRING "libOGC Release '$(LIBOGC_MAJOR).$(LIBOGC_MINOR).$(LIBOGC_PATCH)'"' >> $@
 	@echo >> $@
-	@echo "#endif // __LIBVERSION_H__" >> $@
+	@echo "#endif // __OGC_LIBVERSION_H__" >> $@
 
 #---------------------------------------------------------------------------------
 $(BBALIB).a: $(LWIPOBJ)

@@ -1,5 +1,5 @@
-#ifndef __N64_H__
-#define __N64_H__
+#ifndef __OGC_N64_H__
+#define __OGC_N64_H__
 
 #include <gctypes.h>
 
