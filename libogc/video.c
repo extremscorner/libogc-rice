@@ -2790,6 +2790,7 @@ static u64 changed,shdw_changed;
 static vu32 retraceCount;
 static const struct _timing *currTiming;
 static lwpq_t video_queue;
+static u32 video_initialized;
 static horVer HorVer;
 static void *currentFb = NULL;
 static void *nextFb = NULL;
@@ -3812,6 +3813,9 @@ void* VIDEO_GetCurrentFramebuffer()
 void VIDEO_Init()
 {
 	u32 level,vimode = 0;
+
+	if(video_initialized) return;
+	video_initialized = 1;
 
 	_CPU_ISR_Disable(level);
 
