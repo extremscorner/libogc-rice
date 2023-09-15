@@ -578,6 +578,8 @@ static bool enc28j60_init(struct netif *netif)
 			continue;
 		}
 
+		netif->name[0] = 'E';
+		netif->name[1] = '0' + chan;
 		enc28j60if->chan = chan;
 
 		enc28j60if->nextPacket = ENC28J60_INIT_ERXST;
@@ -666,8 +668,6 @@ err_t enc28j60if_init(struct netif *netif)
 	}
 
 	netif->state = enc28j60if;
-	netif->name[0] = 'e';
-	netif->name[1] = 'n';
 	netif->output = enc28j60if_output;
 	netif->linkoutput = enc28j60_output;
 
