@@ -77,6 +77,8 @@ distribution.
 #define DVD_GCODE_READ					0xB2000000
 #define DVD_GCODE_WRITEBUFFER			0xB9000000
 #define DVD_GCODE_WRITE					0xBA000000
+#define DVD_GCODE_WRITEBUFFEREX			0xBC000000
+#define DVD_GCODE_WRITEEX				0xBD000000
 #define DVD_REQUESTERROR				0xE0000000
 #define DVD_AUDIOSTREAM					0xE1000000
 #define DVD_AUDIOSTATUS					0xE2000000
@@ -177,6 +179,7 @@ static u32 __dvd_cancellasterror = 0;
 static u32 __dvd_drivechecked = 0;
 static u32 __dvd_drivestate = 0;
 static u32 __dvd_extensionsenabled = TRUE;
+static u16 __dvd_gcode_writebufsize = 1;
 static u32 __dvd_lastlen;
 static u32 __dvd_nextcmdnum;
 static u32 __dvd_workaround;
@@ -399,8 +402,8 @@ s32 DVD_LowReadmem(u32 address,void *buffer,dvdcallbacklow cb);
 s32 DVD_LowSetGCMOffset(s64 offset,dvdcallbacklow cb);
 s32 DVD_LowSetOffset(s64 offset,dvdcallbacklow cb);
 s32 DVD_GcodeLowRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb);
-s32 DVD_GcodeLowWriteBuffer(void *buf,dvdcallbacklow cb);
-s32 DVD_GcodeLowWrite(u32 offset,dvdcallbacklow cb);
+s32 DVD_GcodeLowWriteBuffer(void *buf,u32 len,dvdcallbacklow cb);
+s32 DVD_GcodeLowWrite(u32 len,u32 offset,dvdcallbacklow cb);
 s32 DVD_ReadAbsAsyncPrio(dvdcmdblk *block,void *buf,u32 len,s64 offset,dvdcbcallback cb,s32 prio);
 s32 DVD_ReadDiskID(dvdcmdblk *block,dvddiskid *id,dvdcbcallback cb);
 s32 __issuecommand(s32 prio,dvdcmdblk *block);
@@ -893,9 +896,8 @@ static void __dvd_statebusycb(s32 result)
 			return;
 		}
 		if(__dvd_currcmd==0x0015) {
-			if(!__dvd_executing->currtxsize) {
-				__dvd_executing->currtxsize = 1;
-				DVD_GcodeLowWrite(__dvd_executing->offset+__dvd_executing->txdsize,__dvd_statebusycb);
+			if(_diReg[7]&DVD_DI_MODE) {
+				DVD_GcodeLowWrite(__dvd_executing->currtxsize,__dvd_executing->offset+__dvd_executing->txdsize,__dvd_statebusycb);
 				return;
 			}
 			if(_diReg[8]) {
@@ -906,7 +908,7 @@ static void __dvd_statebusycb(s32 result)
 				__dvd_stateready();
 				return;
 			}
-			__dvd_executing->txdsize++;
+			__dvd_executing->txdsize += __dvd_executing->currtxsize;
 			if(__dvd_executing->txdsize!=__dvd_executing->len) {
 				__dvd_statebusy(__dvd_executing);
 				return;
@@ -1508,7 +1510,7 @@ void __dvd_statebusy(dvdcmdblk *block)
 			len = block->len-block->txdsize;
 			if(len<0x80000) block->currtxsize = len;
 			else block->currtxsize = 0x80000;
-			DVD_LowRead(block->buf+block->txdsize,block->currtxsize,(block->offset+block->txdsize),__dvd_statebusycb);
+			DVD_LowRead(block->buf+block->txdsize,block->currtxsize,block->offset+block->txdsize,__dvd_statebusycb);
 			return;
 		case 2:					//Seek(Sector)
 			_diReg[1] = _diReg[1];
@@ -1589,8 +1591,10 @@ void __dvd_statebusy(dvdcmdblk *block)
 			DVD_GcodeLowRead(block->buf,block->len,block->offset,__dvd_statebusycb);
 			return;
 		case 21:
-			block->currtxsize = 0;
-			DVD_GcodeLowWriteBuffer(block->buf+(DVD_GCODE_BLKSIZE*block->txdsize),__dvd_statebusycb);
+			len = block->len-block->txdsize;
+			if(len<__dvd_gcode_writebufsize) block->currtxsize = len;
+			else block->currtxsize = __dvd_gcode_writebufsize;
+			DVD_GcodeLowWriteBuffer(block->buf+(DVD_GCODE_BLKSIZE*block->txdsize),block->currtxsize,__dvd_statebusycb);
 			return;
 		default:
 			return;
@@ -2023,22 +2027,31 @@ s32 DVD_GcodeLowRead(void *buf,u32 len,u32 offset,dvdcallbacklow cb)
 	return 1;
 }
 
-s32 DVD_GcodeLowWriteBuffer(void *buf,dvdcallbacklow cb)
+s32 DVD_GcodeLowWriteBuffer(void *buf,u32 len,dvdcallbacklow cb)
 {
 #ifdef _DVD_DEBUG
-	printf("DVD_GcodeLowWriteBuffer(%p)\n",buf);
+	printf("DVD_GcodeLowWriteBuffer(%p,%d)\n",buf,len);
 #endif
 	struct timespec tb;
 
 	__dvd_callback = cb;
 	__dvd_stopnextint = 0;
 
-	_diReg[2] = DVD_GCODE_WRITEBUFFER;
-	_diReg[3] = 0;
-	_diReg[4] = 0;
-	_diReg[5] = (u32)buf;
-	_diReg[6] = DVD_GCODE_BLKSIZE;
-	_diReg[7] = (DVD_DI_MODE|DVD_DI_DMA|DVD_DI_START);
+	if(len==1) {
+		_diReg[2] = DVD_GCODE_WRITEBUFFER;
+		_diReg[3] = 0;
+		_diReg[4] = 0;
+		_diReg[5] = (u32)buf;
+		_diReg[6] = DVD_GCODE_BLKSIZE;
+		_diReg[7] = (DVD_DI_MODE|DVD_DI_DMA|DVD_DI_START);
+	} else {
+		_diReg[2] = DVD_GCODE_WRITEBUFFEREX;
+		_diReg[3] = 0;
+		_diReg[4] = (DVD_GCODE_BLKSIZE*len);
+		_diReg[5] = (u32)buf;
+		_diReg[6] = (DVD_GCODE_BLKSIZE*len);
+		_diReg[7] = (DVD_DI_MODE|DVD_DI_DMA|DVD_DI_START);
+	}
 
 	tb.tv_sec = 10;
 	tb.tv_nsec = 0;
@@ -2047,19 +2060,26 @@ s32 DVD_GcodeLowWriteBuffer(void *buf,dvdcallbacklow cb)
 	return 1;
 }
 
-s32 DVD_GcodeLowWrite(u32 offset,dvdcallbacklow cb)
+s32 DVD_GcodeLowWrite(u32 len,u32 offset,dvdcallbacklow cb)
 {
 #ifdef _DVD_DEBUG
-	printf("DVD_GcodeLowWrite(%d)\n",offset);
+	printf("DVD_GcodeLowWrite(%d,%d)\n",len,offset);
 #endif
 	struct timespec tb;
 
 	__dvd_callback = cb;
 	__dvd_stopnextint = 0;
 
-	_diReg[2] = DVD_GCODE_WRITE;
-	_diReg[3] = offset;
-	_diReg[7] = DVD_DI_START;
+	if(len==1) {
+		_diReg[2] = DVD_GCODE_WRITE;
+		_diReg[3] = offset;
+		_diReg[7] = DVD_DI_START;
+	} else {
+		_diReg[2] = DVD_GCODE_WRITEEX;
+		_diReg[3] = offset;
+		_diReg[4] = len;
+		_diReg[7] = DVD_DI_START;
+	}
 
 	tb.tv_sec = 10;
 	tb.tv_nsec = 0;
@@ -2979,6 +2999,8 @@ static bool __gcode_Startup()
 		__io_gcode.features |= FEATURE_MEDIUM_CANWRITE;
 	else
 		__io_gcode.features &= ~FEATURE_MEDIUM_CANWRITE;
+
+	__dvd_gcode_writebufsize = __dvd_driveinfo.pad[3] + 1;
 
 	return true;
 }
