@@ -202,17 +202,24 @@ static u8 *cbw_buffer=NULL;
 
 s32 USBStorage_Initialize()
 {
+	u32 level;
+
 	if(__inited)
 		return IPC_OK;
 
-	LWP_InitQueue(&__usbstorage_waitq);
-
-	if(!arena_ptr)
+	_CPU_ISR_Disable(level);
+	if(!arena_ptr) {
 		arena_ptr = SYS_AllocArena2MemHi(HEAP_SIZE, 32);
-
+		if(!arena_ptr) {
+			_CPU_ISR_Restore(level);
+			return IPC_ENOMEM;
+		}
+	}
 	__lwp_heap_init(&__heap, arena_ptr, HEAP_SIZE, 32);
 	cbw_buffer=(u8*)__lwp_heap_allocate(&__heap, 32);
+	LWP_InitQueue(&__usbstorage_waitq);
 	__inited = true;
+	_CPU_ISR_Restore(level);
 	return IPC_OK;
 }
 

@@ -48,6 +48,18 @@ distribution.
 
 
 /*!
+ * \fn void DCFlashInvalidate()
+ * \brief Invalidate L1 d-cache.
+ *
+ *        An invalidate operation is issued that marks the state of each data cache block as invalid without writing back modified cache blocks to memory.<br>
+ *        Cache access is blocked during this time.Bus accesses to the cache are signaled as a miss during invalidate-all operations.
+ *
+ * \return none
+ */
+void DCFlashInvalidate();
+
+
+/*!
  * \fn void DCEnable()
  * \brief Enable L1 d-cache
  *
@@ -90,18 +102,6 @@ void DCUnfreeze();
 
 
 /*!
- * \fn void DCFlashInvalidate()
- * \brief Invalidate L1 d-cache.
- *
- *        An invalidate operation is issued that marks the state of each data cache block as invalid without writing back modified cache blocks to memory.<br>
- *        Cache access is blocked during this time.Bus accesses to the cache are signaled as a miss during invalidate-all operations.
- *
- * \return none
- */
-void DCFlashInvalidate();
-
-
-/*!
  * \fn void DCInvalidateRange(void *startaddress,u32 len)
  * \brief Invalidates a given range of the d-cache.
  *
@@ -128,6 +128,7 @@ void DCInvalidateRange(void *startaddress,u32 len);
  *\return none
  */
 void DCFlushRange(void *startaddress,u32 len);
+
 
 /*!
  * \fn void DCStoreRange(void *startaddress,u32 len)
@@ -263,15 +264,19 @@ void ICUnfreeze();
  */
 void ICInvalidateRange(void *startaddress,u32 len);
 
+void L2Enable();
+void L2Disable();
+
 void LCEnable();
 void LCDisable();
 BOOL LCIsEnable();
 void LCLoadBlocks(void *,void *,u32);
 void LCStoreBlocks(void *,void *,u32);
 u32 LCQueueLength();
-u32 LCQueueWait(u32);
+void LCQueueWait(u32);
 void LCAllocOneTag(BOOL,void *);
 void LCAllocTags(BOOL,void *,u32);
+
 #ifdef __cplusplus
    }
 #endif /* __cplusplus */

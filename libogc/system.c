@@ -1210,9 +1210,13 @@ void* SYS_AllocArena1MemLo(u32 size,u32 align)
 	arenalo = __sysarena1lo;
 	ptr = (void*)(((u32)arenalo+(align-1))&~(align-1));
 	arenalo = (void*)(((u32)ptr+size+(align-1))&~(align-1));
+
+	if(__sysarena1hi<arenalo) {
+		_CPU_ISR_Restore(level);
+		return NULL;
+	}
 	__sysarena1lo = arenalo;
 	_CPU_ISR_Restore(level);
-
 	return ptr;
 }
 
@@ -1224,9 +1228,13 @@ void* SYS_AllocArena1MemHi(u32 size,u32 align)
 	_CPU_ISR_Disable(level);
 	arenahi = (void*)(((u32)__sysarena1hi)&~(align-1));
 	arenahi = ptr = (void*)(((u32)arenahi-size)&~(align-1));
+
+	if(__sysarena1lo>arenahi) {
+		_CPU_ISR_Restore(level);
+		return NULL;
+	}
 	__sysarena1hi = arenahi;
 	_CPU_ISR_Restore(level);
-
 	return ptr;
 }
 
@@ -1293,9 +1301,13 @@ void* SYS_AllocArena2MemLo(u32 size,u32 align)
 	arenalo = __sysarena2lo;
 	ptr = (void*)(((u32)arenalo+(align-1))&~(align-1));
 	arenalo = (void*)(((u32)ptr+size+(align-1))&~(align-1));
+
+	if(__sysarena2hi<arenalo) {
+		_CPU_ISR_Restore(level);
+		return NULL;
+	}
 	__sysarena2lo = arenalo;
 	_CPU_ISR_Restore(level);
-
 	return ptr;
 }
 
@@ -1307,9 +1319,13 @@ void* SYS_AllocArena2MemHi(u32 size,u32 align)
 	_CPU_ISR_Disable(level);
 	arenahi = (void*)(((u32)__sysarena2hi)&~(align-1));
 	arenahi = ptr = (void*)(((u32)arenahi-size)&~(align-1));
+
+	if(__sysarena2lo>arenahi) {
+		_CPU_ISR_Restore(level);
+		return NULL;
+	}
 	__sysarena2hi = arenahi;
 	_CPU_ISR_Restore(level);
-
 	return ptr;
 }
 #endif

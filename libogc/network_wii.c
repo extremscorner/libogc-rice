@@ -246,14 +246,26 @@ static char __kd_fs[] ATTRIBUTE_ALIGN(32) = "/dev/net/kd/request";
 
 static s32 NetCreateHeap()
 {
+	u32 level;
 	void *net_heap_ptr;
 
+	_CPU_ISR_Disable(level);
+
 	if(__net_heap_inited)
+	{
+		_CPU_ISR_Restore(level);
 		return IPC_OK;
+	}
 
 	net_heap_ptr = SYS_AllocArena2MemHi(NET_HEAP_SIZE, 32);
+	if(!net_heap_ptr)
+	{
+		_CPU_ISR_Restore(level);
+		return IPC_ENOMEM;
+	}
 	__lwp_heap_init(&__net_heap, net_heap_ptr, NET_HEAP_SIZE, 32);
 	__net_heap_inited=1;
+	_CPU_ISR_Restore(level);
 	return IPC_OK;
 }
 
