@@ -1092,7 +1092,8 @@ static int __smb_dirnext(struct _reent *r, DIR_ITER *dirState, char *filename,
 		dentry.mtime = state->smbdir.mtime;
 		dentry.attributes = state->smbdir.attributes;
 		strcpy(dentry.name, state->smbdir.name);
-		strcpy(filename, dentry.name);
+		strncpy(filename, dentry.name, NAME_MAX + 1);
+
 		dentry_to_stat(&dentry, filestat);
 		cpy_dentry(&last_dentry,&dentry);
 		last_env=state->env;
@@ -1117,7 +1118,7 @@ static int __smb_dirnext(struct _reent *r, DIR_ITER *dirState, char *filename,
 		state->smbdir.mtime = dentry.mtime;
 		state->smbdir.attributes = dentry.attributes;
 		strcpy(state->smbdir.name, dentry.name);
-		strcpy(filename, dentry.name);
+		strncpy(filename, dentry.name, NAME_MAX + 1);
 	}
 	else
 	{
