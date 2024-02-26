@@ -3473,6 +3473,12 @@ void GX_InitTlutObj(GXTlutObj *obj,void *lut,u8 fmt,u16 entries)
 	ptr->tlut_nentries = entries;
 }
 
+void GX_InitTlutObjData(GXTlutObj *obj,void *lut)
+{
+	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
+	ptr->tlut_maddr = (ptr->tlut_maddr&~0x00ffffff)|(_SHIFTR(MEM_VIRTUAL_TO_PHYSICAL(lut),5,24));
+}
+
 void GX_GetTlutObjAll(GXTlutObj *obj,void **lut,u8 *fmt,u16 *entries)
 {
 	struct __gx_tlutobj *ptr = (struct __gx_tlutobj*)obj;
