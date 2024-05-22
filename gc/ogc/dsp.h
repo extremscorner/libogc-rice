@@ -146,6 +146,15 @@ struct _dsp_task {
 void DSP_Init();
 
 
+/*! \fn BOOL DSP_CheckInit()
+\brief Get the DSP subsystem initialization flag
+
+\return TRUE if the DSP subsystem has been initialized(via DSP_Init())<br>
+        FALSE if the DSP subsystem has not been initialized, or has been reset(via DSP_Reset())
+*/
+BOOL DSP_CheckInit();
+
+
 /*! \fn u32 DSP_CheckMailTo()
 \brief Check if mail was sent to DSP
 
