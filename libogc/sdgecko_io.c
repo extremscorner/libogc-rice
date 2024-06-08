@@ -85,6 +85,7 @@ static u16 _ioCrc16Table[256];
 // SDHC support
 static u32 _initType[MAX_DRIVE];
 static u32 _ioAddressingType[MAX_DRIVE];
+static u32 _ioTransferMode[MAX_DRIVE];
 
 static __inline__ u32 __check_response(s32 drv_no,u8 res)
 {
@@ -398,7 +399,9 @@ static s32 __card_readresponse(s32 drv_no,void *buf,s32 len)
 
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
+	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
+		EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]):
+		EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]))==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -439,7 +442,9 @@ static s32 __card_stopreadresponse(s32 drv_no,void *buf,s32 len)
 	
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
+	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
+		EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]):
+		EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]))==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -541,7 +546,9 @@ static s32 __card_datares(s32 drv_no,void *buf)
 	
 	__exi_wait(drv_no);
 
-	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
+	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
+		EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]):
+		EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]))==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
@@ -657,14 +664,16 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 
 	__exi_wait(drv_no);
 	
-	if(EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no])==0) {
+	if((_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA?
+		EXI_SelectSD(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]):
+		EXI_Select(drv_no,_ioCardSelect[drv_no],_ioCardFreq[drv_no]))==0) {
 		EXI_Unlock(drv_no);
 		return CARDIO_ERROR_NOCARD;
 	}
 
 	ret = CARDIO_ERROR_READY;
 	ptr = buf;
-	for(cnt=0;cnt<len;cnt++) ptr[cnt] = 0xff;
+	*ptr = 0xff;
 	if(EXI_ImmEx(drv_no,ptr,1,EXI_READWRITE)==0) {
 		EXI_Deselect(drv_no);
 		EXI_Unlock(drv_no);
@@ -701,11 +710,19 @@ static s32 __card_dataread(s32 drv_no,void *buf,u32 len)
 		}
 	}
 
-	*ptr = 0xff;
-	if(EXI_ImmEx(drv_no,ptr,len,EXI_READWRITE)==0) {
-		EXI_Deselect(drv_no);
-		EXI_Unlock(drv_no);
-		return CARDIO_ERROR_IOERROR;
+	if(_ioTransferMode[drv_no]==CARDIO_TRANSFER_DMA) {
+		if(EXI_DmaEx(drv_no,ptr,len,EXI_READ)==0) {
+			EXI_Deselect(drv_no);
+			EXI_Unlock(drv_no);
+			return CARDIO_ERROR_IOERROR;
+		}
+	} else {
+		for(cnt=0;cnt<len;cnt++) ptr[cnt] = 0xff;
+		if(EXI_ImmEx(drv_no,ptr,len,EXI_READWRITE)==0) {
+			EXI_Deselect(drv_no);
+			EXI_Unlock(drv_no);
+			return CARDIO_ERROR_IOERROR;
+		}
 	}
 
 	/* sleep 1us*/
@@ -1238,8 +1255,9 @@ void sdgecko_initIODefault()
 		_ioError[i] = 0;
 		_ioCardInserted[i] = FALSE;
 		_ioFlag[i] = NOT_INITIALIZED;
-		_ioAddressingType[i] = CARDIO_ADDRESSING_BYTE;
 		_initType[i] = TYPE_SD;
+		_ioAddressingType[i] = CARDIO_ADDRESSING_BYTE;
+		_ioTransferMode[i] = CARDIO_TRANSFER_IMM;
 		_ioCardSelect[i] = EXI_DEVICE_0;
 		_ioCardFreq[i] = EXI_SPEED16MHZ;
 		LWP_InitQueue(&_ioEXILock[i]);
@@ -1258,10 +1276,20 @@ s32 sdgecko_initIO(s32 drv_no)
 	_ioCardInserted[drv_no] = __card_check(drv_no);
 
 	if(_ioCardInserted[drv_no]==TRUE) {
-		_initType[drv_no] = TYPE_SD;
 		_ioFlag[drv_no] = INITIALIZING;
+		_initType[drv_no] = TYPE_SD;
 		_ioAddressingType[drv_no] = CARDIO_ADDRESSING_BYTE;
-		if(__card_softreset(drv_no)!=0) goto exit;
+
+		if(drv_no!=0 && _ioCardSelect[drv_no]==EXI_DEVICE_0) {
+			_ioTransferMode[drv_no] = CARDIO_TRANSFER_DMA;
+			if(__card_softreset(drv_no)!=0) {
+				_ioTransferMode[drv_no] = CARDIO_TRANSFER_IMM;
+				if(__card_softreset(drv_no)!=0) goto exit;
+			}
+		} else {
+			_ioTransferMode[drv_no] = CARDIO_TRANSFER_IMM;
+			if(__card_softreset(drv_no)!=0) goto exit;
+		}
 
 		if(__card_sendCMD8(drv_no)!=0) goto exit;
 #ifdef _CARDIO_DEBUG
@@ -1584,6 +1612,11 @@ s32 sdgecko_setPageSize(s32 drv_no, u32 size)
 u32 sdgecko_getAddressingType(s32 drv_no)
 {
 	return _ioAddressingType[drv_no];
+}
+
+u32 sdgecko_getTransferMode(s32 drv_no)
+{
+	return _ioTransferMode[drv_no];
 }
 
 bool sdgecko_isInserted(s32 drv_no)
