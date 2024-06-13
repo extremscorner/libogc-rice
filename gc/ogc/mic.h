@@ -77,7 +77,7 @@ s32 MIC_Start(s32 chan);
 s32 MIC_StopAsync(s32 chan, MICCallback stopCallback);
 s32 MIC_Stop(s32 chan);
 
-s32 MIC_ResetAsync(s32 chan, MICCallback stopCallback);
+s32 MIC_ResetAsync(s32 chan, MICCallback resetCallback);
 s32 MIC_Reset(s32 chan);
 
 BOOL MIC_IsActive(s32 chan);

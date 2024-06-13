@@ -121,10 +121,10 @@ static void __MICTimeoutCallback(syswd_t alarm, void *cb_arg);
 static s32 __MICRawReset(s32 chan);
 static s32 __MICRawReadStatus(s32 chan, u32 *status);
 static s32 __MICRawWriteStatus(s32 chan, u32 status);
-static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback DMACompletion);
+static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback dmaCallback);
 static s32 __MICGetControlBlock(s32 chan, BOOL skip_active_check, struct MICControlBlock **micblock);
 static void __MICPutControlBlock(struct MICControlBlock *micblock, s32 result);
-static BOOL __MICUpdateStatus(s32 chan, u32 status, BOOL update);
+static BOOL __MICUpdateStatus(s32 chan, u32 status, BOOL check);
 static void __MICUpdateButton(s32 chan);
 
 
@@ -227,7 +227,7 @@ static s32 __MICUnlockedCallback(s32 chan, s32 dev)
 	if (cb->mount_callback)
 	{
 		cb->mount_callback = NULL;
-		unlocked(chan, EXI_Probe(chan) ? MIC_RESULT_NOCARD : MIC_RESULT_UNLOCKED);
+		unlocked(chan, EXI_Probe(chan) ? MIC_RESULT_UNLOCKED : MIC_RESULT_NOCARD);
 	}
 	
 	// This is used as lckd->unlockcb, which does not have a checked return value
@@ -569,7 +569,7 @@ static s32 __MICRawWriteStatus(s32 chan, u32 status)
 	return result;
 }
 
-static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback DMACompletion)
+static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback dmaCallback)
 {
 	s32 result = MIC_RESULT_NOCARD;
 	
@@ -585,7 +585,7 @@ static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback DMACo
 		exi_fail |= !EXI_Imm(chan, &cmd, 1, EXI_WRITE, NULL);
 		exi_fail |= !EXI_Sync(chan);
 		
-		exi_fail |= !EXI_Dma(chan, data, len, EXI_READ, DMACompletion);
+		exi_fail |= !EXI_Dma(chan, data, len, EXI_READ, dmaCallback);
 		
 		if (!exi_fail)
 			result = MIC_RESULT_READY;
@@ -639,7 +639,7 @@ static void __MICPutControlBlock(struct MICControlBlock *micblock, s32 result)
 	IRQ_Restore(level);
 }
 
-static BOOL __MICUpdateStatus(s32 chan, u32 status, BOOL update)
+static BOOL __MICUpdateStatus(s32 chan, u32 status, BOOL check)
 {
 	struct MICControlBlock *cb = &__MICBlock[chan];
 	
@@ -686,7 +686,7 @@ static BOOL __MICUpdateStatus(s32 chan, u32 status, BOOL update)
 	else
 		cb->is_active = FALSE;
 	
-	if (update && ((cb->last_status ^ status) & 0xfc0f)) // checks all bits except buff_ovrflw and buttons
+	if (check && ((cb->last_status ^ status) & 0xfc0f)) // checks all bits except buff_ovrflw and buttons
 	{
 		cb->is_active = FALSE;
 		__MICRawReset(chan);
@@ -784,22 +784,19 @@ s32 MIC_ProbeEx(s32 chan)
 			result = MIC_RESULT_BUSY;
 			goto restoreInterrupts;
 		}
-		
-		if (__MICBlock[chan].is_attached)
+		else if (__MICBlock[chan].is_attached)
 		{
 			result = MIC_RESULT_READY;
 			goto restoreInterrupts;
 		}
-		
-		if (EXI_GetState(chan) & EXI_FLAG_ATTACH)
+		else if (EXI_GetState(chan) & EXI_FLAG_ATTACH)
 		{
 			result = MIC_RESULT_WRONGDEVICE;
 			goto restoreInterrupts;
 		}
 		
 		u32 exiID;
-		EXI_GetID(chan, EXI_DEVICE_0, &exiID);
-		if (exiID == 0)
+		if (!EXI_GetID(chan, EXI_DEVICE_0, &exiID))
 		{
 			result = MIC_RESULT_BUSY;
 			goto restoreInterrupts;
@@ -1469,7 +1466,7 @@ s32 MIC_Stop(s32 chan)
 }
 
 
-s32 MIC_ResetAsync(s32 chan, MICCallback stopCallback)
+s32 MIC_ResetAsync(s32 chan, MICCallback resetCallback)
 {
 	s32 result = MIC_RESULT_FATAL_ERROR;
 	
@@ -1481,7 +1478,7 @@ s32 MIC_ResetAsync(s32 chan, MICCallback stopCallback)
 		struct MICControlBlock *cb = NULL;
 		if ((result = __MICGetControlBlock(chan, TRUE, &cb)) >= MIC_RESULT_READY)
 		{
-			cb->attach_callback = stopCallback;
+			cb->attach_callback = resetCallback;
 			cb->set_callback = __MICResetCallback;
 			result = MIC_RESULT_READY;
 		}
