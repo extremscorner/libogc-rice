@@ -988,7 +988,7 @@ void SYS_Init()
 void __attribute__((weak)) SYS_PreMain()
 {
 #if defined(HW_DOL)
-	__qoob_setconfig(0x02000000);
+	__qoob_setconfig(0x06000000);
 	__SYS_SetBootTime();
 #elif defined(HW_RVL)
 	u32 i;
@@ -1046,7 +1046,7 @@ void SYS_ResetSystem(s32 reset)
 		__SYS_UnlockSram(TRUE);
 		while(!__SYS_SyncSram());
 	}
-	__qoob_setconfig(0x00000000);
+	__qoob_setconfig(0x01000000);
 
 	__exception_closeall();
 	__call_resetfuncs(TRUE);
