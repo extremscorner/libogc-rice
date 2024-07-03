@@ -505,9 +505,7 @@ static s32 __MICRawReset(s32 chan)
 		BOOL exi_fail = FALSE;
 		
 		u16 cmd = MIC_RESET << 8;
-		exi_fail |= !EXI_Imm(chan, &cmd, 1, EXI_WRITE, NULL);
-		exi_fail |= !EXI_Sync(chan);
-		
+		exi_fail |= !EXI_ImmEx(chan, &cmd, 1, EXI_WRITE);
 		exi_fail |= !EXI_Deselect(chan);
 		
 		if (!exi_fail)
@@ -528,12 +526,8 @@ static s32 __MICRawReadStatus(s32 chan, u32 *status)
 		BOOL exi_fail = FALSE;
 		
 		u16 data = MIC_READ_STATUS << 8;
-		exi_fail |= !EXI_Imm(chan, &data, 1, EXI_WRITE, NULL);
-		exi_fail |= !EXI_Sync(chan);
-		
-		exi_fail |= !EXI_Imm(chan, &data, 2, EXI_READ, NULL);
-		exi_fail |= !EXI_Sync(chan);
-		
+		exi_fail |= !EXI_ImmEx(chan, &data, 1, EXI_WRITE);
+		exi_fail |= !EXI_ImmEx(chan, &data, 2, EXI_READ);
 		exi_fail |= !EXI_Deselect(chan);
 		
 		*status = data;
@@ -556,9 +550,7 @@ static s32 __MICRawWriteStatus(s32 chan, u32 status)
 		BOOL exi_fail = FALSE;
 		
 		u32 data = (MIC_WRITE_STATUS << 24) | ((status & 0xffff) << 8);
-		exi_fail |= !EXI_Imm(chan, &data, 3, EXI_WRITE, NULL);
-		exi_fail |= !EXI_Sync(chan);
-		
+		exi_fail |= !EXI_ImmEx(chan, &data, 3, EXI_WRITE);
 		exi_fail |= !EXI_Deselect(chan);
 		
 		if (!exi_fail)
@@ -582,9 +574,7 @@ static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback dmaCa
 		BOOL exi_fail = FALSE;
 		
 		u16 cmd = MIC_DMA_DATA << 8;
-		exi_fail |= !EXI_Imm(chan, &cmd, 1, EXI_WRITE, NULL);
-		exi_fail |= !EXI_Sync(chan);
-		
+		exi_fail |= !EXI_ImmEx(chan, &cmd, 1, EXI_WRITE);
 		exi_fail |= !EXI_Dma(chan, data, len, EXI_READ, dmaCallback);
 		
 		if (!exi_fail)
