@@ -93,7 +93,7 @@
 
 #define __lswx(base,bytes)			\
 ({	register u32 res;				\
-	__asm__ volatile ("mtxer %2; lswx %0,%y1" : "=&r"(res) : "Z"(*(u32*)(base)), "r"(bytes) : "xer"); \
+	__asm__ volatile ("mtxer %2; lswx %0,%y1" : "=&b"(res) : "Z"(*(u32*)(base)), "r"(bytes) : "xer"); \
 	res; })
 
 #define __sthbrx(base,index,value)	\
