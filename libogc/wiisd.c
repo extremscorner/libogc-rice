@@ -110,6 +110,7 @@
 #define	SDIO_ACMD_SENDOPCOND		0x29
 
 #define	SDIO_STATUS_CARD_INSERTED		0x1
+#define SDIO_STATUS_CARD_LOCKED			0x4
 #define	SDIO_STATUS_CARD_INITIALIZED	0x10000
 #define SDIO_STATUS_CARD_SDHC			0x100000
 
@@ -389,6 +390,11 @@ static	bool __sd0_initio()
 	if(!(status & SDIO_STATUS_CARD_INSERTED))
 		return false;
 
+	if(!(status & SDIO_STATUS_CARD_LOCKED))
+		__io_wiisd.features |= FEATURE_MEDIUM_CANWRITE;
+	else
+		__io_wiisd.features &= ~FEATURE_MEDIUM_CANWRITE;
+
 	if(!(status & SDIO_STATUS_CARD_INITIALIZED))
 	{
 		// IOS doesn't like this card, so we need to convice it to accept it.
@@ -577,6 +583,7 @@ bool sdio_WriteSectors(sec_t sector, sec_t numSectors,const void* buffer)
 	u32 secs_to_write;
 	u8 *src = (u8*)buffer;
 
+	if(!(__io_wiisd.features & FEATURE_MEDIUM_CANWRITE)) return false;
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
@@ -621,7 +628,7 @@ bool sdio_IsInitialized()
 			SDIO_STATUS_CARD_INITIALIZED);
 }
 
-const DISC_INTERFACE __io_wiisd = {
+DISC_INTERFACE __io_wiisd = {
 	DEVICE_TYPE_WII_SD,
 	FEATURE_MEDIUM_CANREAD | FEATURE_MEDIUM_CANWRITE | FEATURE_WII_SD,
 	(FN_MEDIUM_STARTUP)&sdio_Startup,
