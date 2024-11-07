@@ -44,7 +44,7 @@ distribution.
 #include <ogc/ios.h>
 #include <ogc/lwp.h>
 #include <ogc/mutex.h>
-#include <ogc/lwp_watchdog.h>
+#include <ogc/timesupp.h>
 #include <ogc/machine/processor.h>
 
 #define MOUNT_TIMEOUT		15000 // 15 seconds

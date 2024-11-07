@@ -34,7 +34,7 @@ distribution.
 #include "processor.h"
 #include "irq.h"
 #include "audio.h"
-#include "lwp_watchdog.h"
+#include "timesupp.h"
 
 // DSPCR bits
 #define DSPCR_DSPRESET		0x0800        // Reset DSP
