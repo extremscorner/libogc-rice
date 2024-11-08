@@ -50,16 +50,18 @@ extern "C" {
 
 #define gettick()   ({register u32 _rval; \
 		asm volatile("mftb %0" : "=r" (_rval)); _rval;})
-extern u64 gettime();
-extern void settime(u64);
+u64 gettime();
+void settime(u64 time);
 
-extern void __SYS_SetTime(s64 time);
-extern s64 __SYS_GetSystemTime();
+void __SYS_SetTime(s64 time);
+s64 __SYS_GetSystemTime();
 
 u32 diff_sec(u64 start,u64 end);
 u32 diff_msec(u64 start,u64 end);
 u32 diff_usec(u64 start,u64 end);
 u32 diff_nsec(u64 start,u64 end);
+
+void udelay(u32 usec);
 
 #ifdef __cplusplus
 	}

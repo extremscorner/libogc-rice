@@ -129,14 +129,14 @@ int __libogc_clock_getres(clockid_t clock_id, struct timespec *res)
 }
 
 // this function spins till timeout is reached
-void udelay(unsigned us)
+void udelay(u32 usec)
 {
-	unsigned long long start, end;
+	u64 start, end;
 	start = gettime();
 	while (1)
 	{
 		end = gettime();
-		if (diff_usec(start,end) >= us)
+		if (diff_usec(start,end) >= usec)
 			break;
 	}
 }

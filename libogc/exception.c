@@ -69,7 +69,6 @@ static int stride_length = 1280;
 
 void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*));
 
-extern void udelay(int us);
 extern void irq_exceptionhandler();
 extern void dec_exceptionhandler();
 extern void default_exceptionhandler();

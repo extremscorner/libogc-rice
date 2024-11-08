@@ -13,7 +13,7 @@
 #include "card_cmn.h"
 //#include "card_fat.h"
 #include "card_io.h"
-#include "lwp_watchdog.h"
+#include "timesupp.h"
 
 //#define _CARDIO_DEBUG
 #ifdef _CARDIO_DEBUG
