@@ -909,7 +909,7 @@ int DI_ReadDiscID(uint64_t *id)
 	return(ret == 1)? 0 : -ret;
 }
 
-static bool diio_Startup()
+static bool diio_Startup(DISC_INTERFACE *disc)
 {
 	u64 t1,t2;
 
@@ -933,7 +933,7 @@ static bool diio_Startup()
 	return false;
 }
 
-static bool diio_IsInserted()
+static bool diio_IsInserted(DISC_INTERFACE *disc)
 {
 	u32 val;
 
@@ -947,7 +947,7 @@ static bool diio_IsInserted()
 	return false;
 }
 
-static bool diio_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
+static bool diio_ReadSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
 	if((uint32_t)sector != sector)
 		return false;
@@ -960,23 +960,23 @@ static bool diio_ReadSectors(sec_t sector,sec_t numSectors,void *buffer)
 	return false;
 }
 
-static bool diio_WriteSectors(sec_t sector,sec_t numSectors,const void *buffer)
+static bool diio_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, const void *buffer)
 {
 	return false;
 }
 
-static bool diio_ClearStatus()
+static bool diio_ClearStatus(DISC_INTERFACE *disc)
 {
 	return true;
 }
 
-static bool diio_Shutdown()
+static bool diio_Shutdown(DISC_INTERFACE *disc)
 {
 	DI_StopMotor();
 	return true;
 }
 
-const DISC_INTERFACE __io_wiidvd = {
+DISC_INTERFACE __io_wiidvd = {
 	DEVICE_TYPE_WII_DVD,
 	FEATURE_MEDIUM_CANREAD | FEATURE_WII_DVD,
 	(FN_MEDIUM_STARTUP)&diio_Startup,

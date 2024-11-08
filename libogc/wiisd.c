@@ -377,7 +377,7 @@ static s32 __sd0_getcid()
 }
 
 
-static	bool __sd0_initio()
+static	bool __sd0_initio(DISC_INTERFACE *disc)
 {
 	s32 ret;
 	s32 tries;
@@ -391,9 +391,9 @@ static	bool __sd0_initio()
 		return false;
 
 	if(!(status & SDIO_STATUS_CARD_LOCKED))
-		__io_wiisd.features |= FEATURE_MEDIUM_CANWRITE;
+		disc->features |= FEATURE_MEDIUM_CANWRITE;
 	else
-		__io_wiisd.features &= ~FEATURE_MEDIUM_CANWRITE;
+		disc->features &= ~FEATURE_MEDIUM_CANWRITE;
 
 	if(!(status & SDIO_STATUS_CARD_INITIALIZED))
 	{
@@ -511,7 +511,7 @@ bool sdio_Deinitialize()
 	return true;
 }
 
-bool sdio_Startup()
+bool sdio_Startup(DISC_INTERFACE *disc)
 {
 	if(__sdio_initialized==1) return true;
 
@@ -522,17 +522,15 @@ bool sdio_Startup()
 		return false;
 	}
 
-	if(__sd0_initio()==false) {
+	if(__sd0_initio(disc)==false) {
 		sdio_Deinitialize();
 		return false;
 	}
 	__sdio_initialized = 1;
 	return true;
 }
- 
- 
- 
-bool sdio_Shutdown()
+
+bool sdio_Shutdown(DISC_INTERFACE *disc)
 {
 	if(__sd0_initialized==0) return false;
 
@@ -541,8 +539,8 @@ bool sdio_Shutdown()
 	__sd0_initialized = 0;
 	return true;
 }
- 
-bool sdio_ReadSectors(sec_t sector, sec_t numSectors,void* buffer)
+
+bool sdio_ReadSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
 	s32 ret;
 	u32 sec;
@@ -575,15 +573,15 @@ bool sdio_ReadSectors(sec_t sector, sec_t numSectors,void* buffer)
 
 	return (ret>=0);
 }
- 
-bool sdio_WriteSectors(sec_t sector, sec_t numSectors,const void* buffer)
+
+bool sdio_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, const void *buffer)
 {
 	s32 ret;
 	u32 sec;
 	u32 secs_to_write;
 	u8 *src = (u8*)buffer;
 
-	if(!(__io_wiisd.features & FEATURE_MEDIUM_CANWRITE)) return false;
+	if(!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
@@ -610,13 +608,13 @@ bool sdio_WriteSectors(sec_t sector, sec_t numSectors,const void* buffer)
 
 	return (ret>=0);
 }
- 
-bool sdio_ClearStatus()
+
+bool sdio_ClearStatus(DISC_INTERFACE *disc)
 {
 	return true;
 }
- 
-bool sdio_IsInserted()
+
+bool sdio_IsInserted(DISC_INTERFACE *disc)
 {
 	return ((__sdio_getstatus() & SDIO_STATUS_CARD_INSERTED) ==
 			SDIO_STATUS_CARD_INSERTED);
