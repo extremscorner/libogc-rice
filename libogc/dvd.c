@@ -3684,7 +3684,9 @@ DISC_INTERFACE __io_gcdvd = {
 	(FN_MEDIUM_READSECTORS)&__gcdvd_ReadSectors,
 	(FN_MEDIUM_WRITESECTORS)&__gcdvd_WriteSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__gcdvd_ClearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcdvd_Shutdown
+	(FN_MEDIUM_SHUTDOWN)&__gcdvd_Shutdown,
+	0x7fffff,
+	2048
 };
 
 DISC_INTERFACE __io_gcode = {
@@ -3695,5 +3697,7 @@ DISC_INTERFACE __io_gcode = {
 	(FN_MEDIUM_READSECTORS)&__gcode_ReadSectors,
 	(FN_MEDIUM_WRITESECTORS)&__gcode_WriteSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__gcode_ClearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcode_Shutdown
+	(FN_MEDIUM_SHUTDOWN)&__gcode_Shutdown,
+	(u32)~0,
+	512
 };

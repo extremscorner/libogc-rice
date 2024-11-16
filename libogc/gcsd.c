@@ -237,7 +237,9 @@ DISC_INTERFACE __io_gcsda = {
 	(FN_MEDIUM_READSECTORS)&__gcsda_readSectors,
 	(FN_MEDIUM_WRITESECTORS)&__gcsda_writeSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__gcsda_clearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcsda_shutdown
+	(FN_MEDIUM_SHUTDOWN)&__gcsda_shutdown,
+	(u32)~0,
+	512
 };
 
 DISC_INTERFACE __io_gcsdb = {
@@ -248,7 +250,9 @@ DISC_INTERFACE __io_gcsdb = {
 	(FN_MEDIUM_READSECTORS)&__gcsdb_readSectors,
 	(FN_MEDIUM_WRITESECTORS)&__gcsdb_writeSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__gcsdb_clearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcsdb_shutdown
+	(FN_MEDIUM_SHUTDOWN)&__gcsdb_shutdown,
+	(u32)~0,
+	512
 };
 
 DISC_INTERFACE __io_gcsd2 = {
@@ -259,5 +263,7 @@ DISC_INTERFACE __io_gcsd2 = {
 	(FN_MEDIUM_READSECTORS)&__gcsd2_readSectors,
 	(FN_MEDIUM_WRITESECTORS)&__gcsd2_writeSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__gcsd2_clearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__gcsd2_shutdown
+	(FN_MEDIUM_SHUTDOWN)&__gcsd2_shutdown,
+	(u32)~0,
+	512
 };

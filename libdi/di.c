@@ -984,5 +984,7 @@ DISC_INTERFACE __io_wiidvd = {
 	(FN_MEDIUM_READSECTORS)&diio_ReadSectors,
 	(FN_MEDIUM_WRITESECTORS)&diio_WriteSectors,
 	(FN_MEDIUM_CLEARSTATUS)&diio_ClearStatus,
-	(FN_MEDIUM_SHUTDOWN)&diio_Shutdown
+	(FN_MEDIUM_SHUTDOWN)&diio_Shutdown,
+	(u32)~0,
+	2048
 };

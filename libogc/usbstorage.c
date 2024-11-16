@@ -960,7 +960,11 @@ static bool __usbstorage_IsInserted(DISC_INTERFACE *disc)
 		}
 
 		if (__mounted)
+		{
+			disc->numberOfSectors = __usbfd.n_sectors[__lun];
+			disc->bytesPerSector = __usbfd.sector_size[__lun];
 			break;
+		}
 
 		USBStorage_Close(&__usbfd);
 	}
@@ -1051,7 +1055,9 @@ DISC_INTERFACE __io_usbstorage = {
 	(FN_MEDIUM_READSECTORS)&__usbstorage_ReadSectors,
 	(FN_MEDIUM_WRITESECTORS)&__usbstorage_WriteSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__usbstorage_ClearStatus,
-	(FN_MEDIUM_SHUTDOWN)&__usbstorage_Shutdown
+	(FN_MEDIUM_SHUTDOWN)&__usbstorage_Shutdown,
+	(u64)~0,
+	512
 };
 
 #endif /* HW_RVL */
