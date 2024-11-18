@@ -105,9 +105,15 @@
 #define __stswx(base,bytes,value)	\
 	__asm__ volatile ("mtxer %2; stswx %1,%y0" : "=Z"(*(u32*)(base)) : "r"(value), "r"(bytes) : "xer");
 
+#ifndef bswap16
 #define bswap16(_val)	__builtin_bswap16(_val)
+#endif
+#ifndef bswap32
 #define bswap32(_val)	__builtin_bswap32(_val)
+#endif
+#ifndef bswap64
 #define bswap64(_val)	__builtin_bswap64(_val)
+#endif
 
 #define cntlzw(_val)	__builtin_clz(_val)
 #define cntlzd(_val)	__builtin_clzll(_val)

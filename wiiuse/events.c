@@ -343,10 +343,10 @@ void parse_event(struct wiimote_t *wm)
  *	@param msg		The message specified in the event packet.
  */
 void wiiuse_pressed_buttons(struct wiimote_t* wm, ubyte* msg) {
-	short now;
+	uword now;
 
 	/* convert to little endian */
-	now = LITTLE_ENDIAN_SHORT(*(short*)msg) & WIIMOTE_BUTTON_ALL;
+	now = LITTLE_ENDIAN_SHORT(*(uword*)msg) & WIIMOTE_BUTTON_ALL;
 
 	/* preserve old btns pressed */
 	wm->btns_last = wm->btns;

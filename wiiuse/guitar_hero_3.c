@@ -47,7 +47,7 @@
 #include "guitar_hero_3.h"
 #include "io.h"
 
-static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, short now);
+static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, uword now);
 
 /**
  *	@brief Handle the handshake data from the guitar.
@@ -124,7 +124,7 @@ int guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte
 	for (i = 0; i < 6; ++i)
 		msg[i] = (msg[i] ^ 0x17) + 0x17;
 	*/
-	guitar_hero_3_pressed_buttons(gh3, LITTLE_ENDIAN_SHORT(*(short*)(msg + 4)));
+	guitar_hero_3_pressed_buttons(gh3, LITTLE_ENDIAN_SHORT(*(uword*)(msg + 4)));
 
 	gh3->js.pos.x = (msg[0] & GUITAR_HERO_3_JS_MASK);
 	gh3->js.pos.y = (msg[1] & GUITAR_HERO_3_JS_MASK);
@@ -171,7 +171,7 @@ int guitar_hero_3_event(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, ubyte
  *	@param gh3		A pointer to a guitar_hero_3_t structure.
  *	@param msg		The message byte specified in the event packet.
  */
-static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, short now) {
+static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, uword now) {
 	/* message is inverted (0 is active, 1 is inactive) */
 	now = ~now & GUITAR_HERO_3_BUTTON_ALL;
 

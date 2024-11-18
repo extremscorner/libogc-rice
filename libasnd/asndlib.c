@@ -95,8 +95,8 @@ static u32 asnd_inited = 0;
 static t_sound_data sound_data[MAX_VOICES];
 
 static t_sound_data sound_data_dma ATTRIBUTE_ALIGN(32);
-static s16 mute_buf[SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
-static s16 audio_buf[2][SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
+static u8 mute_buf[SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
+static u8 audio_buf[2][SND_BUFFERSIZE] ATTRIBUTE_ALIGN(32);
 
 static void __dsp_initcallback(dsptask_t *task)
 {
