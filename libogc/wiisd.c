@@ -635,7 +635,7 @@ DISC_INTERFACE __io_wiisd = {
 	(FN_MEDIUM_WRITESECTORS)&sdio_WriteSectors,
 	(FN_MEDIUM_CLEARSTATUS)&sdio_ClearStatus,
 	(FN_MEDIUM_SHUTDOWN)&sdio_Shutdown,
-	(u32)~0,
+	0x100000000,
 	512
 };
 

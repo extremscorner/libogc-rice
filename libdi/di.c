@@ -949,10 +949,10 @@ static bool diio_IsInserted(DISC_INTERFACE *disc)
 
 static bool diio_ReadSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void *buffer)
 {
-	if((uint32_t)sector != sector)
+	if(sector & ~0xFFFFFF)
 		return false;
 
-	if((uint32_t)numSectors != numSectors)
+	if(numSectors & ~0xFFFFFF)
 		return false;
 
 	if(DI_ReadDVD(buffer, numSectors, sector) == 0)
@@ -985,6 +985,6 @@ DISC_INTERFACE __io_wiidvd = {
 	(FN_MEDIUM_WRITESECTORS)&diio_WriteSectors,
 	(FN_MEDIUM_CLEARSTATUS)&diio_ClearStatus,
 	(FN_MEDIUM_SHUTDOWN)&diio_Shutdown,
-	(u32)~0,
+	0x1000000,
 	2048
 };

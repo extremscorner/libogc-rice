@@ -1056,8 +1056,8 @@ DISC_INTERFACE __io_usbstorage = {
 	(FN_MEDIUM_WRITESECTORS)&__usbstorage_WriteSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__usbstorage_ClearStatus,
 	(FN_MEDIUM_SHUTDOWN)&__usbstorage_Shutdown,
-	(u64)~0,
-	512
+	0,
+	0
 };
 
 #endif /* HW_RVL */
