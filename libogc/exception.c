@@ -232,7 +232,7 @@ void __attribute__((weak)) c_default_exceptionhandler(frame_context *pCtx)
 	GX_AbortFrame();
 	VIDEO_SetFramebuffer(exception_xfb);
 	__console_init(exception_xfb, 0, 0, stride_width, VI_MAX_HEIGHT_PAL, stride_length);
-	CON_EnableGecko(EXI_CHANNEL_1, TRUE);
+	CON_EnableGecko(EXI_CHANNEL_1, true);
 	raise(exception_signal[pCtx->EXCPT_Number]);
 
 	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->EXCPT_Number]);
