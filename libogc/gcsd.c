@@ -74,6 +74,21 @@ static bool __gcsd_startup(DISC_INTERFACE *disc)
 			}
 		}
 
+		switch(CSD_STRUCTURE(chan)) {
+			case 0:
+				disc->numberOfSectors = ((C_SIZE(chan) + 1) << (C_SIZE_MULT(chan) + 2)) << (READ_BL_LEN(chan) - 9);
+				break;
+			case 1:
+				disc->numberOfSectors = (C_SIZE1(chan) + 1LL) << 10;
+				break;
+			case 2:
+				disc->numberOfSectors = (C_SIZE2(chan) + 1LL) << 10;
+				break;
+			default:
+				disc->numberOfSectors = 0;
+				break;
+		}
+
 		return true;
 	}
 
@@ -147,7 +162,7 @@ DISC_INTERFACE __io_gcsda = {
 	(FN_MEDIUM_WRITESECTORS)&__gcsd_writeSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__gcsd_clearStatus,
 	(FN_MEDIUM_SHUTDOWN)&__gcsd_shutdown,
-	0x100000000,
+	0,
 	512
 };
 
@@ -160,7 +175,7 @@ DISC_INTERFACE __io_gcsdb = {
 	(FN_MEDIUM_WRITESECTORS)&__gcsd_writeSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__gcsd_clearStatus,
 	(FN_MEDIUM_SHUTDOWN)&__gcsd_shutdown,
-	0x100000000,
+	0,
 	512
 };
 
@@ -173,6 +188,6 @@ DISC_INTERFACE __io_gcsd2 = {
 	(FN_MEDIUM_WRITESECTORS)&__gcsd_writeSectors,
 	(FN_MEDIUM_CLEARSTATUS)&__gcsd_clearStatus,
 	(FN_MEDIUM_SHUTDOWN)&__gcsd_shutdown,
-	0x100000000,
+	0,
 	512
 };
