@@ -3580,8 +3580,11 @@ static bool __gcdvd_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSecto
 {
 	dvdcmdblk blk;
 
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_DVD) return false;
+	if(!(disc->features & FEATURE_MEDIUM_CANREAD)) return false;
 	if(sector & ~0x7fffff) return false;
 	if(numSectors & ~0x1fffff) return false;
+	if(disc->bytesPerSector != 2048) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	if(DVD_ReadAbs(&blk, buffer, numSectors << 11, sector << 11) < 0)
@@ -3641,8 +3644,11 @@ static bool __gcode_ReadSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSecto
 {
 	dvdcmdblk blk;
 
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_GCODE) return false;
+	if(!(disc->features & FEATURE_MEDIUM_CANREAD)) return false;
 	if((u32)sector != sector) return false;
 	if(numSectors & ~0x7fffff) return false;
+	if(disc->bytesPerSector != 512) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	if(DVD_GcodeRead(&blk, buffer, numSectors << 9, sector) < 0)
@@ -3655,9 +3661,11 @@ static bool __gcode_WriteSectors(DISC_INTERFACE *disc,sec_t sector,sec_t numSect
 {
 	dvdcmdblk blk;
 
+	if(disc->ioType != DEVICE_TYPE_GAMECUBE_GCODE) return false;
 	if(!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
 	if((u32)sector != sector) return false;
 	if((u32)numSectors != numSectors) return false;
+	if(disc->bytesPerSector != 512) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
 
 	if(DVD_GcodeWrite(&blk, buffer, numSectors, sector) < 0)

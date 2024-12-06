@@ -150,7 +150,7 @@ static s32 __sd0_sdhc = 0;
 static u8 __sd0_csd[16];
 static u8 __sd0_cid[16];
  
-static s32 __sdio_initialized = 0;
+static bool __sdio_initialized = false;
  
 static char _sd0_fs[] ATTRIBUTE_ALIGN(32) = "/dev/sdio/slot0";
 
@@ -532,13 +532,14 @@ bool sdio_Deinitialize()
 		IOS_Close(__sd0_fd);
  
 	__sd0_fd = -1;
-	__sdio_initialized = 0;
+	__sd0_initialized = 0;
 	return true;
 }
 
 bool sdio_Startup(DISC_INTERFACE *disc)
 {
-	if(__sdio_initialized==1) return true;
+	if(disc->ioType != DEVICE_TYPE_WII_SD) return false;
+	if(__sdio_initialized) return true;
 
 	__sd0_fd = IOS_Open(_sd0_fs,1);
 
@@ -551,17 +552,18 @@ bool sdio_Startup(DISC_INTERFACE *disc)
 		sdio_Deinitialize();
 		return false;
 	}
-	__sdio_initialized = 1;
+	__sdio_initialized = true;
 	return true;
 }
 
 bool sdio_Shutdown(DISC_INTERFACE *disc)
 {
-	if(__sd0_initialized==0) return false;
+	if(disc->ioType != DEVICE_TYPE_WII_SD) return false;
+	if(!__sdio_initialized) return true;
 
 	sdio_Deinitialize();
- 
-	__sd0_initialized = 0;
+
+	__sdio_initialized = false;
 	return true;
 }
 
@@ -572,9 +574,13 @@ bool sdio_ReadSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, void
 	u32 secs_to_read;
 	u8 *dest = (u8*)buffer;
 
+	if(disc->ioType != DEVICE_TYPE_WII_SD) return false;
+	if(!(disc->features & FEATURE_MEDIUM_CANREAD)) return false;
 	if((sector + numSectors) < sector) return false;
 	if((sector + numSectors) > disc->numberOfSectors) return false;
+	if(disc->bytesPerSector != PAGE_SIZE512) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!__sdio_initialized) return false;
 
 	ret = __sd0_select();
 	if(ret<0) return false;
@@ -606,10 +612,13 @@ bool sdio_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, con
 	u32 secs_to_write;
 	u8 *src = (u8*)buffer;
 
+	if(disc->ioType != DEVICE_TYPE_WII_SD) return false;
 	if(!(disc->features & FEATURE_MEDIUM_CANWRITE)) return false;
 	if((sector + numSectors) < sector) return false;
 	if((sector + numSectors) > disc->numberOfSectors) return false;
+	if(disc->bytesPerSector != PAGE_SIZE512) return false;
 	if(!SYS_IsDMAAddress(buffer)) return false;
+	if(!__sdio_initialized) return false;
 
 	ret = __sd0_select();
 	if(ret<0) return false;
@@ -641,6 +650,9 @@ bool sdio_ClearStatus(DISC_INTERFACE *disc)
 
 bool sdio_IsInserted(DISC_INTERFACE *disc)
 {
+	if(disc->ioType != DEVICE_TYPE_WII_SD) return false;
+	if(!__sdio_initialized) return false;
+
 	return ((__sdio_getstatus() & SDIO_STATUS_CARD_INSERTED) ==
 			SDIO_STATUS_CARD_INSERTED);
 }
@@ -661,7 +673,7 @@ DISC_INTERFACE __io_wiisd = {
 	(FN_MEDIUM_CLEARSTATUS)&sdio_ClearStatus,
 	(FN_MEDIUM_SHUTDOWN)&sdio_Shutdown,
 	0,
-	512
+	PAGE_SIZE512
 };
 
 #endif
