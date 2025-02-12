@@ -148,16 +148,16 @@ distribution.
 	#define SYS_GetArenaHi				SYS_GetArena1Hi
 	#define SYS_SetArenaHi				SYS_SetArena1Hi
 	#define SYS_GetArenaSize			SYS_GetArena1Size
-	#define SYS_AllocArenaMemLo			SYS_AllocArena1MemLo
-	#define SYS_AllocArenaMemHi			SYS_AllocArena1MemHi
+	#define SYS_AllocArenaMemLo			SYS_AllocArenaMem1Lo
+	#define SYS_AllocArenaMemHi			SYS_AllocArenaMem1Hi
 #elif defined(HW_RVL)
 	#define SYS_GetArenaLo				SYS_GetArena2Lo
 	#define SYS_SetArenaLo				SYS_SetArena2Lo
 	#define SYS_GetArenaHi				SYS_GetArena2Hi
 	#define SYS_SetArenaHi				SYS_SetArena2Hi
 	#define SYS_GetArenaSize			SYS_GetArena2Size
-	#define SYS_AllocArenaMemLo			SYS_AllocArena2MemLo
-	#define SYS_AllocArenaMemHi			SYS_AllocArena2MemHi
+	#define SYS_AllocArenaMemLo			SYS_AllocArenaMem2Lo
+	#define SYS_AllocArenaMemHi			SYS_AllocArenaMem2Hi
 #endif
 
 #ifdef __cplusplus
@@ -374,8 +374,10 @@ void SYS_SetArena1Lo(void *newLo);
 void* SYS_GetArena1Hi();
 void SYS_SetArena1Hi(void *newHi);
 u32 SYS_GetArena1Size();
-void* SYS_AllocArena1MemLo(u32 size,u32 align);
-void* SYS_AllocArena1MemHi(u32 size,u32 align);
+void* SYS_AllocArenaMem1Lo(u32 size,u32 align);
+void* SYS_AllocArenaMem1Hi(u32 size,u32 align);
+u32 SYS_GetPhysicalMem1Size();
+u32 SYS_GetSimulatedMem1Size();
 
 resetcallback SYS_SetResetCallback(resetcallback cb);
 
@@ -389,8 +391,10 @@ void SYS_SetArena2Lo(void *newLo);
 void* SYS_GetArena2Hi();
 void SYS_SetArena2Hi(void *newHi);
 u32 SYS_GetArena2Size();
-void* SYS_AllocArena2MemLo(u32 size,u32 align);
-void* SYS_AllocArena2MemHi(u32 size,u32 align);
+void* SYS_AllocArenaMem2Lo(u32 size,u32 align);
+void* SYS_AllocArenaMem2Hi(u32 size,u32 align);
+u32 SYS_GetPhysicalMem2Size();
+u32 SYS_GetSimulatedMem2Size();
 
 powercallback SYS_SetPowerCallback(powercallback cb);
 

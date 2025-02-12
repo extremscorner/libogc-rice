@@ -1185,7 +1185,7 @@ u32 SYS_GetArena1Size()
 	return size;
 }
 
-void* SYS_AllocArena1MemLo(u32 size,u32 align)
+void* SYS_AllocArenaMem1Lo(u32 size,u32 align)
 {
 	u32 level;
 	void *arenalo,*ptr;
@@ -1204,7 +1204,7 @@ void* SYS_AllocArena1MemLo(u32 size,u32 align)
 	return ptr;
 }
 
-void* SYS_AllocArena1MemHi(u32 size,u32 align)
+void* SYS_AllocArenaMem1Hi(u32 size,u32 align)
 {
 	u32 level;
 	void *arenahi,*ptr;
@@ -1222,7 +1222,36 @@ void* SYS_AllocArena1MemHi(u32 size,u32 align)
 	return ptr;
 }
 
-#if defined(HW_RVL)
+#if defined(HW_DOL)
+u32 SYS_GetPhysicalMem1Size()
+{
+	u32 size;
+	size = *((u32*)0x80000028);
+	return size;
+}
+
+u32 SYS_GetSimulatedMem1Size()
+{
+	u32 size;
+	size = *((u32*)0x800000f0);
+	if(!size) size = *((u32*)0x80000028);
+	return size;
+}
+#elif defined(HW_RVL)
+u32 SYS_GetPhysicalMem1Size()
+{
+	u32 size;
+	size = *((u32*)0x80003100);
+	return size;
+}
+
+u32 SYS_GetSimulatedMem1Size()
+{
+	u32 size;
+	size = *((u32*)0x80003104);
+	return size;
+}
+
 void SYS_SetArena2Lo(void *newLo)
 {
 	u32 level;
@@ -1276,7 +1305,7 @@ u32 SYS_GetArena2Size()
 	return size;
 }
 
-void* SYS_AllocArena2MemLo(u32 size,u32 align)
+void* SYS_AllocArenaMem2Lo(u32 size,u32 align)
 {
 	u32 level;
 	void *arenalo,*ptr;
@@ -1295,7 +1324,7 @@ void* SYS_AllocArena2MemLo(u32 size,u32 align)
 	return ptr;
 }
 
-void* SYS_AllocArena2MemHi(u32 size,u32 align)
+void* SYS_AllocArenaMem2Hi(u32 size,u32 align)
 {
 	u32 level;
 	void *arenahi,*ptr;
@@ -1311,6 +1340,20 @@ void* SYS_AllocArena2MemHi(u32 size,u32 align)
 	__sysarena2hi = arenahi;
 	_CPU_ISR_Restore(level);
 	return ptr;
+}
+
+u32 SYS_GetPhysicalMem2Size()
+{
+	u32 size;
+	size = *((u32*)0x80003118);
+	return size;
+}
+
+u32 SYS_GetSimulatedMem2Size()
+{
+	u32 size;
+	size = *((u32*)0x8000311c);
+	return size;
 }
 #endif
 
