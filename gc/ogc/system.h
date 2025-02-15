@@ -102,12 +102,37 @@ distribution.
  *@}
  */
 
-#define SYS_SOUND_MONO					0
-#define SYS_SOUND_STEREO				1
+#define SYS_CONSOLE_MASK				0xf0000000
+#define SYS_CONSOLE_RETAIL				0x00000000
+#define SYS_CONSOLE_DEVELOPMENT			0x10000000
+#define SYS_CONSOLE_TDEV				0x20000000
 
-#define SYS_VIDEO_NTSC					0
-#define SYS_VIDEO_PAL					1
-#define SYS_VIDEO_MPAL					2
+#if defined(HW_DOL)
+#define SYS_CONSOLE_RETAIL_HW1			0x00000001
+#define SYS_CONSOLE_RETAIL_HW2			0x00000002
+#define SYS_CONSOLE_RETAIL_HW3			0x00000003
+#define SYS_CONSOLE_DEVELOPMENT_HW1		0x10000004
+#define SYS_CONSOLE_DEVELOPMENT_HW2		0x10000005
+#define SYS_CONSOLE_DEVELOPMENT_HW3		0x10000006
+#define SYS_CONSOLE_TDEV_HW1			0x20000004
+#define SYS_CONSOLE_TDEV_HW2			0x20000005
+#define SYS_CONSOLE_TDEV_HW3			0x20000006
+#elif defined(HW_RVL)
+#define SYS_CONSOLE_RETAIL_ES1_0		0x00000010
+#define SYS_CONSOLE_RETAIL_ES1_1		0x00000011
+#define SYS_CONSOLE_RETAIL_ES1_2		0x00000012
+#define SYS_CONSOLE_RETAIL_ES2_0		0x00000020
+#define SYS_CONSOLE_RETAIL_ES2_1		0x00000021
+#define SYS_CONSOLE_RETAIL_ES3_0		0x00000030
+#define SYS_CONSOLE_RETAIL_ES3_1		0x00000031
+#define SYS_CONSOLE_NDEV_ES1_0			0x10000010
+#define SYS_CONSOLE_NDEV_ES1_1			0x10000011
+#define SYS_CONSOLE_NDEV_ES1_2			0x10000012
+#define SYS_CONSOLE_NDEV_ES2_0			0x10000020
+#define SYS_CONSOLE_NDEV_ES2_1			0x10000021
+#define SYS_CONSOLE_NDEV_ES3_0			0x10000030
+#define SYS_CONSOLE_NDEV_ES3_1			0x10000031
+#endif
 
 #define SYS_LANG_ENGLISH				0
 #define SYS_LANG_GERMAN					1
@@ -117,6 +142,13 @@ distribution.
 #define SYS_LANG_DUTCH					5
 #define SYS_LANG_JAPANESE				6
 #define SYS_LANG_ENGLISH_US				7
+
+#define SYS_SOUND_MONO					0
+#define SYS_SOUND_STEREO				1
+
+#define SYS_VIDEO_NTSC					0
+#define SYS_VIDEO_PAL					1
+#define SYS_VIDEO_MPAL					2
 
 #define SYS_FONTENC_ANSI				0
 #define SYS_FONTENC_SJIS				1
@@ -359,8 +391,9 @@ void SYS_SetWirelessID(u32 chan,u16 id);
 u16 SYS_GetGBSMode();
 void SYS_SetGBSMode(u16 mode);
 
-u32 SYS_SetFontEncoding(u32 enc);
+u32 SYS_GetConsoleType();
 u32 SYS_GetFontEncoding();
+u32 SYS_SetFontEncoding(u32 enc);
 u32 SYS_InitFont(sys_fontheader *font_data);
 void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width);
 void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width);

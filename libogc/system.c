@@ -1914,7 +1914,22 @@ void SYS_SetGBSMode(u16 mode)
 	__SYS_UnlockSramEx(write);
 }
 
-#if defined(HW_RVL)
+#if defined(HW_DOL)
+u32 SYS_GetConsoleType()
+{
+	u32 type;
+	type = *((u32*)0x8000002c);
+	return type;
+}
+#elif defined(HW_RVL)
+u32 SYS_GetConsoleType()
+{
+	u32 type;
+	type = SYS_CONSOLE_RETAIL_ES1_0;
+	type += *((u32*)0x80003138);
+	return type;
+}
+
 u32 SYS_GetHollywoodRevision()
 {
 	u32 rev;
