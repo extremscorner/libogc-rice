@@ -2395,21 +2395,22 @@ s32 DVD_LowGetCoverStatus()
 
 void DVD_LowReset(u32 reset_mode)
 {
-	u32 val;
+	u32 val1,val2;
 
-	_diReg[1] = DVD_CVR_MSK;
-	val = _piReg[9];
-	_piReg[9] = ((val&~0x0004)|0x0001);
+	val1 = val2 = (_piReg[9]|0x0001);
+	if(reset_mode==DVD_RESETHARD) val1 &= ~0x0004;
+	if(reset_mode==DVD_RESETSOFT) val2 &= ~0x0004;
+	else val2 |= 0x0004;
+	if(val1==val2) return;
 
+	_piReg[9] = val1;
 	udelay(12);
-
-	if(reset_mode==DVD_RESETHARD) val |= 0x0004;
-	val |= 0x0001;
-	_piReg[9] = val;
+	_piReg[9] = val2;
 
 	__dvd_resetoccured = 1;
 	__dvd_lastresetend = __SYS_GetSystemTime();
 	__dvd_drivestate |= DVD_DRIVERESET;
+	_diReg[1] = DVD_CVR_MSK;
 }
 
 dvdcallbacklow DVD_LowSetResetCoverCallback(dvdcallbacklow cb)
@@ -3446,8 +3447,7 @@ void DVD_Reset(u32 reset_mode)
 #endif
 	__dvd_drivestate &= ~(DVD_INTEROPER|DVD_CHIPPRESENT|DVD_DRIVERESET);
 
-	if(reset_mode!=DVD_RESETNONE)
-		DVD_LowReset(reset_mode);
+	DVD_LowReset(reset_mode);
 
 	_diReg[0] = (DVD_DE_MSK|DVD_TC_MSK|DVD_BRK_MSK);
 	_diReg[1] = _diReg[1];
@@ -3526,7 +3526,6 @@ dvddrvinfo* DVD_GetDriveInfo()
 
 void DVD_Init()
 {
-	u32 i;
 #ifdef _DVD_DEBUG
 	printf("DVD_Init()\n");
 #endif
@@ -3540,15 +3539,6 @@ void DVD_Init()
 
 		SYS_CreateAlarm(&__dvd_timeoutalarm);
 		LWP_InitQueue(&__dvd_wait_queue);
-
-		for(i=0;i<9;i++) _diReg[i] = 0;
-
-		_piReg[9] |= 0x0005;
-		__dvd_resetoccured = 1;
-		__dvd_lastresetend = __SYS_GetSystemTime();
-
-		_diReg[0] = (DVD_DE_MSK|DVD_TC_MSK|DVD_BRK_MSK);
-		_diReg[1] = DVD_CVR_MSK;
 	}
 }
 
@@ -3615,6 +3605,7 @@ static bool __gcode_Startup(DISC_INTERFACE *disc)
 	dvdcmdblk blk;
 
 	DVD_Init();
+	DVD_Reset(DVD_RESETNONE);
 
 	if(DVD_Inquiry(&blk, &__dvd_driveinfo) < 0)
 		return false;
