@@ -220,7 +220,10 @@ void AR_Reset()
 
 u32 AR_GetSize()
 {
-	return __ARSize;
+	u32 arsize;
+	arsize = *(u32*)0x800000d0;
+	if(!arsize) arsize = __ARSize;
+	return arsize;
 }
 
 u32 AR_GetBaseAddress()
@@ -541,6 +544,7 @@ end_expansion_check:
 #ifdef _AR_DEBUG
 	printf("__ARCheckSize(%d)\n",arsize);
 #endif
+	*(u32*)0x800000d0 = arsize;
 	__ARSize = arsize;
 }
 
