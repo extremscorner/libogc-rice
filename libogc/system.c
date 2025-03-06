@@ -59,6 +59,10 @@ distribution.
 #include "lwp_config.h"
 #include "libversion.h"
 
+#define SYSMEM1_SIZE				0x01800000
+#if defined(HW_RVL)
+#define SYSMEM2_SIZE				0x04000000
+#endif
 #define KERNEL_HEAP					(1*1024*1024)
 
 // DSPCR bits
@@ -128,6 +132,8 @@ static void *__sysarena1hi = NULL;
 #if defined(HW_RVL)
 static void *__sysarena2lo = NULL;
 static void *__sysarena2hi = NULL;
+static void *__ipcbufferlo = NULL;
+static void *__ipcbufferhi = NULL;
 #endif
 
 static void __RSWDefaultHandler();
@@ -164,6 +170,16 @@ extern void __irq_init(void);
 extern void __lwp_start_multitasking(void);
 extern void __libc_init(int);
 
+extern void __realmode(void(*)(void));
+extern void __configMEM1_16MB(void);
+extern void __configMEM1_24MB(void);
+extern void __configMEM1_32MB(void);
+extern void __configMEM1_48MB(void);
+#if defined(HW_RVL)
+extern void __configMEM2_64MB(void);
+extern void __configMEM2_128MB(void);
+#endif
+
 extern u32 __IPC_ClntInit(void);
 extern void __VIClearFramebuffer(void*,u32,u32);
 
@@ -182,6 +198,7 @@ extern int __libogc_nanosleep(const struct timespec *tb, struct timespec *rem);
 extern u8 __Arena1Lo[], __Arena1Hi[];
 #if defined(HW_RVL)
 extern u8 __Arena2Lo[], __Arena2Hi[];
+extern u8 __ipcbufferLo[], __ipcbufferHi[];
 #endif
 
 u8 *__argvArena1Lo = (u8*)0xdeadbeef;
@@ -362,8 +379,9 @@ static void __RSWHandler()
 	} while(!(_piReg[0]&0x10000));
 
 	if(!(_piReg[0]&0x10000)) {
-		if(__RSWCallback)
+		if(__RSWCallback) {
 			__RSWCallback();
+		}
 	}
 	_piReg[0] = 2;
 }
@@ -392,25 +410,60 @@ static void __STMEventHandler(u32 event)
 }
 #endif
 
-void * __attribute__ ((weak)) __myArena1Lo = 0;
-void * __attribute__ ((weak)) __myArena1Hi = 0;
-
-static void __lowmem_init()
-{
-	if ( __argvArena1Lo == (u8*)0xdeadbeef ) __argvArena1Lo = __Arena1Lo;
-	if (__myArena1Lo == 0) __myArena1Lo = __argvArena1Lo;
-	if (__myArena1Hi == 0) __myArena1Hi = __Arena1Hi;
-
-	__sysarena1lo = (void*)__myArena1Lo;
-	__sysarena1hi = (void*)__myArena1Hi;
+void *__attribute__((weak)) __myArena1Lo = NULL;
+void *__attribute__((weak)) __myArena1Hi = NULL;
 #if defined(HW_RVL)
-	__sysarena2lo = (void*)__Arena2Lo;
-	__sysarena2hi = (void*)__Arena2Hi;
+void *__attribute__((weak)) __myArena2Lo = NULL;
+void *__attribute__((weak)) __myArena2Hi = NULL;
+#endif
+
+static void __sysarena_init()
+{
+	if (__argvArena1Lo != (u8*)0xdeadbeef) __myArena1Lo = __argvArena1Lo;
+#if defined(HW_DOL)
+	if (__myArena1Lo == NULL) __myArena1Lo = *(void**)0x80000030;
+	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80000038;
+	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x800000EC;
+	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80000034;
+#elif defined(HW_RVL)
+	if (__myArena1Lo == NULL) __myArena1Lo = *(void**)0x8000310C;
+	if (__myArena1Hi == NULL) __myArena1Hi = *(void**)0x80003110;
+	if (__myArena2Lo == NULL) __myArena2Lo = *(void**)0x80003124;
+	if (__myArena2Hi == NULL) __myArena2Hi = *(void**)0x80003128;
+#endif
+
+	if (__myArena1Lo == NULL) __myArena1Lo = __Arena1Lo;
+	if (__myArena1Hi == NULL) __myArena1Hi = __Arena1Hi;
+#if defined(HW_RVL)
+	if (__myArena2Lo == NULL) __myArena2Lo = __Arena2Lo;
+	if (__myArena2Hi == NULL) __myArena2Hi = __Arena2Hi;
+#endif
+
+	SYS_SetArena1Lo(__myArena1Lo);
+	SYS_SetArena1Hi(__myArena1Hi);
+#if defined(HW_RVL)
+	SYS_SetArena2Lo(__myArena2Lo);
+	SYS_SetArena2Hi(__myArena2Hi);
 #endif
 }
 
+#if defined(HW_RVL)
+static void __ipcbuffer_init()
+{
+	__ipcbufferlo = *(void**)0x80003130;
+	__ipcbufferhi = *(void**)0x80003134;
+
+	if((__ipcbufferhi - __ipcbufferlo) == 0) {
+		__ipcbufferlo = __ipcbufferLo;
+		__ipcbufferhi = __ipcbufferHi;
+	}
+}
+#endif
+
 static void __memprotect_init()
 {
+	u32 size;
+
 	__MaskIrq((IM_MEM0|IM_MEM1|IM_MEM2|IM_MEM3));
 
 	_memReg[16] = 0;
@@ -423,6 +476,23 @@ static void __memprotect_init()
 	IRQ_Request(IRQ_MEMADDRESS,__MEMInterruptHandler);
 
 	SYS_RegisterResetFunc(&mem_resetinfo);
+
+#if defined(HW_DOL)
+	size = SYS_GetPhysicalMem1Size();
+	if(size<=0x01000000) __realmode(__configMEM1_16MB);
+	else if(size<=0x02000000) __realmode(__configMEM1_32MB);
+#elif defined(HW_RVL)
+	size = SYS_GetSimulatedMem1Size();
+	if(size<=0x01000000) __realmode(__configMEM1_16MB);
+	else if(size<=0x01800000) __realmode(__configMEM1_24MB);
+	else if(size<=0x02000000) __realmode(__configMEM1_32MB);
+	else if(size<=0x03000000) __realmode(__configMEM1_48MB);
+
+	size = SYS_GetSimulatedMem2Size();
+	if(size<=0x04000000) __realmode(__configMEM2_64MB);
+	else if(size<=0x08000000) __realmode(__configMEM2_128MB);
+#endif
+
 	__UnmaskIrq(IM_MEMADDRESS);		//only enable memaddress irq atm
 }
 
@@ -617,7 +687,7 @@ static u32 __unlocksram(u32 write,u32 loc)
 //returns the size of font
 static u32 __read_font(void *buffer)
 {
-	if(SYS_GetFontEncoding()==1) __SYS_ReadROM(buffer,315392,1769216);
+	if(SYS_GetFontEncoding()==SYS_FONTENC_SJIS) __SYS_ReadROM(buffer,315392,1769216);
 	else __SYS_ReadROM(buffer,12288,2084608);
 	return __get_fontsize(buffer);
 }
@@ -927,6 +997,16 @@ u32 __SYS_LoadFont(void *src,void *dest)
 }
 
 #if defined(HW_RVL)
+void* __SYS_GetIPCBufferLo()
+{
+	return __ipcbufferlo;
+}
+
+void* __SYS_GetIPCBufferHi()
+{
+	return __ipcbufferhi;
+}
+
 void __SYS_DoPowerCB(void)
 {
 	u32 level;
@@ -951,7 +1031,10 @@ void __SYS_InitCallbacks()
 void SYS_Init()
 {
 	__init_syscall_array();
-	__lowmem_init();
+	__sysarena_init();
+#if defined(HW_RVL)
+	__ipcbuffer_init();
+#endif
 	__lwp_wkspace_init(KERNEL_HEAP);
 	__lwp_queue_init_empty(&sys_reset_func_queue);
 	__lwp_objmgr_initinfo(&sys_alarm_objects,LWP_MAX_WATCHDOGS,sizeof(alarm_st));
@@ -1227,6 +1310,7 @@ u32 SYS_GetPhysicalMem1Size()
 {
 	u32 size;
 	size = *((u32*)0x80000028);
+	if(!size) size = SYSMEM1_SIZE;
 	return size;
 }
 
@@ -1235,6 +1319,7 @@ u32 SYS_GetSimulatedMem1Size()
 	u32 size;
 	size = *((u32*)0x800000f0);
 	if(!size) size = *((u32*)0x80000028);
+	if(!size) size = SYSMEM1_SIZE;
 	return size;
 }
 #elif defined(HW_RVL)
@@ -1242,6 +1327,7 @@ u32 SYS_GetPhysicalMem1Size()
 {
 	u32 size;
 	size = *((u32*)0x80003100);
+	if(!size) size = SYSMEM1_SIZE;
 	return size;
 }
 
@@ -1249,6 +1335,7 @@ u32 SYS_GetSimulatedMem1Size()
 {
 	u32 size;
 	size = *((u32*)0x80003104);
+	if(!size) size = SYSMEM1_SIZE;
 	return size;
 }
 
@@ -1346,6 +1433,7 @@ u32 SYS_GetPhysicalMem2Size()
 {
 	u32 size;
 	size = *((u32*)0x80003118);
+	if(!size) size = SYSMEM2_SIZE;
 	return size;
 }
 
@@ -1353,6 +1441,7 @@ u32 SYS_GetSimulatedMem2Size()
 {
 	u32 size;
 	size = *((u32*)0x8000311c);
+	if(!size) size = SYSMEM2_SIZE;
 	return size;
 }
 #endif
@@ -1407,22 +1496,26 @@ void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
 	return ptr;
 }
 
-u32 SYS_SetFontEncoding(u32 enc)
+u16 SYS_GetFontEncoding()
 {
-	if(sys_fontenc<=0x0001) return sys_fontenc;
-	sys_fontenc = enc;
-	return enc;
-}
+	u16 ret;
+	u32 tv;
 
-u32 SYS_GetFontEncoding()
-{
-	u32 ret;
-
-	if(sys_fontenc<=0x0001) return sys_fontenc;
+	if(sys_fontenc!=0xffff) return sys_fontenc;
 
 	ret = SYS_FONTENC_ANSI;
-	if(_viReg[55]&0x0002) ret = SYS_FONTENC_SJIS;
+	tv = *((u32*)0x800000cc);
+	if(tv==VI_NTSC && _viReg[55]&0x0002) ret = SYS_FONTENC_SJIS;
 	sys_fontenc = ret;
+	return ret;
+}
+
+u16 SYS_SetFontEncoding(u16 enc)
+{
+	u16 ret;
+
+	ret = SYS_GetFontEncoding();
+	if(enc<=SYS_FONTENC_SJIS) sys_fontenc = enc;
 	return ret;
 }
 
@@ -1432,7 +1525,7 @@ u32 SYS_InitFont(sys_fontheader *font_data)
 
 	if(!font_data) return 0;
 
-	if(SYS_GetFontEncoding()==1) {
+	if(SYS_GetFontEncoding()==SYS_FONTENC_SJIS) {
 		memset(font_data,0,SYS_FONTSIZE_SJIS);
 		packed_data = (void*)((u32)font_data+868096);
 	} else {

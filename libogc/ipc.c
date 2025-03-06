@@ -159,7 +159,6 @@ static void *_ipc_bufferlo = NULL;
 static void *_ipc_bufferhi = NULL;
 static void *_ipc_currbufferlo = NULL;
 static void *_ipc_currbufferhi = NULL;
-extern u8 __ipcbufferLo[], __ipcbufferHi[];
 
 static u32 _ipc_seed = 0xffffffff;
 
@@ -172,6 +171,8 @@ static struct _ipcheap _ipc_heaps[IPC_NUMHEAPS] =
 
 static vu32* const _ipcReg = (u32*)0xCD000000;
 
+extern void* __SYS_GetIPCBufferLo(void);
+extern void* __SYS_GetIPCBufferHi(void);
 
 static __inline__ u32 IPC_ReadReg(u32 reg)
 {
@@ -794,8 +795,8 @@ void IPC_SetBufferHi(void *bufferhi)
 void __IPC_Init(void)
 {
 	if(!_ipc_initialized) {
-		_ipc_bufferlo = _ipc_currbufferlo = (void*)__ipcbufferLo;
-		_ipc_bufferhi = _ipc_currbufferhi = (void*)__ipcbufferHi;
+		_ipc_bufferlo = _ipc_currbufferlo = __SYS_GetIPCBufferLo();
+		_ipc_bufferhi = _ipc_currbufferhi = __SYS_GetIPCBufferHi();
 		_ipc_initialized = 1;
 	}
 }

@@ -3,15 +3,21 @@
 	.section	.text.__InitBATS,"ax",@progbits
 	.globl	__InitBATS
 __InitBATS:
-	lis		r0,configBATS@h-0x80000000
-	ori		r0,r0,configBATS@l
-	mtsrr0	r0
-	mfmsr	r0
-	rlwinm	r0,r0,0,28,25
-	mtsrr1	r0
+	lis		r3,__configBATS@ha
+	addi	r3,r3,__configBATS@l
+
+	.globl	__realmode
+__realmode:
+	clrlwi	r3,r3,2
+	mtsrr0	r3
+	mfmsr	r3
+	rlwinm	r3,r3,0,28,25
+	mtsrr1	r3
 	rfi
 
-configBATS:
+	.section	.text.__configBATS,"ax",@progbits
+	.globl	__configBATS
+__configBATS:
 	// HID0 = 00910EEC:
 	// bus checkstops off, doze mode on,
 	// caches off, caches invalidate,
@@ -49,127 +55,351 @@ configBATS:
 	mtsr	14,r0; mtsr	15,r0
 	isync
 
-#if defined(HW_DOL)
 	// set [DI]BAT0 for 64MB@80000000,
 	// real 00000000, WIMG=0000, R/W
-	lis		r4,0x8000
-	li		r3,0x0002
-	ori		r4,r4,0x07FF
-	mtspr	IBAT0L,r3
-	mtspr	IBAT0U,r4
-	mtspr	DBAT0L,r3
-	mtspr	DBAT0U,r4
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x07FF
+	mtspr	IBAT0L,r4
+	mtspr	IBAT0U,r3
+	isync
+	mtspr	DBAT0L,r4
+	mtspr	DBAT0U,r3
 	isync
 
 	// set DBAT1 for 64MB@C0000000,
 	// real 00000000, WIMG=0100, R/W
-	oris	r6,r4,0x4000
-	ori		r5,r3,0x0020
-	mtspr	DBAT1L,r5
-	mtspr	DBAT1U,r6
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT1L,r6
+	mtspr	DBAT1U,r5
 	isync
 
+#if defined(HW_DOL)
 	// set DBAT2 for 16MB@C8000000,
 	// real 08000000, WIMG=0101, R/W
-	lis		r3,0x0800
-	lis		r4,0xC800
-	ori		r3,r3,0x002A
-	ori		r4,r4,0x01FE
-	mtspr	DBAT2L,r3
-	mtspr	DBAT2U,r4
+	lis		r4,0x0800
+	lis		r3,0xC800
+	addi	r4,r4,0x002A
+	addi	r3,r3,0x01FE
+	mtspr	DBAT2L,r4
+	mtspr	DBAT2U,r3
 	isync
 
 	// set DBAT3 for 16MB@CC000000,
 	// real 0C000000, WIMG=0101, R/W
-	addis	r3,r3,0x0400
 	addis	r4,r4,0x0400
-	mtspr	DBAT3L,r3
-	mtspr	DBAT3U,r4
+	addis	r3,r3,0x0400
+	mtspr	DBAT3L,r4
+	mtspr	DBAT3U,r3
 	isync
 #elif defined(HW_RVL)
-	// set [DI]BAT0 for 16MB@80000000,
-	// real 00000000, WIMG=0000, R/W
-	lis		r4,0x8000
-	li		r3,0x0002
-	ori		r4,r4,0x01FF
-	mtspr	IBAT0L,r3
-	mtspr	IBAT0U,r4
-	mtspr	DBAT0L,r3
-	mtspr	DBAT0U,r4
-	isync
-
-	// set DBAT1 for 16MB@C0000000,
-	// real 00000000, WIMG=0100, R/W
-	oris	r6,r4,0x4000
-	ori		r5,r3,0x0020
-	mtspr	DBAT1L,r5
-	mtspr	DBAT1U,r6
-	isync
-
-	// set [DI]BAT2 for 8MB@81000000,
-	// real 01000000, WIMG=0000, R/W
-	addis	r3,r3,0x0100
-	lis		r4,0x8100
-	ori		r4,r4,0x00FF
-	mtspr	IBAT1L,r3
-	mtspr	IBAT1U,r4
-	mtspr	DBAT2L,r3
-	mtspr	DBAT2U,r4
-	isync
-
-	// set DBAT3 for 8MB@C1000000,
-	// real 01000000, WIMG=0100, R/W
-	oris	r6,r4,0x4000
-	ori		r5,r3,0x0020
-	mtspr	DBAT3L,r5
-	mtspr	DBAT3U,r6
-	isync
-
-	// set [DI]BAT4 for 64MB@90000000,
+	// set [DI]BAT4 for 256MB@90000000,
 	// real 10000000, WIMG=0000, R/W
-	addis	r3,r3,0x0F00
-	lis		r4,0x9000
-	ori		r4,r4,0x07FF
-	mtspr	IBAT2L,r3
-	mtspr	IBAT2U,r4
-	mtspr	DBAT4L,r3
-	mtspr	DBAT4U,r4
+	addis	r4,r4,0x1000
+	addis	r3,r3,0x1000
+	addi	r3,r3,0x1800
+	mtspr	IBAT4L,r4
+	mtspr	IBAT4U,r3
+	isync
+	mtspr	DBAT4L,r4
+	mtspr	DBAT4U,r3
 	isync
 
-	// set DBAT5 for 64MB@D0000000,
+	// set DBAT5 for 256MB@D0000000,
 	// real 10000000, WIMG=0100, R/W
-	oris	r6,r4,0x4000
-	ori		r5,r3,0x0020
-	mtspr	DBAT5L,r5
-	mtspr	DBAT5U,r6
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT5L,r6
+	mtspr	DBAT5U,r5
 	isync
 
 	// set DBAT6 for 16MB@C8000000,
 	// real 08000000, WIMG=0101, R/W
-	lis		r3,0x0800
-	lis		r4,0xC800
-	ori		r3,r3,0x002A
-	ori		r4,r4,0x01FE
-	mtspr	DBAT6L,r3
-	mtspr	DBAT6U,r4
+	lis		r4,0x0800
+	lis		r3,0xC800
+	addi	r4,r4,0x002A
+	addi	r3,r3,0x01FE
+	mtspr	DBAT6L,r4
+	mtspr	DBAT6U,r3
 	isync
 
 	// set DBAT7 for 32MB@CC000000,
 	// real 0C000000, WIMG=0101, R/W
+	addis	r4,r4,0x0400
 	addis	r3,r3,0x0400
-	lis		r4,0xCC00
-	ori		r4,r4,0x03FE
-	mtspr	DBAT7L,r3
-	mtspr	DBAT7U,r4
+	addi	r3,r3,0x0200
+	mtspr	DBAT7L,r4
+	mtspr	DBAT7U,r3
 	isync
 #endif
 
-	mflr	r0
-	oris	r0,r0,0x8000
-	mtsrr0	r0
-	li		r0,MSR_FP|MSR_IR|MSR_DR
-	mtsrr1	r0
+	li		r3,MSR_FP|MSR_IR|MSR_DR
+	mtsrr1	r3
+	mflr	r3
+	oris	r3,r3,0x8000
+	mtsrr0	r3
 	rfi
+
+	.section	.text.__configMEM1_16MB,"ax",@progbits
+	.globl	__configMEM1_16MB
+__configMEM1_16MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 16MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x01FF
+	mtspr	IBAT0U,r0
+	mtspr	IBAT0L,r4
+	mtspr	IBAT0U,r3
+	isync
+	mtspr	DBAT0U,r0
+	mtspr	DBAT0L,r4
+	mtspr	DBAT0U,r3
+	isync
+
+	// set DBAT1 for 16MB@C0000000,
+	// real 00000000, WIMG=0100, R/W
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT1U,r0
+	mtspr	DBAT1L,r6
+	mtspr	DBAT1U,r5
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.section	.text.__configMEM1_24MB,"ax",@progbits
+	.globl	__configMEM1_24MB
+__configMEM1_24MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 16MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x01FF
+	mtspr	IBAT0U,r0
+	mtspr	IBAT0L,r4
+	mtspr	IBAT0U,r3
+	isync
+	mtspr	DBAT0U,r0
+	mtspr	DBAT0L,r4
+	mtspr	DBAT0U,r3
+	isync
+
+	// set DBAT1 for 16MB@C0000000,
+	// real 00000000, WIMG=0100, R/W
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT1U,r0
+	mtspr	DBAT1L,r6
+	mtspr	DBAT1U,r5
+	isync
+
+	// set [DI]BAT2 for 8MB@81000000,
+	// real 01000000, WIMG=0000, R/W
+	addis	r4,r4,0x0100
+	addis	r3,r3,0x0100
+	subi	r3,r3,0x0100
+	mtspr	IBAT2U,r0
+	mtspr	IBAT2L,r4
+	mtspr	IBAT2U,r3
+	isync
+	mtspr	DBAT2U,r0
+	mtspr	DBAT2L,r4
+	mtspr	DBAT2U,r3
+	isync
+
+	// set DBAT3 for 8MB@C1000000,
+	// real 01000000, WIMG=0100, R/W
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT3U,r0
+	mtspr	DBAT3L,r6
+	mtspr	DBAT3U,r5
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.section	.text.__configMEM1_32MB,"ax",@progbits
+	.globl	__configMEM1_32MB
+__configMEM1_32MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 32MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x03FF
+	mtspr	IBAT0U,r0
+	mtspr	IBAT0L,r4
+	mtspr	IBAT0U,r3
+	isync
+	mtspr	DBAT0U,r0
+	mtspr	DBAT0L,r4
+	mtspr	DBAT0U,r3
+	isync
+
+	// set DBAT1 for 32MB@C0000000,
+	// real 00000000, WIMG=0100, R/W
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT1U,r0
+	mtspr	DBAT1L,r6
+	mtspr	DBAT1U,r5
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.section	.text.__configMEM1_48MB,"ax",@progbits
+	.globl	__configMEM1_48MB
+__configMEM1_48MB:
+	li		r0,0
+
+	// set [DI]BAT0 for 32MB@80000000,
+	// real 00000000, WIMG=0000, R/W
+	lis		r3,0x8000
+	li		r4,0x0002
+	addi	r3,r3,0x03FF
+	mtspr	IBAT0U,r0
+	mtspr	IBAT0L,r4
+	mtspr	IBAT0U,r3
+	isync
+	mtspr	DBAT0U,r0
+	mtspr	DBAT0L,r4
+	mtspr	DBAT0U,r3
+	isync
+
+	// set DBAT1 for 32MB@C0000000,
+	// real 00000000, WIMG=0100, R/W
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT1U,r0
+	mtspr	DBAT1L,r6
+	mtspr	DBAT1U,r5
+	isync
+
+	// set [DI]BAT2 for 16MB@82000000,
+	// real 02000000, WIMG=0000, R/W
+	addis	r4,r4,0x0200
+	addis	r3,r3,0x0200
+	subi	r3,r3,0x0200
+	mtspr	IBAT2U,r0
+	mtspr	IBAT2L,r4
+	mtspr	IBAT2U,r3
+	isync
+	mtspr	DBAT2U,r0
+	mtspr	DBAT2L,r4
+	mtspr	DBAT2U,r3
+	isync
+
+	// set DBAT3 for 16MB@C2000000,
+	// real 02000000, WIMG=0100, R/W
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT3U,r0
+	mtspr	DBAT3L,r6
+	mtspr	DBAT3U,r5
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+#if defined(HW_RVL)
+	.section	.text.__configMEM2_64MB,"ax",@progbits
+	.globl	__configMEM2_64MB
+__configMEM2_64MB:
+	li		r0,0
+
+	// set [DI]BAT4 for 64MB@90000000,
+	// real 10000000, WIMG=0000, R/W
+	lis		r4,0x1000
+	lis		r3,0x9000
+	addi	r4,r4,0x0002
+	addi	r3,r3,0x07FF
+	mtspr	IBAT4U,r0
+	mtspr	IBAT4L,r4
+	mtspr	IBAT4U,r3
+	isync
+	mtspr	DBAT4U,r0
+	mtspr	DBAT4L,r4
+	mtspr	DBAT4U,r3
+	isync
+
+	// set DBAT5 for 64MB@D0000000,
+	// real 10000000, WIMG=0100, R/W
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT5U,r0
+	mtspr	DBAT5L,r6
+	mtspr	DBAT5U,r5
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+
+	.section	.text.__configMEM2_128MB,"ax",@progbits
+	.globl	__configMEM2_128MB
+__configMEM2_128MB:
+	li		r0,0
+
+	// set [DI]BAT4 for 128MB@90000000,
+	// real 10000000, WIMG=0000, R/W
+	lis		r4,0x1000
+	lis		r3,0x9000
+	addi	r4,r4,0x0002
+	addi	r3,r3,0x0FFF
+	mtspr	IBAT4U,r0
+	mtspr	IBAT4L,r4
+	mtspr	IBAT4U,r3
+	isync
+	mtspr	DBAT4U,r0
+	mtspr	DBAT4L,r4
+	mtspr	DBAT4U,r3
+	isync
+
+	// set DBAT5 for 128MB@D0000000,
+	// real 10000000, WIMG=0100, R/W
+	addis	r5,r3,0x4000
+	addi	r6,r4,0x0020
+	mtspr	DBAT5U,r0
+	mtspr	DBAT5L,r6
+	mtspr	DBAT5U,r5
+	isync
+
+	mfmsr	r3
+	ori		r3,r3,MSR_DR|MSR_IR
+	mtsrr1	r3
+	mflr	r3
+	mtsrr0	r3
+	rfi
+#endif
 
 	.section	.text.__InitPS,"ax",@progbits
 	.globl	__InitPS

@@ -393,8 +393,8 @@ u16 SYS_GetGBSMode();
 void SYS_SetGBSMode(u16 mode);
 
 u32 SYS_GetConsoleType();
-u32 SYS_GetFontEncoding();
-u32 SYS_SetFontEncoding(u32 enc);
+u16 SYS_GetFontEncoding();
+u16 SYS_SetFontEncoding(u16 enc);
 u32 SYS_InitFont(sys_fontheader *font_data);
 void SYS_GetFontTexture(s32 c,void **image,s32 *xpos,s32 *ypos,s32 *width);
 void SYS_GetFontTexel(s32 c,void *image,s32 pos,s32 stride,s32 *width);
