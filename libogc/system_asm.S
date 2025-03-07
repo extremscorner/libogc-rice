@@ -524,6 +524,40 @@ __InitCache:
 	sync
 	blr
 
+#if defined(HW_DOL)
+	.section	.text.__reset,"ax",@progbits
+	.globl	__reset
+__reset:
+	b		1f
+9:	mfspr	r8,HID0
+	ori		r8,r8,0x0008
+	mtspr	HID0,r8
+	isync
+	sync
+	nop
+	b		2f
+1:	b		3f
+2:	mftb	r5
+4:	mftb	r6
+	subf	r7,r5,r6
+	cmplwi	r7,0x1124
+	blt		4b
+	nop
+	b		5f
+3:	b		6f
+5:	lis		r8,0xCC00
+	ori		r8,r8,0x3000
+	li		r4,3
+	stw		r4,36(r8)
+	stw		r3,36(r8)
+	nop
+	b		7f
+6:	b		8f
+7:	nop
+	b		7b
+8:	b		9b
+#endif
+
 	.section	.text.SYS_SwitchFiber,"ax",@progbits
 	.globl	SYS_SwitchFiber
 SYS_SwitchFiber:
