@@ -183,6 +183,8 @@ distribution.
 	#define SYS_GetArenaSize			SYS_GetArena1Size
 	#define SYS_AllocArenaMemLo			SYS_AllocArenaMem1Lo
 	#define SYS_AllocArenaMemHi			SYS_AllocArenaMem1Hi
+	#define SYS_GetPhysicalMemSize		SYS_GetPhysicalMem1Size
+	#define SYS_GetSimulatedMemSize		SYS_GetSimulatedMem1Size
 #elif defined(HW_RVL)
 	#define SYS_GetArenaLo				SYS_GetArena2Lo
 	#define SYS_SetArenaLo				SYS_SetArena2Lo
@@ -191,6 +193,8 @@ distribution.
 	#define SYS_GetArenaSize			SYS_GetArena2Size
 	#define SYS_AllocArenaMemLo			SYS_AllocArenaMem2Lo
 	#define SYS_AllocArenaMemHi			SYS_AllocArenaMem2Hi
+	#define SYS_GetPhysicalMemSize		SYS_GetPhysicalMem2Size
+	#define SYS_GetSimulatedMemSize		SYS_GetSimulatedMem2Size
 #endif
 
 #ifdef __cplusplus
