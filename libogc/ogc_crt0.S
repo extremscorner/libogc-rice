@@ -18,18 +18,27 @@
 
 	.globl	_start
 _start:
-	b	startup
-	.long	0x5f617267
+	b		1f
+	.ascii	"_arg"
 __argv:
 	.long	0		# argv magic
-	.long 0		# command line
-	.long 0		# command line length
+	.long	0		# command line
+	.long	0		# command line length
 	.long	0		# argc
-	.long	0		#	argv
-	.long 0		# end address of argv
+	.long	0		# argv
+	.long	0		# end address of argv
 
-startup:
-	bl		__InitBATS			# Initialize BATs to a clear and known state
+1:	b		2f
+	.ascii	"_env"
+__envp:
+	.long	0		# envp magic
+	.long	0		# environment
+	.long	0		# environment length
+	.long	0		# envc
+	.long	0		# envv
+	.long	0		# end address of envv
+
+2:	bl		__InitBATS			# Initialize BATs to a clear and known state
 	bl		__InitGPRS			# Initialize the General Purpose Registers
 	bl		__InitPS 			# Initialize Paired Singles
 	bl		__InitFPRS		 	# Initialize the FPR's
@@ -105,3 +114,8 @@ __crt0stack:
 	.globl	__system_argv
 __system_argv:
 	.long	__argv
+
+	.section	.sdata,"aw",@progbits
+	.globl	__system_envp
+__system_envp:
+	.long	__envp
