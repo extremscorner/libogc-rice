@@ -41,7 +41,6 @@ distribution.
 
 #include "system.h"
 
-#include "audio.h"
 #include "gx.h"
 #include "pad.h"
 #include "exi.h"
@@ -50,7 +49,8 @@ distribution.
 #include "lwp_threads.h"
 #include "ios.h"
 
-#include "ogc/video_types.h"
+#include "video.h"
+#include "video_types.h"
 
 //#define _EXC_DEBUG
 
@@ -64,15 +64,13 @@ typedef struct _framerec {
 static void *exception_xfb = (void*)0xC1700000;			//we use a static address above ArenaHi.
 static int reload_timer = -1;
 
-static int stride_width = 640;
-static int stride_length = 1280;
-
 void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*));
 
 extern void irq_exceptionhandler();
 extern void dec_exceptionhandler();
 extern void default_exceptionhandler();
 extern void VIDEO_SetFramebuffer(void *);
+extern void __dsp_shutdown();
 extern void __reload();
 
 extern s8 exceptionhandler_start[],exceptionhandler_patch[],exceptionhandler_end[];
@@ -194,12 +192,6 @@ void __exception_setreload(int t)
 	reload_timer = t*50;
 }
 
-void __exception_setstride(int w, int l)
-{
-	stride_width = w;
-	stride_length = l;
-}
-
 static void waitForReload()
 {
 	PAD_Init();
@@ -228,11 +220,15 @@ static void waitForReload()
 //just implement core for unrecoverable exceptions.
 void __attribute__((weak)) c_default_exceptionhandler(frame_context *pCtx)
 {
-	AUDIO_StopDMA();
+	u16 xstart,ystart;
+	u16 xres,yres,stride;
+
+	__dsp_shutdown();
 	GX_AbortFrame();
-	VIDEO_SetFramebuffer(exception_xfb);
-	__console_init(exception_xfb, 0, 0, stride_width, VI_MAX_HEIGHT_PAL, stride_length);
+	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
+	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
 	CON_EnableGecko(EXI_CHANNEL_1, true);
+	VIDEO_SetFramebuffer(exception_xfb);
 	raise(exception_signal[pCtx->EXCPT_Number]);
 
 	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->EXCPT_Number]);

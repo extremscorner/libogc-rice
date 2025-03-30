@@ -742,7 +742,7 @@ static void __dsp_bootstrap()
 	memcpy((void*)0x81000000,_dsp_initcode,128);
 	DCFlushRange((void*)0x81000000,128);
 
-	_dspReg[9] = 67;
+	_dspReg[9] = 0x43;
 	_dspReg[5] = (DSPCR_DSPRESET|DSPCR_DSPINT|DSPCR_ARINT|DSPCR_AIINT|DSPCR_HALT);
 	_dspReg[5] |= DSPCR_RES;
 	while(_dspReg[5]&DSPCR_RES);
@@ -786,7 +786,7 @@ static void __dsp_bootstrap()
 #endif
 }
 
-static void __dsp_shutdown()
+void __dsp_shutdown()
 {
 	u32 tick;
 

@@ -2801,7 +2801,6 @@ static VIPositionCallback positionCB = NULL;
 
 static vu16* const _viReg = (u16*)0xCC002000;
 
-extern void __exception_setstride(int w, int l);
 extern void __VIClearFramebuffer(void*,u32,u32);
 
 #ifdef _VIDEO_DEBUG
@@ -3968,7 +3967,6 @@ void VIDEO_Configure(GXRModeObj *rmode)
 #ifdef _VIDEO_DEBUG
 	printDebugCalculations();
 #endif
-	__exception_setstride(rmode->fbWidth, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
 	_CPU_ISR_Restore(level);
 }
 
@@ -4022,6 +4020,7 @@ void VIDEO_SetFramebuffer(void *fb)
 	_CPU_ISR_Disable(level);
 	fbSet = 1;
 	HorVer.bufAddr = fb;
+	if(HorVer.threeD) HorVer.rbufAddr = fb;
 	__setFbbRegs(&HorVer,&HorVer.tfbb,&HorVer.bfbb,&HorVer.rtfbb,&HorVer.rbfbb);
 	_viReg[14] = regs[14];
 	_viReg[15] = regs[15];
@@ -4254,7 +4253,20 @@ VIRetraceCallback VIDEO_SetPostRetraceCallback(VIRetraceCallback callback)
 	return old;
 }
 
-u32 VIDEO_GetFrameBufferSize(GXRModeObj *rmode)
+void VIDEO_GetFrameBufferPan(u16 *xOrg,u16 *yOrg,u16 *width,u16 *height,u16 *stride)
+{
+	u32 level;
+
+	_CPU_ISR_Disable(level);
+	*xOrg = HorVer.panPosX;
+	*yOrg = HorVer.panPosY;
+	*width = HorVer.panSizeX;
+	*height = HorVer.panSizeY;
+	*stride = VIDEO_PadFramebufferWidth(HorVer.fbSizeX);
+	_CPU_ISR_Restore(level);
+}
+
+u32 VIDEO_GetFrameBufferSize(const GXRModeObj *rmode)
 {
 	u16 w, h;
 
@@ -4264,7 +4276,7 @@ u32 VIDEO_GetFrameBufferSize(GXRModeObj *rmode)
 	return w * h * VI_DISPLAY_PIX_SZ;
 }
 
-void VIDEO_ClearFrameBuffer(GXRModeObj *rmode,void *fb,u32 color)
+void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color)
 {
 	__VIClearFramebuffer(fb, VIDEO_GetFrameBufferSize(rmode), color);
 }
