@@ -63,6 +63,9 @@ typedef struct _framerec {
 
 static void *exception_xfb = (void*)0xC1700000;			//we use a static address above ArenaHi.
 static int reload_timer = -1;
+static u32 rumble_cmds[PAD_CHANMAX] = {
+	PAD_MOTOR_STOP, PAD_MOTOR_STOP, PAD_MOTOR_STOP, PAD_MOTOR_STOP
+};
 
 void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*));
 
@@ -187,6 +190,11 @@ static void _cpu_print_stack(void *pc,void *lr,void *r1)
 	}
 }
 
+void __exception_setrumble(s32 chan,u32 cmd)
+{
+	rumble_cmds[chan] = cmd;
+}
+
 void __exception_setreload(int t)
 {
 	reload_timer = t*50;
@@ -195,7 +203,9 @@ void __exception_setreload(int t)
 static void waitForReload()
 {
 	PAD_Init();
-	
+
+	PAD_ControlAllMotors(rumble_cmds);
+
 	if(reload_timer > 0)
 		kprintf("\n\tReloading in %d seconds\n", reload_timer/50);
 
@@ -257,4 +267,3 @@ void __attribute__((weak)) c_default_exceptionhandler(frame_context *pCtx)
 
 	waitForReload();
 }
-
