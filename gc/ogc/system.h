@@ -303,6 +303,13 @@ struct _sys_resetinfo {
 	u32 prio;
 };
 
+/*! \fn void SYS_Init()
+\deprecated Performs basic system initialization such as EXI init etc. This function is called from within the crt0 startup code.
+
+\return none
+*/
+void SYS_Init();
+
 
 /*!
  * \fn void* SYS_AllocateFramebuffer(GXRModeObj *rmode)

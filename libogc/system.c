@@ -124,6 +124,7 @@ static u8 *sys_fontimage = NULL;
 static sys_fontheader *sys_fontdata = NULL;
 
 static lwp_queue sys_reset_func_queue;
+static u32 system_initialized = 0;
 static lwp_objinfo sys_alarm_objects;
 
 static void *__sysarena1lo = NULL;
@@ -1037,8 +1038,21 @@ void __SYS_InitCallbacks()
 	__RSWCallback = __RSWDefaultHandler;
 }
 
+void __attribute__((weak)) __SYS_PreInit()
+{
+
+}
+
 void SYS_Init()
 {
+	u32 level;
+
+	if(system_initialized) return;
+	system_initialized = 1;
+
+	_CPU_ISR_Disable(level);
+	__SYS_PreInit();
+
 	__init_syscall_array();
 	__sysarena_init();
 #if defined(HW_RVL)
@@ -1073,6 +1087,7 @@ void SYS_Init()
 #endif
 	__libc_init(1);
 	__lwp_thread_startmultitasking();
+	_CPU_ISR_Restore(level);
 }
 
 // This function gets called inside the main thread, prior to the application's main() function
