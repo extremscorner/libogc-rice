@@ -498,7 +498,7 @@ static void __memprotect_init()
 	else if(size<=0x02000000) __realmode(__configMEM1_32MB);
 	else if(size<=0x03000000) __realmode(__configMEM1_48MB);
 
-	size = SYS_GetSimulatedMem2Size();
+	size = SYS_GetPhysicalMem2Size();
 	if(size<=0x04000000) __realmode(__configMEM2_64MB);
 	else if(size<=0x08000000) __realmode(__configMEM2_128MB);
 #endif
@@ -1040,7 +1040,24 @@ void __SYS_InitCallbacks()
 
 void __attribute__((weak)) __SYS_PreInit()
 {
+#if defined(HW_RVL)
+	if (read32(0xcd800064) != 0xffffffff) return;
+	if ((read32(0xcd8005a0) >> 16) == 0xcafe)
+		write16(0xcd8b421a, 0x3fff);
 
+	u16 mem_rowsel = read16(0xcd8b4212) & 0x7;
+	u16 mem_ranksel = read16(0xcd8b4216) & 0x7;
+	u16 mem_rowmsk = read16(0xcd8b421a) & 0x3fff;
+
+	u32 mem_size = read32(0x80003118);
+
+	if (read16(0xcd8b420c) < (mem_size >> 12) &&
+		read16(0xcd8b420e) >= (mem_size >> 12))
+		write16(0xcd8b420e, (mem_size - 1) >> 12);
+
+	mem_size = 1 << (32 - cntlzw(((0x20000 >> mem_ranksel) & 0x3f000) | ((mem_rowmsk << mem_rowsel) & 0x3ffff)) + 10);
+	write32(0x80003118, mem_size);
+#endif
 }
 
 void SYS_Init()
