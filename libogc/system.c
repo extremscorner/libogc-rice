@@ -1042,6 +1042,7 @@ void __attribute__((weak)) __SYS_PreInit()
 {
 #if defined(HW_RVL)
 	if (read32(0xcd800064) != 0xffffffff) return;
+	if (read32(0xcd800214) != read32(0x80003138)) return;
 	if ((read32(0xcd8005a0) >> 16) == 0xcafe)
 		write16(0xcd8b421a, 0x3fff);
 
