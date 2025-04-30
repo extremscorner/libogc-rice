@@ -449,7 +449,7 @@ u32 SYS_EjectButtonDown();
 
 u32 SYS_ButtonsDown();
 
-void kprintf(const char *str, ...);
+void kprintf(const char *fmt,...);
 
 #ifdef __cplusplus
    }

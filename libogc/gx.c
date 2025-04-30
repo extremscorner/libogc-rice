@@ -132,10 +132,6 @@ static sys_resetinfo __gx_resetinfo = {
 	127
 };
 
-#ifdef _GP_DEBUG
-extern int printk(const char *fmt,...);
-#endif
-
 static __inline__ BOOL IsWriteGatherBufferEmpty()
 {
 	return !(mfwpar()&1);

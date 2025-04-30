@@ -40,20 +40,20 @@ distribution.
 //#define _DECEX_DEBUG
 
 #ifdef _DECEX_DEBUG
-extern int printk(const char *fmt,...);
+extern void kprintf(const char *fmt,...);
 #endif
 
 void __decrementer_init()
 {
 #ifdef _DECEX_DEBUG
-	printf("__decrementer_init()\n\n");
+	kprintf("__decrementer_init()\n\n");
 #endif
 }
 
 void c_decrementerhandler(frame_context *ctx)
 {
 #ifdef _DECEX_DEBUG
-	printk("c_decrementerhandler(%d)\n",_wd_ticks_since_boot);
+	kprintf("c_decrementerhandler(%d)\n",_wd_ticks_since_boot);
 #endif
 	__lwp_wd_tickle_ticks();
 }
