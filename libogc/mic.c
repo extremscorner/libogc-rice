@@ -69,8 +69,8 @@ struct MICControlBlock
 {
 	s32 result_code;
 	
-	BOOL is_attached;
-	BOOL is_active;
+	bool is_attached;
+	bool is_active;
 	
 	lwpq_t thread_queue;
 	
@@ -117,7 +117,7 @@ struct MICControlBlock
 static syswd_t __alarm;
 static syswd_t __timeout[2];
 
-static BOOL __init = FALSE;
+static bool __init = false;
 
 #define secs_to_nanosecs_f(sec) \
 	((sec) * 1000000000.)
@@ -149,9 +149,9 @@ static s32 __MICRawReset(s32 chan);
 static s32 __MICRawReadStatus(s32 chan, u32 *status);
 static s32 __MICRawWriteStatus(s32 chan, u32 status);
 static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback dmaCallback);
-static s32 __MICGetControlBlock(s32 chan, BOOL skip_active_check, struct MICControlBlock **micblock);
-static void __MICPutControlBlock(struct MICControlBlock *micblock, s32 result);
-static BOOL __MICUpdateStatus(s32 chan, u32 status, BOOL check);
+static s32 __MICGetControlBlock(s32 chan, bool skip_active_check, struct MICControlBlock **mic_block);
+static void __MICPutControlBlock(struct MICControlBlock *mic_block, s32 result);
+static bool __MICUpdateStatus(s32 chan, u32 status, bool status_check);
 static void __MICUpdateButton(s32 chan);
 
 
@@ -162,7 +162,7 @@ static s32 __MICDoMount(s32 chan)
 	
 	u32 level = IRQ_Disable();
 	
-	cb->is_attached = TRUE;
+	cb->is_attached = true;
 	
 	u32 exiID;
 	if (!EXI_GetID(chan, EXI_DEVICE_0, &exiID))
@@ -184,7 +184,7 @@ static s32 __MICDoMount(s32 chan)
 		((result = __MICRawReset(chan)) >= MIC_RESULT_READY) &&
 		((result = __MICRawReadStatus(chan, &status)) >= MIC_RESULT_READY))
 	{
-		__MICUpdateStatus(chan, status, FALSE);
+		__MICUpdateStatus(chan, status, false);
 		
 		cb->button = 0;
 		cb->last_button = 0;
@@ -228,7 +228,7 @@ static void __MICDoUnmount(s32 chan, s32 result)
 		EXI_Detach(chan);
 		
 		cb->result_code = result;
-		cb->is_attached = FALSE;
+		cb->is_attached = false;
 		cb->error_count = 0;
 	}
 	else
@@ -285,7 +285,7 @@ static void __MICSetCallback(s32 chan, s32 result)
 	u32 status = __MICBlock[chan].status;
 	
 	if (__MICRawWriteStatus(chan, status) >= MIC_RESULT_READY)
-		__MICUpdateStatus(chan, status, FALSE);
+		__MICUpdateStatus(chan, status, false);
 }
 
 static void __MICResetCallback(s32 chan, s32 result)
@@ -294,7 +294,7 @@ static void __MICResetCallback(s32 chan, s32 result)
 	
 	if (__MICRawReset(chan) >= MIC_RESULT_READY)
 		if (__MICRawReadStatus(chan, &status) >= MIC_RESULT_READY)
-			__MICUpdateStatus(chan, status, FALSE);
+			__MICUpdateStatus(chan, status, false);
 }
 
 static s32 __MICSync(s32 chan)
@@ -324,8 +324,8 @@ static s32 __MICExtHandler(s32 chan, s32 dev)
 	{
 		EXI_RegisterEXICallback(chan, NULL);
 		cb->result_code = MIC_RESULT_NOCARD;
-		cb->is_attached = FALSE;
-		cb->is_active = FALSE;
+		cb->is_attached = false;
+		cb->is_active = false;
 		cb->error_count = 0;
 		
 		MICCallback attach = cb->attach_callback;
@@ -361,7 +361,7 @@ static s32 __MICExiHandler(s32 chan, s32 dev)
 		{
 			u32 status;
 			if (((result_code = __MICRawReadStatus(chan, &status)) >= MIC_RESULT_READY) &&
-				__MICUpdateStatus(chan, status, TRUE))
+				__MICUpdateStatus(chan, status, true))
 			{
 				if (status & MIC_STATUS_BUFOVRFLW)
 				{
@@ -432,7 +432,7 @@ static s32 __MICTxHandler(s32 chan, s32 dev)
 	{
 		u32 status;
 		if (((result_code = __MICRawReadStatus(chan, &status)) >= MIC_RESULT_READY) &&
-			 __MICUpdateStatus(chan, status, TRUE))
+			 __MICUpdateStatus(chan, status, true))
 		{
 			if (status & MIC_STATUS_BUFOVRFLW)
 			{
@@ -473,7 +473,7 @@ static void __MICAlarmCallback(syswd_t alarm, void *cb_arg)
 			s32 result;
 			
 			if ((result = __MICRawReadStatus(chan, &status)) >= MIC_RESULT_READY &&
-				__MICUpdateStatus(chan, status, TRUE))
+				__MICUpdateStatus(chan, status, true))
 			{
 				__MICUpdateButton(chan);
 				
@@ -508,11 +508,11 @@ static void __MICTimeoutCallback(syswd_t alarm, void *cb_arg)
 	{
 		if (EXI_Lock(chan, EXI_DEVICE_0, NULL))
 		{
-			cb->is_active = FALSE;
+			cb->is_active = false;
 			__MICRawReset(chan);
 			u32 status;
 			__MICRawReadStatus(chan, &status);
-			__MICUpdateStatus(chan, status, FALSE);
+			__MICUpdateStatus(chan, status, false);
 			EXI_Unlock(chan);
 		}
 		else
@@ -529,7 +529,7 @@ static s32 __MICRawReset(s32 chan)
 	
 	if (EXI_Select(chan, EXI_DEVICE_0, EXI_SPEED16MHZ))
 	{
-		BOOL exi_fail = FALSE;
+		bool exi_fail = false;
 		
 		u16 cmd = MIC_RESET << 8;
 		exi_fail |= !EXI_ImmEx(chan, &cmd, 1, EXI_WRITE);
@@ -550,7 +550,7 @@ static s32 __MICRawReadStatus(s32 chan, u32 *status)
 	
 	if (EXI_Select(chan, EXI_DEVICE_0, EXI_SPEED16MHZ))
 	{
-		BOOL exi_fail = FALSE;
+		bool exi_fail = false;
 		
 		u16 data = MIC_READ_STATUS << 8;
 		exi_fail |= !EXI_ImmEx(chan, &data, 1, EXI_WRITE);
@@ -574,7 +574,7 @@ static s32 __MICRawWriteStatus(s32 chan, u32 status)
 	
 	if (EXI_Select(chan, EXI_DEVICE_0, EXI_SPEED16MHZ))
 	{
-		BOOL exi_fail = FALSE;
+		bool exi_fail = false;
 		
 		u32 data = (MIC_WRITE_STATUS << 24) | ((status & 0xffff) << 8);
 		exi_fail |= !EXI_ImmEx(chan, &data, 3, EXI_WRITE);
@@ -598,7 +598,7 @@ static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback dmaCa
 	
 	if (EXI_Select(chan, EXI_DEVICE_0, EXI_SPEED16MHZ))
 	{
-		BOOL exi_fail = FALSE;
+		bool exi_fail = false;
 		
 		u16 cmd = MIC_DMA_DATA << 8;
 		exi_fail |= !EXI_ImmEx(chan, &cmd, 1, EXI_WRITE);
@@ -614,7 +614,7 @@ static s32 __MICRawReadDataAsync(s32 chan, s16 *data, u32 len, EXICallback dmaCa
 	return result;
 }
 
-static s32 __MICGetControlBlock(s32 chan, BOOL skip_active_check, struct MICControlBlock **micblock)
+static s32 __MICGetControlBlock(s32 chan, bool skip_active_check, struct MICControlBlock **mic_block)
 {
 	s32 result = MIC_RESULT_NOCARD;
 	struct MICControlBlock *cb = &__MICBlock[chan];
@@ -630,7 +630,7 @@ static s32 __MICGetControlBlock(s32 chan, BOOL skip_active_check, struct MICCont
 				cb->result_code = MIC_RESULT_BUSY;
 				result = MIC_RESULT_READY;
 				cb->attach_callback = NULL;
-				*micblock = cb;
+				*mic_block = cb;
 			}
 			else
 				result = MIC_RESULT_BUSY;
@@ -643,20 +643,20 @@ static s32 __MICGetControlBlock(s32 chan, BOOL skip_active_check, struct MICCont
 	return result;
 }
 
-static void __MICPutControlBlock(struct MICControlBlock *micblock, s32 result)
+static void __MICPutControlBlock(struct MICControlBlock *mic_block, s32 result)
 {
 	u32 level = IRQ_Disable();
 	
-	if (micblock->is_attached ||
-		(micblock->result_code == MIC_RESULT_BUSY))
+	if (mic_block->is_attached ||
+		(mic_block->result_code == MIC_RESULT_BUSY))
 	{
-		micblock->result_code = result;
+		mic_block->result_code = result;
 	}
 	
 	IRQ_Restore(level);
 }
 
-static BOOL __MICUpdateStatus(s32 chan, u32 status, BOOL check)
+static bool __MICUpdateStatus(s32 chan, u32 status, bool status_check)
 {
 	struct MICControlBlock *cb = &__MICBlock[chan];
 	
@@ -698,25 +698,25 @@ static BOOL __MICUpdateStatus(s32 chan, u32 status, BOOL check)
 		{
 			SYS_SetAlarm(__timeout[chan], &cb->timeout, __MICTimeoutCallback, NULL);
 		}
-		cb->is_active = TRUE;
+		cb->is_active = true;
 	}
 	else
-		cb->is_active = FALSE;
+		cb->is_active = false;
 	
-	if (check && ((cb->last_status ^ status) & 0xfc0f)) // checks all bits except buff_ovrflw and buttons
+	if (status_check && ((cb->last_status ^ status) & 0xfc0f)) // checks all bits except buff_ovrflw and buttons
 	{
-		cb->is_active = FALSE;
+		cb->is_active = false;
 		__MICRawReset(chan);
 		__MICRawReadStatus(chan, &status);
-		__MICUpdateStatus(chan, status, FALSE);
+		__MICUpdateStatus(chan, status, false);
 		IRQ_Restore(level);
-		return FALSE;
+		return false;
 	}
 	else
 	{
 		cb->last_status = status;
 		IRQ_Restore(level);
-		return TRUE;
+		return true;
 	}
 }
 
@@ -750,14 +750,14 @@ static void __MICUpdateButton(s32 chan)
 
 void MIC_Init(void)
 {
-	if (__init == FALSE)
+	if (__init == false)
 	{
 		int i;
 		for (i = 0; i < 2; i++)
 		{
 			__MICBlock[i].result_code = MIC_RESULT_NOCARD;
-			__MICBlock[i].is_attached = FALSE;
-			__MICBlock[i].is_active = FALSE;
+			__MICBlock[i].is_attached = false;
+			__MICBlock[i].is_active = false;
 			__MICBlock[i].exi_callback = NULL;
 			__MICBlock[i].tx_callback = NULL;
 			__MICBlock[i].detach_callback = NULL;
@@ -778,7 +778,7 @@ void MIC_Init(void)
 		SYS_CreateAlarm(&__timeout[0]);
 		SYS_CreateAlarm(&__timeout[1]);
 		
-		__init = TRUE;
+		__init = true;
 	}
 }
 
@@ -885,7 +885,7 @@ s32 MIC_MountAsync(s32 chan, s16 *buffer, s32 size, MICCallback detachCallback, 
 				if (cb->is_attached || EXI_Attach(chan, __MICExtHandler))
 				{
 					cb->result_code = MIC_RESULT_BUSY;
-					cb->is_active = FALSE;
+					cb->is_active = false;
 					cb->exi_callback = NULL;
 					cb->tx_callback = NULL;
 					cb->detach_callback = detachCallback;
@@ -942,7 +942,7 @@ s32 MIC_Unmount(s32 chan)
 		chan >= 0 && chan <= 1)
 	{
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, FALSE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, false, &cb)) >= MIC_RESULT_READY)
 		{
 			__MICDoUnmount(chan, MIC_RESULT_NOCARD);
 			result = MIC_RESULT_READY;
@@ -952,11 +952,11 @@ s32 MIC_Unmount(s32 chan)
 	return result;
 }
 
-s32 MIC_GetRingbuffsize(s32 chan, s32 *size)
+s32 MIC_GetRingBufferSize(s32 chan, s32 *size)
 {
 	s32 result = MIC_RESULT_FATAL_ERROR;
 	
-	if (__init == TRUE &&
+	if (__init == true &&
 		chan >= 0 && chan <= 1 &&
 		size != NULL)
 	{
@@ -989,7 +989,7 @@ s32 MIC_SetStatusAsync(s32 chan, u32 status, MICCallback setCallback)
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, FALSE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, false, &cb)) >= MIC_RESULT_READY)
 		{
 			cb->status = status;
 			cb->attach_callback = setCallback;
@@ -1049,7 +1049,7 @@ s32 MIC_SetParamsAsync(s32 chan, s32 size, s32 rate, s32 gain, MICCallback setCa
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, FALSE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, false, &cb)) >= MIC_RESULT_READY)
 		{
 			u32 status = cb->last_status;
 			
@@ -1119,7 +1119,7 @@ s32 MIC_GetParams(s32 chan, s32 *size, s32 *rate, s32 *gain)
 }
 
 
-s32 MIC_SetBuffsizeAsync(s32 chan, s32 size, MICCallback setCallback)
+s32 MIC_SetBufferSizeAsync(s32 chan, s32 size, MICCallback setCallback)
 {
 	s32 result = MIC_RESULT_FATAL_ERROR;
 	
@@ -1130,7 +1130,7 @@ s32 MIC_SetBuffsizeAsync(s32 chan, s32 size, MICCallback setCallback)
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, FALSE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, false, &cb)) >= MIC_RESULT_READY)
 		{
 			cb->status = cb->last_status & ~(MIC_STATUS_64BYTES | MIC_STATUS_128BYTES);
 			if (size == 64)
@@ -1148,16 +1148,16 @@ s32 MIC_SetBuffsizeAsync(s32 chan, s32 size, MICCallback setCallback)
 	return result;
 }
 
-s32 MIC_SetBuffsize(s32 chan, s32 size)
+s32 MIC_SetBufferSize(s32 chan, s32 size)
 {
-	s32 result = MIC_SetBuffsizeAsync(chan, size, __MICSyncCallback);
+	s32 result = MIC_SetBufferSizeAsync(chan, size, __MICSyncCallback);
 	if (result >= MIC_RESULT_READY)
 		return __MICSync(chan);
 	else
 		return result;
 }
 
-s32 MIC_GetBuffsize(s32 chan, s32 *size)
+s32 MIC_GetBufferSize(s32 chan, s32 *size)
 {
 	s32 result = MIC_RESULT_FATAL_ERROR;
 	
@@ -1192,7 +1192,7 @@ s32 MIC_SetRateAsync(s32 chan, s32 rate, MICCallback setCallback)
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, FALSE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, false, &cb)) >= MIC_RESULT_READY)
 		{
 			cb->status = cb->last_status & ~(MIC_STATUS_22050Hz | MIC_STATUS_44100Hz);
 			if (rate == 22050)
@@ -1254,7 +1254,7 @@ s32 MIC_SetGainAsync(s32 chan, s32 gain, MICCallback setCallback)
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, FALSE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, false, &cb)) >= MIC_RESULT_READY)
 		{
 			cb->status = (cb->last_status & ~MIC_STATUS_GAIN15) | ((gain == 15) ? MIC_STATUS_GAIN15 : MIC_STATUS_GAIN0);
 			cb->attach_callback = setCallback;
@@ -1358,7 +1358,7 @@ s32 MIC_SetOutAsync(s32 chan, u32 pattern, MICCallback setCallback)
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, TRUE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, true, &cb)) >= MIC_RESULT_READY)
 		{
 			cb->status = (cb->last_status & ~0xf) | (pattern & 0xf);
 			cb->attach_callback = setCallback;
@@ -1415,7 +1415,7 @@ s32 MIC_StartAsync(s32 chan, MICCallback startCallback)
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, FALSE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, false, &cb)) >= MIC_RESULT_READY)
 		{
 			cb->status = cb->last_status | MIC_STATUS_ACTIVE;
 			cb->attach_callback = startCallback;
@@ -1459,7 +1459,7 @@ s32 MIC_StopAsync(s32 chan, MICCallback stopCallback)
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, TRUE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, true, &cb)) >= MIC_RESULT_READY)
 		{
 			cb->status = cb->last_status & ~MIC_STATUS_ACTIVE;
 			cb->attach_callback = stopCallback;
@@ -1493,7 +1493,7 @@ s32 MIC_ResetAsync(s32 chan, MICCallback resetCallback)
 		u32 level = IRQ_Disable();
 		
 		struct MICControlBlock *cb = NULL;
-		if ((result = __MICGetControlBlock(chan, TRUE, &cb)) >= MIC_RESULT_READY)
+		if ((result = __MICGetControlBlock(chan, true, &cb)) >= MIC_RESULT_READY)
 		{
 			cb->attach_callback = resetCallback;
 			cb->set_callback = __MICResetCallback;
@@ -1516,22 +1516,22 @@ s32 MIC_Reset(s32 chan)
 }
 
 
-BOOL MIC_IsActive(s32 chan)
+bool MIC_IsActive(s32 chan)
 {
 	if (__init &&
 		chan >= 0 && chan <= 1)
 		return __MICBlock[chan].is_active;
 	else
-		return FALSE;
+		return false;
 }
 
-BOOL MIC_IsAttached(s32 chan)
+bool MIC_IsAttached(s32 chan)
 {
 	if (__init &&
 		chan >= 0 && chan <= 1)
 		return __MICBlock[chan].is_attached;
 	else
-		return FALSE;
+		return false;
 }
 
 

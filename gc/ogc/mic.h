@@ -34,7 +34,7 @@ distribution.
 //    12KB =  Approx. 139msec worth @ 44100Hz
 //         =  Approx. 279msec worth @ 22050Hz
 //         =  Approx. 557msec worth @ 11025Hz
-#define MIC_RINGBUFF_SIZE     (12*1024)
+#define MIC_RINGBUFFER_SIZE   (12*1024)
 
 // Returned values, tests, etc.
 #define MIC_RESULT_UNLOCKED           1
@@ -69,7 +69,7 @@ u32 MIC_GetErrorCount(s32 chan);
 s32 MIC_MountAsync(s32 chan, s16 *buffer, s32 size, MICCallback detachCallback, MICCallback attachCallback);
 s32 MIC_Mount(s32 chan, s16 *buffer, s32 size, MICCallback detachCallback);
 s32 MIC_Unmount(s32 chan);
-s32 MIC_GetRingbuffsize(s32 chan, s32 *size);
+s32 MIC_GetRingBufferSize(s32 chan, s32 *size);
 
 s32 MIC_SetStatusAsync(s32 chan, u32 status, MICCallback setCallback);
 s32 MIC_SetStatus(s32 chan, u32 status);
@@ -79,9 +79,9 @@ s32 MIC_SetParamsAsync(s32 chan, s32 size, s32 rate, s32 gain, MICCallback setCa
 s32 MIC_SetParams(s32 chan, s32 size, s32 rate, s32 gain);
 s32 MIC_GetParams(s32 chan, s32 *size, s32 *rate, s32 *gain);
 
-s32 MIC_SetBuffsizeAsync(s32 chan, s32 size, MICCallback setCallback);
-s32 MIC_SetBuffsize(s32 chan, s32 size);
-s32 MIC_GetBuffsize(s32 chan, s32 *size);
+s32 MIC_SetBufferSizeAsync(s32 chan, s32 size, MICCallback setCallback);
+s32 MIC_SetBufferSize(s32 chan, s32 size);
+s32 MIC_GetBufferSize(s32 chan, s32 *size);
 
 s32 MIC_SetRateAsync(s32 chan, s32 rate, MICCallback setCallback);
 s32 MIC_SetRate(s32 chan, s32 rate);
@@ -107,8 +107,8 @@ s32 MIC_Stop(s32 chan);
 s32 MIC_ResetAsync(s32 chan, MICCallback resetCallback);
 s32 MIC_Reset(s32 chan);
 
-BOOL MIC_IsActive(s32 chan);
-BOOL MIC_IsAttached(s32 chan);
+bool MIC_IsActive(s32 chan);
+bool MIC_IsAttached(s32 chan);
 
 s32 MIC_GetCurrentTop(s32 chan);
 s32 MIC_UpdateIndex(s32 chan, s32 index, s32 samples);
