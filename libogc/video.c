@@ -95,7 +95,7 @@ typedef struct _horVer {
 
 GXRModeObj TVNtsc240Ds =
 {
-    VI_TVMODE_NTSC_DS,      // viDisplayMode
+    VI_TVMODE_NTSC_DS,      // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -103,11 +103,11 @@ GXRModeObj TVNtsc240Ds =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
-     // sample points arranged in increasing Y order
+    // sample points arranged in increasing Y order
 	{
 		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
 		{6,6},{6,6},{6,6},  // pix 1
@@ -115,7 +115,7 @@ GXRModeObj TVNtsc240Ds =
 		{6,6},{6,6},{6,6}   // pix 3
 	},
 
-     // vertical filter[7], 1/64 units, 6 bits each
+    // vertical filter[7], 1/64 units, 6 bits each
 	{
 		  0,         // line n-1
 		  0,         // line n-1
@@ -129,7 +129,7 @@ GXRModeObj TVNtsc240Ds =
 
 GXRModeObj TVNtsc240DsAa =
 {
-    VI_TVMODE_NTSC_DS,      // viDisplayMode
+    VI_TVMODE_NTSC_DS,      // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -137,7 +137,7 @@ GXRModeObj TVNtsc240DsAa =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -163,7 +163,7 @@ GXRModeObj TVNtsc240DsAa =
 
 GXRModeObj TVNtsc243Ds =
 {
-    VI_TVMODE_NTSC_DS,      // viDisplayMode
+    VI_TVMODE_NTSC_DS,      // viTVMode
     640,             // fbWidth
     243,             // efbHeight
     243,             // xfbHeight
@@ -171,11 +171,11 @@ GXRModeObj TVNtsc243Ds =
     (VI_MAX_HEIGHT_NTSC - 486),         // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
-     // sample points arranged in increasing Y order
+    // sample points arranged in increasing Y order
 	{
 		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
 		{6,6},{6,6},{6,6},  // pix 1
@@ -183,7 +183,7 @@ GXRModeObj TVNtsc243Ds =
 		{6,6},{6,6},{6,6}   // pix 3
 	},
 
-     // vertical filter[7], 1/64 units, 6 bits each
+    // vertical filter[7], 1/64 units, 6 bits each
 	{
 		  0,         // line n-1
 		  0,         // line n-1
@@ -197,7 +197,7 @@ GXRModeObj TVNtsc243Ds =
 
 GXRModeObj TVNtsc480Ds =
 {
-    VI_TVMODE_NTSC_DS,      // viDisplayMode
+    VI_TVMODE_NTSC_DS,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     240,             // xfbHeight
@@ -205,11 +205,11 @@ GXRModeObj TVNtsc480Ds =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
-     // sample points arranged in increasing Y order
+    // sample points arranged in increasing Y order
 	{
 		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
 		{6,6},{6,6},{6,6},  // pix 1
@@ -217,7 +217,7 @@ GXRModeObj TVNtsc480Ds =
 		{6,6},{6,6},{6,6}   // pix 3
 	},
 
-     // vertical filter[7], 1/64 units, 6 bits each
+    // vertical filter[7], 1/64 units, 6 bits each
 	{
 		 16,         // line n-1
 		 16,         // line n-1
@@ -231,7 +231,7 @@ GXRModeObj TVNtsc480Ds =
 
 GXRModeObj TVNtsc240Int =
 {
-    VI_TVMODE_NTSC_INT,     // viDisplayMode
+    VI_TVMODE_NTSC_INT,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -239,7 +239,7 @@ GXRModeObj TVNtsc240Int =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,         // field_rendering
     GX_FALSE,        // aa
 
@@ -265,7 +265,7 @@ GXRModeObj TVNtsc240Int =
 
 GXRModeObj TVNtsc240IntAa =
 {
-    VI_TVMODE_NTSC_INT,     // viDisplayMode
+    VI_TVMODE_NTSC_INT,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -273,7 +273,7 @@ GXRModeObj TVNtsc240IntAa =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,         // field_rendering
     GX_TRUE,         // aa
 
@@ -299,7 +299,7 @@ GXRModeObj TVNtsc240IntAa =
 
 GXRModeObj TVNtsc480Int =
 {
-    VI_TVMODE_NTSC_INT,     // viDisplayMode
+    VI_TVMODE_NTSC_INT,     // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -307,7 +307,7 @@ GXRModeObj TVNtsc480Int =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -333,7 +333,7 @@ GXRModeObj TVNtsc480Int =
 
 GXRModeObj TVNtsc480IntDf =
 {
-    VI_TVMODE_NTSC_INT,     // viDisplayMode
+    VI_TVMODE_NTSC_INT,     // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -341,7 +341,7 @@ GXRModeObj TVNtsc480IntDf =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -367,7 +367,7 @@ GXRModeObj TVNtsc480IntDf =
 
 GXRModeObj TVNtsc480IntAa =
 {
-    VI_TVMODE_NTSC_INT,     // viDisplayMode
+    VI_TVMODE_NTSC_INT,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     480,             // xfbHeight
@@ -375,7 +375,7 @@ GXRModeObj TVNtsc480IntAa =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -401,7 +401,7 @@ GXRModeObj TVNtsc480IntAa =
 
 GXRModeObj TVNtsc486Int =
 {
-    VI_TVMODE_NTSC_INT,     // viDisplayMode
+    VI_TVMODE_NTSC_INT,     // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -409,7 +409,7 @@ GXRModeObj TVNtsc486Int =
     (VI_MAX_HEIGHT_NTSC - 486),         // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -435,7 +435,7 @@ GXRModeObj TVNtsc486Int =
 
 GXRModeObj TVNtsc486IntDf =
 {
-    VI_TVMODE_NTSC_INT,     // viDisplayMode
+    VI_TVMODE_NTSC_INT,     // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -443,7 +443,7 @@ GXRModeObj TVNtsc486IntDf =
     (VI_MAX_HEIGHT_NTSC - 486),         // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -469,7 +469,7 @@ GXRModeObj TVNtsc486IntDf =
 
 GXRModeObj TVNtsc480Prog =
 {
-    VI_TVMODE_NTSC_PROG,     // viDisplayMode
+    VI_TVMODE_NTSC_PROG,     // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -477,7 +477,7 @@ GXRModeObj TVNtsc480Prog =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -503,7 +503,7 @@ GXRModeObj TVNtsc480Prog =
 
 GXRModeObj TVNtsc480ProgSoft =
 {
-    VI_TVMODE_NTSC_PROG,     // viDisplayMode
+    VI_TVMODE_NTSC_PROG,     // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -511,7 +511,7 @@ GXRModeObj TVNtsc480ProgSoft =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -537,7 +537,7 @@ GXRModeObj TVNtsc480ProgSoft =
 
 GXRModeObj TVNtsc480ProgAa =
 {
-    VI_TVMODE_NTSC_PROG,     // viDisplayMode
+    VI_TVMODE_NTSC_PROG,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     480,             // xfbHeight
@@ -545,7 +545,7 @@ GXRModeObj TVNtsc480ProgAa =
     (VI_MAX_HEIGHT_NTSC - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,        // aa
 
@@ -571,7 +571,7 @@ GXRModeObj TVNtsc480ProgAa =
 
 GXRModeObj TVNtsc486Prog =
 {
-    VI_TVMODE_NTSC_PROG,     // viDisplayMode
+    VI_TVMODE_NTSC_PROG,     // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -579,7 +579,7 @@ GXRModeObj TVNtsc486Prog =
     (VI_MAX_HEIGHT_NTSC - 486),         // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -605,7 +605,7 @@ GXRModeObj TVNtsc486Prog =
 
 GXRModeObj TVMpal240Ds =
 {
-    VI_TVMODE_MPAL_DS,     // viDisplayMode
+    VI_TVMODE_MPAL_DS,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -613,7 +613,7 @@ GXRModeObj TVMpal240Ds =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -639,7 +639,7 @@ GXRModeObj TVMpal240Ds =
 
 GXRModeObj TVMpal240DsAa =
 {
-    VI_TVMODE_MPAL_DS,     // viDisplayMode
+    VI_TVMODE_MPAL_DS,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -647,7 +647,7 @@ GXRModeObj TVMpal240DsAa =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -673,7 +673,7 @@ GXRModeObj TVMpal240DsAa =
 
 GXRModeObj TVMpal243Ds =
 {
-    VI_TVMODE_MPAL_DS,     // viDisplayMode
+    VI_TVMODE_MPAL_DS,     // viTVMode
     640,             // fbWidth
     243,             // efbHeight
     243,             // xfbHeight
@@ -681,7 +681,7 @@ GXRModeObj TVMpal243Ds =
     (VI_MAX_HEIGHT_MPAL - 486),         // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -707,7 +707,7 @@ GXRModeObj TVMpal243Ds =
 
 GXRModeObj TVMpal480Ds =
 {
-    VI_TVMODE_MPAL_DS,      // viDisplayMode
+    VI_TVMODE_MPAL_DS,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     240,             // xfbHeight
@@ -715,11 +715,11 @@ GXRModeObj TVMpal480Ds =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
-     // sample points arranged in increasing Y order
+    // sample points arranged in increasing Y order
 	{
 		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
 		{6,6},{6,6},{6,6},  // pix 1
@@ -727,7 +727,7 @@ GXRModeObj TVMpal480Ds =
 		{6,6},{6,6},{6,6}   // pix 3
 	},
 
-     // vertical filter[7], 1/64 units, 6 bits each
+    // vertical filter[7], 1/64 units, 6 bits each
 	{
 		 16,         // line n-1
 		 16,         // line n-1
@@ -741,7 +741,7 @@ GXRModeObj TVMpal480Ds =
 
 GXRModeObj TVMpal240Int =
 {
-    VI_TVMODE_MPAL_INT,     // viDisplayMode
+    VI_TVMODE_MPAL_INT,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -749,7 +749,7 @@ GXRModeObj TVMpal240Int =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,         // field_rendering
     GX_FALSE,        // aa
 
@@ -775,7 +775,7 @@ GXRModeObj TVMpal240Int =
 
 GXRModeObj TVMpal240IntAa =
 {
-    VI_TVMODE_MPAL_INT,     // viDisplayMode
+    VI_TVMODE_MPAL_INT,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -783,7 +783,7 @@ GXRModeObj TVMpal240IntAa =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,         // field_rendering
     GX_TRUE,         // aa
 
@@ -809,7 +809,7 @@ GXRModeObj TVMpal240IntAa =
 
 GXRModeObj TVMpal480Int =
 {
-    VI_TVMODE_MPAL_INT,     // viDisplayMode
+    VI_TVMODE_MPAL_INT,     // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -817,7 +817,7 @@ GXRModeObj TVMpal480Int =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -843,7 +843,7 @@ GXRModeObj TVMpal480Int =
 
 GXRModeObj TVMpal480IntDf =
 {
-    VI_TVMODE_MPAL_INT,     // viDisplayMode
+    VI_TVMODE_MPAL_INT,     // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -851,7 +851,7 @@ GXRModeObj TVMpal480IntDf =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -877,7 +877,7 @@ GXRModeObj TVMpal480IntDf =
 
 GXRModeObj TVMpal480IntAa =
 {
-    VI_TVMODE_MPAL_INT,     // viDisplayMode
+    VI_TVMODE_MPAL_INT,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     480,             // xfbHeight
@@ -885,7 +885,7 @@ GXRModeObj TVMpal480IntAa =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -911,7 +911,7 @@ GXRModeObj TVMpal480IntAa =
 
 GXRModeObj TVMpal486Int =
 {
-    VI_TVMODE_MPAL_INT,     // viDisplayMode
+    VI_TVMODE_MPAL_INT,     // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -919,7 +919,7 @@ GXRModeObj TVMpal486Int =
     (VI_MAX_HEIGHT_MPAL - 486),         // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -945,7 +945,7 @@ GXRModeObj TVMpal486Int =
 
 GXRModeObj TVMpal486IntDf =
 {
-    VI_TVMODE_MPAL_INT,     // viDisplayMode
+    VI_TVMODE_MPAL_INT,     // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -953,7 +953,7 @@ GXRModeObj TVMpal486IntDf =
     (VI_MAX_HEIGHT_MPAL - 486),         // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -979,7 +979,7 @@ GXRModeObj TVMpal486IntDf =
 
 GXRModeObj TVMpal480Prog =
 {
-    VI_TVMODE_MPAL_PROG,     // viDisplayMode
+    VI_TVMODE_MPAL_PROG,     // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -987,7 +987,7 @@ GXRModeObj TVMpal480Prog =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1013,7 +1013,7 @@ GXRModeObj TVMpal480Prog =
 
 GXRModeObj TVMpal480ProgSoft =
 {
-    VI_TVMODE_MPAL_PROG,     // viDisplayMode
+    VI_TVMODE_MPAL_PROG,     // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -1021,7 +1021,7 @@ GXRModeObj TVMpal480ProgSoft =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1047,7 +1047,7 @@ GXRModeObj TVMpal480ProgSoft =
 
 GXRModeObj TVMpal480ProgAa =
 {
-    VI_TVMODE_MPAL_PROG,     // viDisplayMode
+    VI_TVMODE_MPAL_PROG,     // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     480,             // xfbHeight
@@ -1055,7 +1055,7 @@ GXRModeObj TVMpal480ProgAa =
     (VI_MAX_HEIGHT_MPAL - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -1081,7 +1081,7 @@ GXRModeObj TVMpal480ProgAa =
 
 GXRModeObj TVMpal486Prog =
 {
-    VI_TVMODE_MPAL_PROG,     // viDisplayMode
+    VI_TVMODE_MPAL_PROG,     // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -1089,7 +1089,7 @@ GXRModeObj TVMpal486Prog =
     (VI_MAX_HEIGHT_MPAL - 486),         // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1115,7 +1115,7 @@ GXRModeObj TVMpal486Prog =
 
 GXRModeObj TVPal264Ds =
 {
-    VI_TVMODE_PAL_DS,       // viDisplayMode
+    VI_TVMODE_PAL_DS,       // viTVMode
     640,             // fbWidth
     264,             // efbHeight
     264,             // xfbHeight
@@ -1123,7 +1123,7 @@ GXRModeObj TVPal264Ds =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1149,7 +1149,7 @@ GXRModeObj TVPal264Ds =
 
 GXRModeObj TVPal264DsAa =
 {
-    VI_TVMODE_PAL_DS,       // viDisplayMode
+    VI_TVMODE_PAL_DS,       // viTVMode
     640,             // fbWidth
     264,             // efbHeight
     264,             // xfbHeight
@@ -1157,7 +1157,7 @@ GXRModeObj TVPal264DsAa =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -1183,7 +1183,7 @@ GXRModeObj TVPal264DsAa =
 
 GXRModeObj TVPal288Ds =
 {
-    VI_TVMODE_PAL_DS,       // viDisplayMode
+    VI_TVMODE_PAL_DS,       // viTVMode
     640,             // fbWidth
     288,             // efbHeight
     288,             // xfbHeight
@@ -1191,7 +1191,7 @@ GXRModeObj TVPal288Ds =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1217,7 +1217,7 @@ GXRModeObj TVPal288Ds =
 
 GXRModeObj TVPal288DsAaScale =
 {
-    VI_TVMODE_PAL_DS,       // viDisplayMode
+    VI_TVMODE_PAL_DS,       // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     288,             // xfbHeight
@@ -1225,7 +1225,7 @@ GXRModeObj TVPal288DsAaScale =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -1251,7 +1251,7 @@ GXRModeObj TVPal288DsAaScale =
 
 GXRModeObj TVPal576Ds =
 {
-    VI_TVMODE_PAL_DS,      // viDisplayMode
+    VI_TVMODE_PAL_DS,      // viTVMode
     640,             // fbWidth
     288,             // efbHeight
     288,             // xfbHeight
@@ -1259,11 +1259,11 @@ GXRModeObj TVPal576Ds =
     (VI_MAX_HEIGHT_PAL - 576)/2,       // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
-     // sample points arranged in increasing Y order
+    // sample points arranged in increasing Y order
 	{
 		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
 		{6,6},{6,6},{6,6},  // pix 1
@@ -1271,7 +1271,7 @@ GXRModeObj TVPal576Ds =
 		{6,6},{6,6},{6,6}   // pix 3
 	},
 
-     // vertical filter[7], 1/64 units, 6 bits each
+    // vertical filter[7], 1/64 units, 6 bits each
 	{
 		 16,         // line n-1
 		 16,         // line n-1
@@ -1285,7 +1285,7 @@ GXRModeObj TVPal576Ds =
 
 GXRModeObj TVPal576DsScale =
 {
-    VI_TVMODE_PAL_DS,      // viDisplayMode
+    VI_TVMODE_PAL_DS,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     288,             // xfbHeight
@@ -1293,11 +1293,11 @@ GXRModeObj TVPal576DsScale =
     (VI_MAX_HEIGHT_PAL - 576)/2,       // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
-     // sample points arranged in increasing Y order
+    // sample points arranged in increasing Y order
 	{
 		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
 		{6,6},{6,6},{6,6},  // pix 1
@@ -1305,7 +1305,7 @@ GXRModeObj TVPal576DsScale =
 		{6,6},{6,6},{6,6}   // pix 3
 	},
 
-     // vertical filter[7], 1/64 units, 6 bits each
+    // vertical filter[7], 1/64 units, 6 bits each
 	{
 		 16,         // line n-1
 		 16,         // line n-1
@@ -1319,7 +1319,7 @@ GXRModeObj TVPal576DsScale =
 
 GXRModeObj TVPal264Int =
 {
-    VI_TVMODE_PAL_INT,      // viDisplayMode
+    VI_TVMODE_PAL_INT,      // viTVMode
     640,             // fbWidth
     264,             // efbHeight
     264,             // xfbHeight
@@ -1327,7 +1327,7 @@ GXRModeObj TVPal264Int =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,         // field_rendering
     GX_FALSE,        // aa
 
@@ -1353,7 +1353,7 @@ GXRModeObj TVPal264Int =
 
 GXRModeObj TVPal264IntAa =
 {
-    VI_TVMODE_PAL_INT,      // viDisplayMode
+    VI_TVMODE_PAL_INT,      // viTVMode
     640,             // fbWidth
     264,             // efbHeight
     264,             // xfbHeight
@@ -1361,7 +1361,7 @@ GXRModeObj TVPal264IntAa =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,         // field_rendering
     GX_TRUE,         // aa
 
@@ -1387,7 +1387,7 @@ GXRModeObj TVPal264IntAa =
 
 GXRModeObj TVPal288Int =
 {
-    VI_TVMODE_PAL_INT,      // viDisplayMode
+    VI_TVMODE_PAL_INT,      // viTVMode
     640,             // fbWidth
     288,             // efbHeight
     288,             // xfbHeight
@@ -1395,7 +1395,7 @@ GXRModeObj TVPal288Int =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,         // field_rendering
     GX_FALSE,        // aa
 
@@ -1421,7 +1421,7 @@ GXRModeObj TVPal288Int =
 
 GXRModeObj TVPal528Int =
 {
-    VI_TVMODE_PAL_INT,       // viDisplayMode
+    VI_TVMODE_PAL_INT,       // viTVMode
     640,             // fbWidth
     528,             // efbHeight
     528,             // xfbHeight
@@ -1429,7 +1429,7 @@ GXRModeObj TVPal528Int =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1455,7 +1455,7 @@ GXRModeObj TVPal528Int =
 
 GXRModeObj TVPal528IntDf =
 {
-    VI_TVMODE_PAL_INT,      // viDisplayMode
+    VI_TVMODE_PAL_INT,      // viTVMode
     640,             // fbWidth
     528,             // efbHeight
     528,             // xfbHeight
@@ -1463,7 +1463,7 @@ GXRModeObj TVPal528IntDf =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1488,7 +1488,7 @@ GXRModeObj TVPal528IntDf =
 
 GXRModeObj TVPal524IntAa =
 {
-    VI_TVMODE_PAL_INT,      // viDisplayMode
+    VI_TVMODE_PAL_INT,      // viTVMode
     640,             // fbWidth
     262,             // efbHeight
     524,             // xfbHeight
@@ -1496,7 +1496,7 @@ GXRModeObj TVPal524IntAa =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     524,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -1522,7 +1522,7 @@ GXRModeObj TVPal524IntAa =
 
 GXRModeObj TVPal576Int =
 {
-    VI_TVMODE_PAL_INT,       // viDisplayMode
+    VI_TVMODE_PAL_INT,       // viTVMode
     640,             // fbWidth
     288,             // efbHeight
     576,             // xfbHeight
@@ -1530,7 +1530,7 @@ GXRModeObj TVPal576Int =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1556,7 +1556,7 @@ GXRModeObj TVPal576Int =
 
 GXRModeObj TVPal576IntScale =
 {
-    VI_TVMODE_PAL_INT,       // viDisplayMode
+    VI_TVMODE_PAL_INT,       // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     576,             // xfbHeight
@@ -1564,7 +1564,7 @@ GXRModeObj TVPal576IntScale =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1590,7 +1590,7 @@ GXRModeObj TVPal576IntScale =
 
 GXRModeObj TVPal576IntDf =
 {
-    VI_TVMODE_PAL_INT,       // viDisplayMode
+    VI_TVMODE_PAL_INT,       // viTVMode
     640,             // fbWidth
     288,             // efbHeight
     576,             // xfbHeight
@@ -1598,7 +1598,7 @@ GXRModeObj TVPal576IntDf =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1624,7 +1624,7 @@ GXRModeObj TVPal576IntDf =
 
 GXRModeObj TVPal576IntDfScale =
 {
-    VI_TVMODE_PAL_INT,      // viDisplayMode
+    VI_TVMODE_PAL_INT,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     576,             // xfbHeight
@@ -1632,7 +1632,7 @@ GXRModeObj TVPal576IntDfScale =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1657,7 +1657,7 @@ GXRModeObj TVPal576IntDfScale =
 
 GXRModeObj TVPal528Prog =
 {
-    VI_TVMODE_PAL_PROG,      // viDisplayMode
+    VI_TVMODE_PAL_PROG,      // viTVMode
     640,             // fbWidth
     528,             // efbHeight
     528,             // xfbHeight
@@ -1665,7 +1665,7 @@ GXRModeObj TVPal528Prog =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1691,7 +1691,7 @@ GXRModeObj TVPal528Prog =
 
 GXRModeObj TVPal528ProgSoft =
 {
-    VI_TVMODE_PAL_PROG,      // viDisplayMode
+    VI_TVMODE_PAL_PROG,      // viTVMode
     640,             // fbWidth
     528,             // efbHeight
     528,             // xfbHeight
@@ -1699,7 +1699,7 @@ GXRModeObj TVPal528ProgSoft =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     528,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1724,7 +1724,7 @@ GXRModeObj TVPal528ProgSoft =
 
 GXRModeObj TVPal524ProgAa =
 {
-    VI_TVMODE_PAL_PROG,      // viDisplayMode
+    VI_TVMODE_PAL_PROG,      // viTVMode
     640,             // fbWidth
     262,             // efbHeight
     524,             // xfbHeight
@@ -1732,7 +1732,7 @@ GXRModeObj TVPal524ProgAa =
     (VI_MAX_HEIGHT_PAL - 528)/2,        // viYOrigin
     640,             // viWidth
     524,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -1758,7 +1758,7 @@ GXRModeObj TVPal524ProgAa =
 
 GXRModeObj TVPal576Prog =
 {
-    VI_TVMODE_PAL_PROG,      // viDisplayMode
+    VI_TVMODE_PAL_PROG,      // viTVMode
     640,             // fbWidth
     288,             // efbHeight
     576,             // xfbHeight
@@ -1766,7 +1766,7 @@ GXRModeObj TVPal576Prog =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1791,7 +1791,7 @@ GXRModeObj TVPal576Prog =
 
 GXRModeObj TVPal576ProgScale =
 {
-    VI_TVMODE_PAL_PROG,      // viDisplayMode
+    VI_TVMODE_PAL_PROG,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     576,             // xfbHeight
@@ -1799,7 +1799,7 @@ GXRModeObj TVPal576ProgScale =
     (VI_MAX_HEIGHT_PAL - 576)/2,        // viYOrigin
     640,             // viWidth
     576,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1824,7 +1824,7 @@ GXRModeObj TVPal576ProgScale =
 
 GXRModeObj TVEurgb60Hz240Ds =
 {
-    VI_TVMODE_EURGB60_DS,      // viDisplayMode
+    VI_TVMODE_EURGB60_DS,      // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -1832,7 +1832,7 @@ GXRModeObj TVEurgb60Hz240Ds =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1857,7 +1857,7 @@ GXRModeObj TVEurgb60Hz240Ds =
 
 GXRModeObj TVEurgb60Hz240DsAa =
 {
-    VI_TVMODE_EURGB60_DS,      // viDisplayMode
+    VI_TVMODE_EURGB60_DS,      // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -1865,7 +1865,7 @@ GXRModeObj TVEurgb60Hz240DsAa =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,        // aa
 
@@ -1890,7 +1890,7 @@ GXRModeObj TVEurgb60Hz240DsAa =
 
 GXRModeObj TVEurgb60Hz243Ds =
 {
-    VI_TVMODE_EURGB60_DS,      // viDisplayMode
+    VI_TVMODE_EURGB60_DS,      // viTVMode
     640,             // fbWidth
     243,             // efbHeight
     243,             // xfbHeight
@@ -1898,7 +1898,7 @@ GXRModeObj TVEurgb60Hz243Ds =
     (VI_MAX_HEIGHT_EURGB60 - 486),          // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1923,7 +1923,7 @@ GXRModeObj TVEurgb60Hz243Ds =
 
 GXRModeObj TVEurgb60Hz480Ds =
 {
-    VI_TVMODE_EURGB60_DS,      // viDisplayMode
+    VI_TVMODE_EURGB60_DS,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     240,             // xfbHeight
@@ -1931,11 +1931,11 @@ GXRModeObj TVEurgb60Hz480Ds =
     (VI_MAX_HEIGHT_EURGB60 - 480),         // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
-     // sample points arranged in increasing Y order
+    // sample points arranged in increasing Y order
 	{
 		{6,6},{6,6},{6,6},  // pix 0, 3 sample points, 1/12 units, 4 bits each
 		{6,6},{6,6},{6,6},  // pix 1
@@ -1943,7 +1943,7 @@ GXRModeObj TVEurgb60Hz480Ds =
 		{6,6},{6,6},{6,6}   // pix 3
 	},
 
-     // vertical filter[7], 1/64 units, 6 bits each
+    // vertical filter[7], 1/64 units, 6 bits each
 	{
 		 16,         // line n-1
 		 16,         // line n-1
@@ -1957,7 +1957,7 @@ GXRModeObj TVEurgb60Hz480Ds =
 
 GXRModeObj TVEurgb60Hz240Int =
 {
-    VI_TVMODE_EURGB60_INT,      // viDisplayMode
+    VI_TVMODE_EURGB60_INT,      // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -1965,7 +1965,7 @@ GXRModeObj TVEurgb60Hz240Int =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -1990,7 +1990,7 @@ GXRModeObj TVEurgb60Hz240Int =
 
 GXRModeObj TVEurgb60Hz240IntAa =
 {
-    VI_TVMODE_EURGB60_INT,      // viDisplayMode
+    VI_TVMODE_EURGB60_INT,      // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     240,             // xfbHeight
@@ -1998,7 +1998,7 @@ GXRModeObj TVEurgb60Hz240IntAa =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_TRUE,        // field_rendering
     GX_TRUE,        // aa
 
@@ -2023,7 +2023,7 @@ GXRModeObj TVEurgb60Hz240IntAa =
 
 GXRModeObj TVEurgb60Hz480Int =
 {
-    VI_TVMODE_EURGB60_INT,      // viDisplayMode
+    VI_TVMODE_EURGB60_INT,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -2031,7 +2031,7 @@ GXRModeObj TVEurgb60Hz480Int =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -2056,7 +2056,7 @@ GXRModeObj TVEurgb60Hz480Int =
 
 GXRModeObj TVEurgb60Hz480IntDf =
 {
-    VI_TVMODE_EURGB60_INT,      // viDisplayMode
+    VI_TVMODE_EURGB60_INT,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -2064,7 +2064,7 @@ GXRModeObj TVEurgb60Hz480IntDf =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -2089,7 +2089,7 @@ GXRModeObj TVEurgb60Hz480IntDf =
 
 GXRModeObj TVEurgb60Hz480IntAa =
 {
-    VI_TVMODE_EURGB60_INT,      // viDisplayMode
+    VI_TVMODE_EURGB60_INT,      // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     480,             // xfbHeight
@@ -2097,7 +2097,7 @@ GXRModeObj TVEurgb60Hz480IntAa =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,         // aa
 
@@ -2122,7 +2122,7 @@ GXRModeObj TVEurgb60Hz480IntAa =
 
 GXRModeObj TVEurgb60Hz486Int =
 {
-    VI_TVMODE_EURGB60_INT,      // viDisplayMode
+    VI_TVMODE_EURGB60_INT,      // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -2130,7 +2130,7 @@ GXRModeObj TVEurgb60Hz486Int =
     (VI_MAX_HEIGHT_EURGB60 - 486),          // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_PSF,  // xFBmode
+    VI_XFBMODE_PSF,  // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -2155,7 +2155,7 @@ GXRModeObj TVEurgb60Hz486Int =
 
 GXRModeObj TVEurgb60Hz486IntDf =
 {
-    VI_TVMODE_EURGB60_INT,      // viDisplayMode
+    VI_TVMODE_EURGB60_INT,      // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -2163,7 +2163,7 @@ GXRModeObj TVEurgb60Hz486IntDf =
     (VI_MAX_HEIGHT_EURGB60 - 486),          // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_DF,   // xFBmode
+    VI_XFBMODE_DF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -2188,7 +2188,7 @@ GXRModeObj TVEurgb60Hz486IntDf =
 
 GXRModeObj TVEurgb60Hz480Prog =
 {
-    VI_TVMODE_EURGB60_PROG,      // viDisplayMode
+    VI_TVMODE_EURGB60_PROG,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -2196,7 +2196,7 @@ GXRModeObj TVEurgb60Hz480Prog =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -2221,7 +2221,7 @@ GXRModeObj TVEurgb60Hz480Prog =
 
 GXRModeObj TVEurgb60Hz480ProgSoft =
 {
-    VI_TVMODE_EURGB60_PROG,      // viDisplayMode
+    VI_TVMODE_EURGB60_PROG,      // viTVMode
     640,             // fbWidth
     480,             // efbHeight
     480,             // xfbHeight
@@ -2229,7 +2229,7 @@ GXRModeObj TVEurgb60Hz480ProgSoft =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
@@ -2254,7 +2254,7 @@ GXRModeObj TVEurgb60Hz480ProgSoft =
 
 GXRModeObj TVEurgb60Hz480ProgAa =
 {
-    VI_TVMODE_EURGB60_PROG,      // viDisplayMode
+    VI_TVMODE_EURGB60_PROG,      // viTVMode
     640,             // fbWidth
     240,             // efbHeight
     480,             // xfbHeight
@@ -2262,7 +2262,7 @@ GXRModeObj TVEurgb60Hz480ProgAa =
     (VI_MAX_HEIGHT_EURGB60 - 480),          // viYOrigin
     640,             // viWidth
     480,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_TRUE,        // aa
 
@@ -2287,7 +2287,7 @@ GXRModeObj TVEurgb60Hz480ProgAa =
 
 GXRModeObj TVEurgb60Hz486Prog =
 {
-    VI_TVMODE_EURGB60_PROG,      // viDisplayMode
+    VI_TVMODE_EURGB60_PROG,      // viTVMode
     640,             // fbWidth
     486,             // efbHeight
     486,             // xfbHeight
@@ -2295,7 +2295,7 @@ GXRModeObj TVEurgb60Hz486Prog =
     (VI_MAX_HEIGHT_EURGB60 - 486),          // viYOrigin
     640,             // viWidth
     486,             // viHeight
-    VI_XFBMODE_SF,   // xFBmode
+    VI_XFBMODE_SF,   // xfbMode
     GX_FALSE,        // field_rendering
     GX_FALSE,        // aa
 
