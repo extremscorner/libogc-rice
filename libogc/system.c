@@ -1538,8 +1538,11 @@ void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
 	u32 size = VIDEO_GetFrameBufferSize(rmode);
 	void *ptr = SYS_AllocArenaMemHi(size,PPC_CACHE_ALIGNMENT);
 
-	ptr = MEM_K0_TO_K1(ptr);
-	__VIClearFramebuffer(ptr,size,COLOR_BLACK);
+	if(ptr) {
+		DCInvalidateRange(ptr,size);
+		ptr = MEM_K0_TO_K1(ptr);
+		__VIClearFramebuffer(ptr,size,COLOR_BLACK);
+	}
 	return ptr;
 }
 
