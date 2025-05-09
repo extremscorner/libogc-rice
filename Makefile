@@ -271,7 +271,7 @@ dist: wii cube install-headers
 	@tar    --exclude=*CVS* --exclude=.svn --exclude=wii --exclude=cube --exclude=*deps* \
 		--exclude=*.bz2  --exclude=*include* --exclude=*lib/* --exclude=*docs/*\
 		-cvjf libogc-src-$(VERSTRING).tar.bz2 *
-	@tar -cvjf libogc-$(VERSTRING).tar.bz2 include lib libogc_license.txt
+	@tar -cvjf libogc-$(VERSTRING).tar.bz2 include lib *_license.txt
 
 
 LIBRARIES	:=	$(OGCLIB).a  $(MODLIB).a $(MADLIB).a $(DBLIB).a \
