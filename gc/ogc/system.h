@@ -311,13 +311,13 @@ void SYS_Init();
 
 
 /*!
- * \fn void* SYS_AllocateFramebuffer(GXRModeObj *rmode)
+ * \fn void* SYS_AllocateFramebuffer(const GXRModeObj *rmode)
  * \brief Allocate cacheline aligned memory for the external framebuffer based on the rendermode object.
  * \param[in] rmode pointer to the video/render mode configuration
  *
  * \return pointer to the framebuffer's startaddress. <b><i>NOTE:</i></b> Address returned is aligned to a 32byte boundery!
  */
-void* SYS_AllocateFramebuffer(GXRModeObj *rmode);
+void* SYS_AllocateFramebuffer(const GXRModeObj *rmode);
 
 
 bool SYS_IsDMAAddress(const void *addr,u32 align);
