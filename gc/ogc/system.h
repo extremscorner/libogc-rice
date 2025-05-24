@@ -326,6 +326,7 @@ void SYS_StartPMC(u32 mcr0val,u32 mcr1val);
 void SYS_StopPMC();
 void SYS_ResetPMC();
 void SYS_DumpPMC();
+u32 SYS_GetBusFrequency();
 f32 SYS_GetCoreMultiplier();
 u32 SYS_GetCoreFrequency();
 s8 SYS_GetCoreTemperature();
@@ -427,7 +428,9 @@ resetcallback SYS_SetResetCallback(resetcallback cb);
 
 u32 SYS_ResetButtonDown();
 
-#if defined(HW_RVL)
+#if defined(HW_DOL)
+u32 SYS_GetFlipperRevision();
+#elif defined(HW_RVL)
 u32 SYS_GetHollywoodRevision();
 
 void* SYS_GetArena2Lo();

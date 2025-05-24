@@ -1909,7 +1909,16 @@ u32 SYS_GetConsoleType()
 {
 	u32 type;
 	type = *((u32*)0x8000002c);
+	if(!type) {
+		type = SYS_CONSOLE_RETAIL_HW1;
+		type += SYS_GetFlipperRevision();
+	}
 	return type;
+}
+
+u32 SYS_GetFlipperRevision()
+{
+	return _SHIFTR(_piReg[11],28,4);
 }
 #elif defined(HW_RVL)
 u32 SYS_GetConsoleType()
@@ -1950,6 +1959,14 @@ u32 SYS_GetHollywoodRevision()
 	return rev;
 }
 #endif
+
+u32 SYS_GetBusFrequency()
+{
+	u32 clock;
+	clock = *((u32*)0x800000f8);
+	if(!clock) clock = TB_BUS_CLOCK;
+	return clock;
+}
 
 f32 SYS_GetCoreMultiplier()
 {
@@ -1999,7 +2016,10 @@ u32 SYS_GetCoreFrequency()
 {
 	u32 clock;
 	clock = *((u32*)0x800000fc);
-	if(!clock) clock = TB_BUS_CLOCK * SYS_GetCoreMultiplier();
+	if(!clock) {
+		clock = SYS_GetBusFrequency();
+		clock *= SYS_GetCoreMultiplier();
+	}
 	if(!clock) clock = TB_CORE_CLOCK;
 	return clock;
 }
