@@ -153,7 +153,7 @@ static s32 SndBufStart(MODSNDBUF *sndbuf)
 
 	curr_audio = 0;
 	sndPlaying = TRUE;
-	if(LWP_CreateThread(&hplayer,player,NULL,player_stack,STACKSIZE,LWP_PRIO_HIGH)!=-1) {
+	if(LWP_CreateThread(&hplayer,player,NULL,player_stack,STACKSIZE,LWP_PRIO_HIGH)==0) {
 #ifndef __AESNDLIB_H__
 		AUDIO_RegisterDMACallback(dmaCallback);
 		AUDIO_InitDMA((u32)audioBuf[curr_audio],SNDBUFFERSIZE);
