@@ -178,7 +178,7 @@ extern int __libogc_gettod_r(struct _reent *ptr, struct timeval *tp, struct time
 extern int __libogc_clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern int __libogc_clock_settime(clockid_t clock_id, const struct timespec *tp);
 extern int __libogc_clock_getres(clockid_t clock_id, struct timespec *res);
-extern int __libogc_nanosleep(const struct timespec *tb, struct timespec *rem);
+extern int __libogc_nanosleep(const struct timespec *req, struct timespec *rem);
 
 extern u8 __Arena1Lo[], __Arena1Hi[];
 #if defined(HW_RVL)
