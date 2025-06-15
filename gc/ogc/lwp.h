@@ -145,7 +145,7 @@ lwp_t LWP_GetSelf();
 
 /*! \fn s32 LWP_GetThreadPriority(lwp_t thethread)
 \brief Get the priority of the given thread.
-\param[in] thethread handle to the thread context whos priority should be returned. If NULL, the current thread will be taken.
+\param[in] thethread handle to the thread context whose priority should be returned. If NULL, the current thread will be taken.
 
 \return current thread priority
 */
@@ -154,7 +154,7 @@ s32 LWP_GetThreadPriority(lwp_t thethread);
 
 /*! \fn s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio)
 \brief Set the priority of the given thread.
-\param[in] thethread handle to the thread context whos priority should be changed. If NULL, the current thread will be taken.
+\param[in] thethread handle to the thread context whose priority should be changed. If NULL, the current thread will be taken.
 \param[in] prio new thread priority to set
 
 \return old thread priority
@@ -238,7 +238,7 @@ s32 LWP_InitQueue(lwpq_t *thequeue);
 
 
 /*! \fn s32 LWP_CloseQueue(lwpq_t thequeue)
-\brief Close the thread synchronization queue and releas the handle
+\brief Close the thread synchronization queue and release the handle
 \param[in] thequeue handle to the thread's synchronization queue
 
 \return 0 on success, non-zero on error
@@ -266,7 +266,7 @@ s32 LWP_ThreadTimedSleep(lwpq_t thequeue,const struct timespec *reltime);
 
 
 /*! \fn s32 LWP_ThreadSignal(lwpq_t thequeue)
-\brief Signals one thread to be revmoved from the thread synchronization queue and sets it back to running state.
+\brief Signals one thread to be removed from the thread synchronization queue and sets it back to running state.
 \param[in] thequeue handle to the thread's synchronization queue to pop the blocked thread off
 
 \return 0 on success, non-zero on error
