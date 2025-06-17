@@ -152,14 +152,14 @@ lwp_t LWP_GetSelf();
 s32 LWP_GetThreadPriority(lwp_t thethread);
 
 
-/*! \fn s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio)
+/*! \fn s32 LWP_SetThreadPriority(lwp_t thethread,u8 prio)
 \brief Set the priority of the given thread.
 \param[in] thethread handle to the thread context whose priority should be changed. If NULL, the current thread will be taken.
 \param[in] prio new thread priority to set
 
 \return old thread priority
 */
-s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio);
+s32 LWP_SetThreadPriority(lwp_t thethread,u8 prio);
 
 
 /*! \fn void LWP_YieldThread()
@@ -170,13 +170,13 @@ s32 LWP_SetThreadPriority(lwp_t thethread,u32 prio);
 void LWP_YieldThread();
 
 
-/*! \fn void LWP_Reschedule(u32 prio)
+/*! \fn void LWP_Reschedule(u8 prio)
 \brief Reschedule all threads running at the given priority
 \param[in] prio priority level to reschedule
 
 \return none
 */
-void LWP_Reschedule(u32 prio);
+void LWP_Reschedule(u8 prio);
 
 
 /*! \fn void LWP_ExitThread(void *value_ptr)
