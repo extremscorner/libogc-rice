@@ -99,6 +99,7 @@ typedef struct _lwpcntrl {
 	u32 cur_state;
 	u32 cpu_time_budget;
 	lwp_cpu_budget_algorithms budget_algo;
+	bool is_preemptible;
 	lwp_waitinfo wait;
 	prio_cntrl priomap;
 	wd_cntrl timer;
@@ -140,7 +141,7 @@ void __lwp_thread_suspend(lwp_cntrl *);
 void __lwp_thread_resume(lwp_cntrl *,u32);
 void __lwp_thread_loadenv(lwp_cntrl *);
 void __lwp_thread_ready(lwp_cntrl *);
-u32 __lwp_thread_init(lwp_cntrl *,void *,u32,u32);
+u32 __lwp_thread_init(lwp_cntrl *,void *,u32,u32,bool,lwp_cpu_budget_algorithms);
 u32 __lwp_thread_start(lwp_cntrl *,void* (*)(void*),void *);
 void __lwp_thread_exit(lwp_cntrl *,void *);
 void __lwp_thread_close(lwp_cntrl *);
