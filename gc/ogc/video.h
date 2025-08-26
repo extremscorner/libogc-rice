@@ -99,12 +99,12 @@ u32 VIDEO_GetRetraceCount();
 
 
 /*! 
- * \fn u32 VIDEO_GetCurrentField()
- * \brief Get the current field
+ * \fn u32 VIDEO_GetNextField()
+ * \brief Get the next field
  *
  * \return \ref vi_fielddef "field"
  */
-u32 VIDEO_GetCurrentField();
+u32 VIDEO_GetNextField();
 
 
 /*! 

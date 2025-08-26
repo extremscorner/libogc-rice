@@ -3325,7 +3325,7 @@ static inline void __adjustPosition(u16 acv)
 	if(HorVer.fbMode==VI_XFBMODE_SF) fact = 2;
 
 	dispPosY = HorVer.dispPosY+displayOffsetV;
-	field = dispPosY&0x0001;
+	field = dispPosY&1;
 	if(dispPosY>field) HorVer.adjustedDispPosY = dispPosY;
 	else HorVer.adjustedDispPosY = field;
 
@@ -4101,15 +4101,18 @@ u32 VIDEO_GetRetraceCount()
 	return retraceCount;
 }
 
-u32 VIDEO_GetCurrentField()
+u32 VIDEO_GetNextField()
 {
-	u32 level,currfield;
+	u32 level,field;
 
 	_CPU_ISR_Disable(level);
-	currfield = __getCurrentFieldEvenOdd();
+	if(HorVer.fbMode<VI_XFBMODE_PSF) {
+		field = __getCurrentFieldEvenOdd();
+		field ^= (HorVer.adjustedDispPosY&1)^1;
+	} else field = VI_FRAME;
 	_CPU_ISR_Restore(level);
 
-	return currfield^(HorVer.adjustedDispPosY&0x0001);
+	return field;
 }
 
 u32 VIDEO_GetCurrentTvMode()
@@ -4202,16 +4205,14 @@ GXRModeObj *rmode = NULL;
 
 u32 VIDEO_GetCurrentLine()
 {
-	u32 level,curr_hl = 0;
+	u32 level,hline;
 
 	_CPU_ISR_Disable(level);
-	curr_hl = __getCurrentHalfLine();
+	hline = __getCurrentHalfLine();
+	if(hline>=currTiming->nhlines) hline -= currTiming->nhlines;
 	_CPU_ISR_Restore(level);
 
-	if(curr_hl>=currTiming->nhlines) curr_hl -=currTiming->nhlines;
-	curr_hl >>= 1;
-
-	return curr_hl;
+	return hline>>1;
 }
 
 VIRetraceCallback VIDEO_SetPreRetraceCallback(VIRetraceCallback callback)
@@ -4268,8 +4269,7 @@ void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color)
 
 u32 VIDEO_HaveComponentCable(void)
 {
-	u32 level;
-	u32 dtv;
+	u32 level,dtv;
 
 	_CPU_ISR_Disable(level);
 	dtv = (_viReg[55]&0x0001);
