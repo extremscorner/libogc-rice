@@ -1770,10 +1770,17 @@ void GX_SetViewportJitter(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ,u
 {
 	f32 x0,y0,x1,y1,n,f,z;
 	static f32 Xfactor = 0.5f;
-	static f32 Yfactor = 1.0f/24.0f+GUARD_BAND;
+	static f32 Yfactor = 0.5f/12.0f+GUARD_BAND;
 	static f32 Zfactor = 16777215.0f;
 
-	if(field) yOrig += Xfactor;
+	switch(field) {
+		case VI_FIELD_ABOVE:
+			yOrig += 0.25f;
+			break;
+		case VI_FIELD_BELOW:
+			yOrig -= 0.25f;
+			break;
+	}
 
 	x0 = wd*Xfactor;
 	y0 = (-ht)*Xfactor;
@@ -1794,7 +1801,7 @@ void GX_SetViewportJitter(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ,u
 
 void GX_SetViewport(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ)
 {
-	GX_SetViewportJitter(xOrig,yOrig,wd,ht,nearZ,farZ,0);
+	GX_SetViewportJitter(xOrig,yOrig,wd,ht,nearZ,farZ,VI_FRAME);
 }
 
 void GX_LoadProjectionMtx(Mtx44 mt,u8 type)

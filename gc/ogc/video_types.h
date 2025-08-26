@@ -104,8 +104,9 @@ distribution.
  * @{
  */
 
-#define VI_FIELD_ABOVE              1		/*!< Upper field in DS mode */
-#define VI_FIELD_BELOW              0		/*!< Lower field in DS mode */
+#define VI_FRAME                    2
+#define VI_FIELD_ABOVE              1		/*!< Upper field in SF mode */
+#define VI_FIELD_BELOW              0		/*!< Lower field in SF mode */
 
 /*!
  * @}
