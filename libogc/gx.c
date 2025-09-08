@@ -14,16 +14,8 @@
 #include "gx_regdef.h"
 
 //#define _GP_DEBUG
-#define TEXCACHE_TESTING
 
-
-#define GUARD_BAND		340
-
-#if defined(HW_DOL)
-	#define LARGE_NUMBER	(-1048576.0f)
-#elif defined(HW_RVL)
-	#define LARGE_NUMBER	(-1.0e+18f)
-#endif
+#define LARGE_NUMBER	(-1.0e+18f)
 
 #define _SHIFTL(v, s, w)	\
     ((u32) (((u32)(v) & ((0x01 << (w)) - 1)) << (s)))
@@ -101,7 +93,6 @@ static u8 _gxteximg2ids[8] = {0x90,0x91,0x92,0x93,0xB0,0xB1,0xB2,0xB3};
 static u8 _gxteximg3ids[8] = {0x94,0x95,0x96,0x97,0xB4,0xB5,0xB6,0xB7};
 static u8 _gxtextlutids[8] = {0x98,0x99,0x9A,0x9B,0xB8,0xB9,0xBA,0xBB};
 
-#if defined(HW_RVL)
 static u32 _gxtexregionaddrtable[48] =
 {
 	0x00000000,0x00010000,0x00020000,0x00030000,
@@ -117,8 +108,6 @@ static u32 _gxtexregionaddrtable[48] =
 	0x00080000,0x00010000,0x000A0000,0x00030000,
 	0x00080000,0x00050000,0x000A0000,0x00070000
 };
-#endif
-
 
 static u8 __gxregs[STRUCT_REGDEF_SIZE] ATTRIBUTE_ALIGN(32);
 static struct __gx_regdef *__gx = (struct __gx_regdef*)__gxregs;
@@ -273,7 +262,6 @@ static u32 __GX_ReadPECounterU32(u32 reg)
 	return (u32)((ucnt<<16)|lcnt);
 }
 
-#ifdef HW_RVL
 static u32 __GX_ReadMemCounterU32(u32 reg)
 {
 	u16 lcnt,ucnt,tmp;
@@ -310,7 +298,6 @@ static void __GX_Abort()
 	_piReg[6] = 0;
 	__GX_WaitAbort(5);
 }
-#endif
 
 static void __GX_SaveFifo()
 {
@@ -561,7 +548,6 @@ static void __GX_SetTmemConfig(u8 nr)
 	}
 }
 
-#if defined(HW_RVL)
 static GXTexRegion* __GXDefTexRegionCallback(GXTexObj *obj,u8 mapid)
 {
 	u32 fmt,mipmap;
@@ -580,26 +566,6 @@ static GXTexRegion* __GXDefTexRegionCallback(GXTexObj *obj,u8 mapid)
 
 	return ret;
 }
-#else
-static GXTexRegion* __GXDefTexRegionCallback(GXTexObj *obj,u8 mapid)
-{
-	u32 fmt;
-	u32 idx;
-	static u32 regionA = 0;
-	static u32 regionB = 0;
-	GXTexRegion *ret = NULL;
-
-	fmt = GX_GetTexObjFmt(obj);
-	if(fmt==0x0008 || fmt==0x0009 || fmt==0x000a) {
-		idx = regionB++;
-		ret = &__gx->texRegion[(idx&3)+8];
-	} else {
-		idx = regionA++;
-		ret = &__gx->texRegion[(idx&7)];
-	}
-	return ret;
-}
-#endif
 
 static GXTlutRegion* __GXDefTlutRegionCallback(u32 tlut_name)
 {
@@ -1081,11 +1047,7 @@ static u32 __GX_GetNumXfbLines(u16 efbHeight,u32 yscale)
 GXFifoObj* GX_Init(void *base,u32 size)
 {
 	s32 i,re0,re1;
-#if defined(HW_RVL)
 	u32 tmem;
-#else
-	u32 tmem_even,tmem_odd;
-#endif
 	u32 divis,res;
 	u32 divid = TB_BUS_CLOCK;
 	GXTexRegion *region = NULL;
@@ -1179,7 +1141,6 @@ GXFifoObj* GX_Init(void *base,u32 size)
 		i++;
 	}
 
-#if defined(HW_RVL)
 	i = 0;
 	while(i<8) {
 		region = &__gx->texRegion[i];
@@ -1209,29 +1170,7 @@ GXFifoObj* GX_Init(void *base,u32 size)
 		GX_InitTlutRegion(tregion,tmem,GX_TLUT_1K);
 		i++;
 	}
-#else
-	for(i=0;i<8;i++) {
-		tmem_even = tmem_odd = (i<<15);
-		region = &__gx->texRegion[i];
-		GX_InitTexCacheRegion(region,GX_FALSE,tmem_even,GX_TEXCACHE_32K,(tmem_odd+0x00080000),GX_TEXCACHE_32K);
-	}
-	for(i=0;i<4;i++) {
-		tmem_even = ((0x08+(i<<1))<<15);
-		tmem_odd = ((0x09+(i<<1))<<15);
-		region = &__gx->texRegion[i+8];
-		GX_InitTexCacheRegion(region,GX_FALSE,tmem_even,GX_TEXCACHE_32K,tmem_odd,GX_TEXCACHE_32K);
-	}
-	for(i=0;i<16;i++) {
-		tmem_even = (i<<13)+0x000C0000;
-		tregion = &__gx->tlutRegion[i];
-		GX_InitTlutRegion(tregion,tmem_even,GX_TLUT_256);
-	}
-	for(i=0;i<4;i++) {
-		tmem_even = (i<<15)+0x000E0000;
-		tregion = &__gx->tlutRegion[i+16];
-		GX_InitTlutRegion(tregion,tmem_even,GX_TLUT_1K);
-	}
-#endif
+
 	_cpReg[3] = 0;
 	GX_LOAD_CP_REG(0x20,0x00000000);
 	GX_LOAD_XF_REG(0x1006,0x0);
@@ -1241,11 +1180,7 @@ GXFifoObj* GX_Init(void *base,u32 size)
 	GX_LOAD_BP_REG(0x67000000);
 
 	__GX_SetIndirectMask(0);
-#if defined(HW_RVL)
 	__GX_SetTmemConfig(2);
-#else
-	__GX_SetTmemConfig(0);
-#endif
 	__GX_InitGX();
 
 	return &_gxfifoobj;
@@ -1623,18 +1558,6 @@ void GX_DisableBreakPt()
 	_CPU_ISR_Restore(level);
 }
 
-#if defined(HW_DOL)
-void GX_AbortFrame()
-{
-	_piReg[6] = 1;
-	__GX_WaitAbort(50);
-	_piReg[6] = 0;
-	__GX_WaitAbort(5);
-
-	if(__GX_IsGPFifoReady())
-		__GX_CleanGPFifo();
-}
-#elif defined(HW_RVL)
 void GX_AbortFrame()
 {
 	__GX_Abort();
@@ -1646,7 +1569,6 @@ void GX_AbortFrame()
 		GX_Flush();
 	}
 }
-#endif
 
 void GX_SetDrawSync(u16 token)
 {
@@ -1770,7 +1692,7 @@ void GX_SetViewportJitter(f32 xOrig,f32 yOrig,f32 wd,f32 ht,f32 nearZ,f32 farZ,u
 {
 	f32 x0,y0,x1,y1,n,f,z;
 	static f32 Xfactor = 0.5f;
-	static f32 Yfactor = 0.5f/12.0f+GUARD_BAND;
+	static f32 Yfactor = 340.0f+(0.5f/12.0f);
 	static f32 Zfactor = 16777215.0f;
 
 	switch(field) {
@@ -4064,8 +3986,8 @@ void GX_SetClipMode(u8 mode)
 
 void GX_SetScissor(u32 xOrigin,u32 yOrigin,u32 wd,u32 ht)
 {
-	u32 xo = xOrigin+GUARD_BAND;
-	u32 yo = yOrigin+GUARD_BAND;
+	u32 xo = xOrigin+340;
+	u32 yo = yOrigin+340;
 	u32 nwd = xo+(wd-1);
 	u32 nht = yo+(ht-1);
 
@@ -4086,16 +4008,16 @@ void GX_GetScissor(u32 *xOrigin,u32 *yOrigin,u32 *wd,u32 *ht)
 	u32 nwd = _SHIFTR(__gx->sciBRcorner,12,11);
 	u32 nht = _SHIFTL(__gx->sciBRcorner,0,11);
 
-	*xOrigin = xo-GUARD_BAND;
-	*yOrigin = yo-GUARD_BAND;
+	*xOrigin = xo-340;
+	*yOrigin = yo-340;
 	*wd = (nwd+1)-xo;
 	*ht = (nht+1)-yo;
 }
 
 void GX_SetScissorBoxOffset(s32 xoffset,s32 yoffset)
 {
-	s32 xoff = _SHIFTR((xoffset+GUARD_BAND),1,24);
-	s32 yoff = _SHIFTR((yoffset+GUARD_BAND),1,24);
+	s32 xoff = _SHIFTR((xoffset+340),1,24);
+	s32 yoff = _SHIFTR((yoffset+340),1,24);
 
 	GX_LOAD_BP_REG((0x59000000|(_SHIFTL(yoff,10,10))|(xoff&0x3ff)));
 }
@@ -4479,7 +4401,7 @@ void GX_SetFogRangeAdj(u8 enable,u16 center,GXFogAdjTbl *table)
 		val = 0xed000000|(_SHIFTL(table->r[9],12,12))|(table->r[8]&0x0fff);
 		GX_LOAD_BP_REG(val);
 	}
-	val = 0xe8000000|(_SHIFTL(enable,10,1))|((center+GUARD_BAND)&0x03ff);
+	val = 0xe8000000|(_SHIFTL(enable,10,1))|((center+340)&0x03ff);
 	GX_LOAD_BP_REG(val);
 }
 
