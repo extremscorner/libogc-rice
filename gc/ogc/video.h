@@ -97,6 +97,7 @@ void VIDEO_SetStereo(bool stereo);
  */
 u32 VIDEO_GetRetraceCount();
 
+f32 VIDEO_GetRetraceRate();
 
 /*! 
  * \fn u32 VIDEO_GetNextField()
