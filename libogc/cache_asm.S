@@ -243,6 +243,13 @@ ICUnfreeze:
 	.section	.text.LCEnable,"ax",@progbits
 	.globl LCEnable
 LCEnable:
+	lis		r3,0x8000
+	li		r4,1024
+	mtctr	r4
+1:	dcbt	r0,r3
+	dcbst	r0,r3
+	addi	r3,r3,32
+	bdnz	1b
 	mfspr	r4,HID2
 	oris	r4,r4,0x100f
 	mtspr	HID2,r4
@@ -254,9 +261,9 @@ LCEnable:
 	srwi.	r4,r4,5
 	mtctr	r4
 	beqlr
-1:	dcbz_l	r0,r3
+2:	dcbz_l	r0,r3
 	addi	r3,r3,32
-	bdnz	1b
+	bdnz	2b
 	blr
 
 	.section	.text.LCDisable,"ax",@progbits
