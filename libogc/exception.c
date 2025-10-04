@@ -42,6 +42,7 @@ distribution.
 #include "system.h"
 
 #include "gx.h"
+#include "si.h"
 #include "pad.h"
 #include "exi.h"
 #include "consol.h"
@@ -204,6 +205,9 @@ static void waitForReload()
 {
 	PAD_Init();
 
+	while(!PAD_Sync())
+		SI_Sync();
+
 	PAD_ControlAllMotors(rumble_cmds);
 
 	if(reload_timer > 0)
@@ -220,6 +224,9 @@ static void waitForReload()
 			kprintf("\n\tReload\n\n\n");
 			__reload ();
 		}
+
+		while(!PAD_Sync())
+			SI_Sync();
 
 		udelay(20000);
 		if(reload_timer > 0)
