@@ -262,21 +262,19 @@ static u32 __si_transfer(s32 chan,void *out,u32 out_len,void *in,u32 in_len,SICa
 	return 1;
 }
 
-static void __si_calltypandstatuscallback(s32 chan,u32 type)
+static void __si_calltypeandstatuscallback(s32 chan,u32 type)
 {
-	u32 typ;
+	u32 i;
 	SICallback cb = NULL;
 #ifdef _SI_DEBUG
-	printf("__si_calltypandstatuscallback(%d,%08x)\n",chan,type);
+	printf("__si_calltypeandstatuscallback(%d,%08x)\n",chan,type);
 #endif
-	typ = 0;
-	while(typ<4) {
-		cb = typeCallback[chan][typ];
+	for(i=0;i<4;i++) {
+		cb = typeCallback[chan][i];
 		if(cb) {
-			typeCallback[chan][typ] = NULL;
+			typeCallback[chan][i] = NULL;
 			cb(chan,type);
 		}
-		typ++;
 	}
 }
 
@@ -295,7 +293,7 @@ static void __si_gettypecallback(s32 chan,u32 type)
 	if(type&0x0f || ((si_type[chan]&SI_TYPE_MASK)-SI_TYPE_GC)
 		|| !(si_type[chan]&SI_GC_WIRELESS) || si_type[chan]&SI_WIRELESS_IR) {
 		SYS_SetWirelessID(chan,0);
-		__si_calltypandstatuscallback(chan,si_type[chan]);
+		__si_calltypeandstatuscallback(chan,si_type[chan]);
 		return;
 	}
 
@@ -304,16 +302,16 @@ static void __si_gettypecallback(s32 chan,u32 type)
 	printf("__si_gettypecallback(id = %08x)\n",id);
 #endif
 	if(sipad_en && id&SI_WIRELESS_FIX_ID) {
-		cmdfixdevice[chan] = 0x4e100000|(id&0x00CFFF00);
+		cmdfixdevice[chan] = 0x4e100000|(id&SI_WIRELESS_TYPE_ID);
 		si_type[chan] = SI_ERROR_BUSY;
 		SI_Transfer(chan,&cmdfixdevice[chan],3,&si_type[chan],3,__si_gettypecallback,0);
 		return;
 	}
 
 	if(si_type[chan]&SI_WIRELESS_FIX_ID) {
-		if((id&0x00CFFF00)==(si_type[chan]&0x00CFFF00)) goto exit;
+		if((id&SI_WIRELESS_TYPE_ID)==(si_type[chan]&SI_WIRELESS_TYPE_ID)) goto exit;
 		if(!(id&SI_WIRELESS_FIX_ID)) {
-			id = SI_WIRELESS_FIX_ID|(si_type[chan]&0x00CFFF00);
+			id = SI_WIRELESS_FIX_ID|(si_type[chan]&SI_WIRELESS_TYPE_ID);
 			SYS_SetWirelessID(chan,_SHIFTR(id,8,16));
 		}
 		cmdfixdevice[chan] = 0x4e000000|id;
@@ -323,7 +321,7 @@ static void __si_gettypecallback(s32 chan,u32 type)
 	}
 
 	if(si_type[chan]&SI_WIRELESS_RECEIVED) {
-		id = SI_WIRELESS_FIX_ID|(si_type[chan]&0x00CFFF00);
+		id = SI_WIRELESS_FIX_ID|(si_type[chan]&SI_WIRELESS_TYPE_ID);
 		SYS_SetWirelessID(chan,_SHIFTR(id,8,16));
 
 		cmdfixdevice[chan] = 0x4e000000|id;
@@ -334,7 +332,7 @@ static void __si_gettypecallback(s32 chan,u32 type)
 	SYS_SetWirelessID(chan,0);
 
 exit:
-	__si_calltypandstatuscallback(chan,si_type[chan]);
+	__si_calltypeandstatuscallback(chan,si_type[chan]);
 }
 
 static void __si_transfernext(u32 chan)
@@ -422,13 +420,20 @@ static void __si_interrupthandler(u32 irq,frame_context *ctx)
 
 u32 SI_Sync()
 {
-	u32 level,ret;
+	SICallback cb;
+	u32 level,chn,ret;
 
 	while(_siReg[13]&SICOMCSR_TSTART);
 
 	_CPU_ISR_Disable(level);
+	chn = sicntrl.chan;
+	cb = sicntrl.callback;
+	sicntrl.callback = NULL;
+
 	ret = __si_completetransfer();
-	__si_transfernext(4);
+	__si_transfernext(chn);
+
+	if(cb) cb(chn,ret);
 	_CPU_ISR_Restore(level);
 
 	return ret;
@@ -656,7 +661,6 @@ u32 SI_GetTypeAsync(s32 chan,SICallback cb)
 	_CPU_ISR_Disable(level);
 	type = SI_GetType(chan);
 	if(si_type[chan]&SI_ERROR_BUSY) {
-		i=0;
 		for(i=0;i<4;i++) {
 			if(!typeCallback[chan][i] && typeCallback[chan][i]!=cb) {
 				typeCallback[chan][i] = cb;
@@ -756,7 +760,6 @@ u32 SI_RegisterPollingHandler(RDSTHandler handler)
 
 	_CPU_ISR_Disable(level);
 
-	i = 0;
 	for(i=0;i<4;i++) {
 		if(rdstHandlers[i]==handler) {
 			_CPU_ISR_Restore(level);
@@ -835,8 +838,8 @@ void __si_init()
 	sicntrl.poll = 0;
 
 	SI_SetSamplingRate(0);
-	while(_siReg[13]&0x0001);
-	_siReg[13] = 0x80000000;
+	while(_siReg[13]&SICOMCSR_TSTART);
+	_siReg[13] = SICOMCSR_TCINT;
 
 	_siReg[15] &= ~0x80000000;		// permit exi clock to be set to 32MHz
 
