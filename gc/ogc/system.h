@@ -458,6 +458,7 @@ u32 SYS_ButtonsDown();
 
 void SYS_Report(const char *msg,...);
 void SYS_Reportv(const char *msg,va_list list);
+void SYS_STDIO_Report(bool use_stdout);
 void SYS_EnableGecko(s32 chan,bool safe);
 
 void kprintf(const char *fmt,...);
