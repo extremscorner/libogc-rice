@@ -25,16 +25,16 @@
    extern "C" {
 #endif /* __cplusplus */
 
-typedef struct _excption_frame {
-	u32 SP, LRSAVE;
-	u32 EXCPT_Number;
-	u32 SRR0, SRR1;
-	u32 GPR[32];
-	u32 CR, LR, CTR, XER, MSR;
+typedef struct _exception_frame {
+	u32 sp, lrsave;
+	u32 nExcept;
+	u32 srr0, srr1;
+	u32 gpr[32];
+	u32 cr, lr, ctr, xer, msr;
 
-	f64 FPR[32];
-	u64	FPSCR;
-	f64 PSFPR[32];
+	f64 fpr[32];
+	u64 fpscr;
+	f64 psfpr[32];
 } frame_context;
 
 #ifdef __cplusplus

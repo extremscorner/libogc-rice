@@ -99,12 +99,12 @@ static u8 exception_signal[NUM_EXCEPTIONS] = {
 		SIGALRM, SIGSYS, SIGTRAP, SIGILL,
 		SIGTRAP, SIGFPE, SIGHUP };
 
-void __exception_load(u32 nExc,void *data,u32 len,void *patch)
+void __exception_load(u32 nExcept,void *data,u32 len,void *patch)
 {
-	void *pAddr = (void*)(0x80000000|exception_location[nExc]);
+	void *pAddr = (void*)(0x80000000|exception_location[nExcept]);
 	memcpy(pAddr,data,len);
 	if(patch)
-		*(u32*)((u32)pAddr+(patch-data)) |= nExc;
+		*(u32*)((u32)pAddr+(patch-data)) |= nExcept;
 
 	DCFlushRange(pAddr,len);
 	ICInvalidateRange(pAddr,len);
@@ -129,17 +129,17 @@ void __exception_init()
 	mtmsr(mfmsr()|(MSR_ME|MSR_RI));
 }
 
-void __exception_close(u32 except)
+void __exception_close(u32 nExcept)
 {
 	u32 level;
-	void *pAdd = (void*)(0x80000000|exception_location[except]);
+	void *pAddr = (void*)(0x80000000|exception_location[nExcept]);
 
 	_CPU_ISR_Disable(level);
-	__exception_sethandler(except,NULL);
+	__exception_sethandler(nExcept,NULL);
 
-	*(u32*)pAdd = 0x4C000064;
-	DCFlushRange(pAdd,0x100);
-	ICInvalidateRange(pAdd,0x100);
+	*(u32*)pAddr = 0x4C000064;
+	DCFlushRange(pAddr,0x100);
+	ICInvalidateRange(pAddr,0x100);
 	_CPU_ISR_Restore(level);
 }
 
@@ -246,30 +246,30 @@ void __attribute__((weak)) c_default_exceptionhandler(frame_context *pCtx)
 	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
 	CON_EnableGecko(EXI_CHANNEL_1, true);
 	VIDEO_SetFramebuffer(exception_xfb);
-	raise(exception_signal[pCtx->EXCPT_Number]);
+	raise(exception_signal[pCtx->nExcept]);
 
-	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->EXCPT_Number]);
+	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->nExcept]);
 
-	kprintf("\tGPR00 %08X GPR08 %08X GPR16 %08X GPR24 %08X\n",pCtx->GPR[0], pCtx->GPR[8], pCtx->GPR[16], pCtx->GPR[24]);
-	kprintf("\tGPR01 %08X GPR09 %08X GPR17 %08X GPR25 %08X\n",pCtx->GPR[1], pCtx->GPR[9], pCtx->GPR[17], pCtx->GPR[25]);
-	kprintf("\tGPR02 %08X GPR10 %08X GPR18 %08X GPR26 %08X\n",pCtx->GPR[2], pCtx->GPR[10], pCtx->GPR[18], pCtx->GPR[26]);
-	kprintf("\tGPR03 %08X GPR11 %08X GPR19 %08X GPR27 %08X\n",pCtx->GPR[3], pCtx->GPR[11], pCtx->GPR[19], pCtx->GPR[27]);
-	kprintf("\tGPR04 %08X GPR12 %08X GPR20 %08X GPR28 %08X\n",pCtx->GPR[4], pCtx->GPR[12], pCtx->GPR[20], pCtx->GPR[28]);
-	kprintf("\tGPR05 %08X GPR13 %08X GPR21 %08X GPR29 %08X\n",pCtx->GPR[5], pCtx->GPR[13], pCtx->GPR[21], pCtx->GPR[29]);
-	kprintf("\tGPR06 %08X GPR14 %08X GPR22 %08X GPR30 %08X\n",pCtx->GPR[6], pCtx->GPR[14], pCtx->GPR[22], pCtx->GPR[30]);
-	kprintf("\tGPR07 %08X GPR15 %08X GPR23 %08X GPR31 %08X\n",pCtx->GPR[7], pCtx->GPR[15], pCtx->GPR[23], pCtx->GPR[31]);
-	kprintf("\tLR %08X SRR0 %08X SRR1 %08X MSR %08X\n", pCtx->LR, pCtx->SRR0, pCtx->SRR1, mfmsr());
+	kprintf("\tGPR00 %08X GPR08 %08X GPR16 %08X GPR24 %08X\n", pCtx->gpr[0], pCtx->gpr[8], pCtx->gpr[16], pCtx->gpr[24]);
+	kprintf("\tGPR01 %08X GPR09 %08X GPR17 %08X GPR25 %08X\n", pCtx->gpr[1], pCtx->gpr[9], pCtx->gpr[17], pCtx->gpr[25]);
+	kprintf("\tGPR02 %08X GPR10 %08X GPR18 %08X GPR26 %08X\n", pCtx->gpr[2], pCtx->gpr[10], pCtx->gpr[18], pCtx->gpr[26]);
+	kprintf("\tGPR03 %08X GPR11 %08X GPR19 %08X GPR27 %08X\n", pCtx->gpr[3], pCtx->gpr[11], pCtx->gpr[19], pCtx->gpr[27]);
+	kprintf("\tGPR04 %08X GPR12 %08X GPR20 %08X GPR28 %08X\n", pCtx->gpr[4], pCtx->gpr[12], pCtx->gpr[20], pCtx->gpr[28]);
+	kprintf("\tGPR05 %08X GPR13 %08X GPR21 %08X GPR29 %08X\n", pCtx->gpr[5], pCtx->gpr[13], pCtx->gpr[21], pCtx->gpr[29]);
+	kprintf("\tGPR06 %08X GPR14 %08X GPR22 %08X GPR30 %08X\n", pCtx->gpr[6], pCtx->gpr[14], pCtx->gpr[22], pCtx->gpr[30]);
+	kprintf("\tGPR07 %08X GPR15 %08X GPR23 %08X GPR31 %08X\n", pCtx->gpr[7], pCtx->gpr[15], pCtx->gpr[23], pCtx->gpr[31]);
+	kprintf("\tLR %08X SRR0 %08X SRR1 %08X MSR %08X\n", pCtx->lr, pCtx->srr0, pCtx->srr1, mfmsr());
 	kprintf("\tDAR %08X DSISR %08X\n", mfspr(19), mfspr(18));
 
-	_cpu_print_stack((void*)pCtx->SRR0,(void*)pCtx->LR,(void*)pCtx->GPR[1]);
+	_cpu_print_stack((void*)pCtx->srr0,(void*)pCtx->lr,(void*)pCtx->gpr[1]);
 
-	if((pCtx->EXCPT_Number==EX_DSI) || (pCtx->EXCPT_Number==EX_FP)) {
+	if((pCtx->nExcept==EX_DSI) || (pCtx->nExcept==EX_FP)) {
 		u32 i;
-		u32 *pAdd = (u32*)pCtx->SRR0;
+		u32 *pAddr = (u32*)pCtx->srr0;
 		kprintf("\n\n\tCODE DUMP:\n");
 		for (i=0; i<12; i+=4)
 			kprintf("\t%p:  %08X %08X %08X %08X\n",
-			&(pAdd[i]),pAdd[i], pAdd[i+1], pAdd[i+2], pAdd[i+3]);
+			&(pAddr[i]),pAddr[i], pAddr[i+1], pAddr[i+2], pAddr[i+3]);
 	}
 
 	waitForReload();
