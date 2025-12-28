@@ -4303,7 +4303,11 @@ u32 VIDEO_GetFrameBufferSize(const GXRModeObj *rmode)
 
 void VIDEO_ClearFrameBuffer(const GXRModeObj *rmode,void *fb,u32 color)
 {
-	__VIClearFramebuffer(fb, VIDEO_GetFrameBufferSize(rmode), color);
+	u32 size;
+
+	size = VIDEO_GetFrameBufferSize(rmode);
+	fb = SYS_VirtualToUncached(fb);
+	__VIClearFramebuffer(fb,size,color);
 }
 
 u32 VIDEO_HaveComponentCable(void)

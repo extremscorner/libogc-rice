@@ -46,7 +46,6 @@ distribution.
 #include "pad.h"
 #include "exi.h"
 #include "consol.h"
-#include "console.h"
 #include "lwp_threads.h"
 #include "ios.h"
 
@@ -243,7 +242,7 @@ void __attribute__((weak)) c_default_exceptionhandler(frame_context *pCtx)
 	__dsp_shutdown();
 	GX_AbortFrame();
 	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
-	__console_init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
+	CON_Init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
 	CON_EnableGecko(EXI_CHANNEL_1, true);
 	VIDEO_SetFramebuffer(exception_xfb);
 	raise(exception_signal[pCtx->nExcept]);
