@@ -84,7 +84,7 @@ void __lwp_wkspace_init(u32 size)
 {
 	void *heap_addr = NULL;
 
-	heap_addr = SYS_AllocArenaMemLo(size,PPC_CACHE_ALIGNMENT);
+	heap_addr = SYS_AllocArenaMemHi(size,PPC_CACHE_ALIGNMENT);
 
 	memset(heap_addr,0,size);
 	__wkspace_heap_size = __lwp_heap_init(&__wkspace_heap,heap_addr,size,PPC_ALIGNMENT);
