@@ -61,7 +61,6 @@ typedef struct _framerec {
 	void *lr;
 } frame_rec, *frame_rec_t;
 
-static void *exception_xfb = (void*)0xC1700000;			//we use a static address above ArenaHi.
 static int reload_timer = -1;
 static u32 rumble_cmds[PAD_CHANMAX] = {
 	PAD_MOTOR_STOP, PAD_MOTOR_STOP, PAD_MOTOR_STOP, PAD_MOTOR_STOP
@@ -72,7 +71,6 @@ void __exception_sethandler(u32 nExcept, void (*pHndl)(frame_context*));
 extern void irq_exceptionhandler();
 extern void dec_exceptionhandler();
 extern void default_exceptionhandler();
-extern void VIDEO_SetFramebuffer(void *);
 extern void __dsp_shutdown();
 extern void __reload();
 
@@ -236,15 +234,16 @@ static void waitForReload()
 //just implement core for unrecoverable exceptions.
 void __attribute__((weak)) c_default_exceptionhandler(frame_context *pCtx)
 {
+	void *framebuffer;
 	u16 xstart,ystart;
 	u16 xres,yres,stride;
 
 	__dsp_shutdown();
 	GX_AbortFrame();
 	VIDEO_GetFrameBufferPan(&xstart,&ystart,&xres,&yres,&stride);
-	CON_Init(exception_xfb,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
+	framebuffer = VIDEO_GetCurrentFramebuffer();
+	CON_Init(framebuffer,xstart,ystart,xres,yres,stride*VI_DISPLAY_PIX_SZ);
 	CON_EnableGecko(EXI_CHANNEL_1, true);
-	VIDEO_SetFramebuffer(exception_xfb);
 	raise(exception_signal[pCtx->nExcept]);
 
 	kprintf("\n\n\n\tException (%s) occurred!\n", exception_name[pCtx->nExcept]);
