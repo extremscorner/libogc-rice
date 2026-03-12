@@ -5,7 +5,7 @@
 	Hardware routines for reading and writing to the Wii's internal
 	SD slot.
 
- Copyright (C) 2008 - 2025
+ Copyright (C) 2008 - 2026
    Michael Wiedenbauer (shagkur)
    Dave Murphy (WinterMute)
    Sven Peter (svpe) <svpe@gmx.net>
@@ -688,7 +688,12 @@ bool sdio_WriteSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors, con
 	return (ret>=0);
 }
 
-bool sdio_ClearStatus(DISC_INTERFACE *disc)
+bool sdio_EraseSectors(DISC_INTERFACE *disc, sec_t sector, sec_t numSectors)
+{
+	return false;
+}
+
+bool sdio_Flush(DISC_INTERFACE *disc)
 {
 	return true;
 }
@@ -715,9 +720,11 @@ DISC_INTERFACE __io_wiisd = {
 	sdio_IsInserted,
 	sdio_ReadSectors,
 	sdio_WriteSectors,
-	sdio_ClearStatus,
+	sdio_EraseSectors,
+	sdio_Flush,
 	sdio_Shutdown,
 	0,
+	1,
 	PAGE_SIZE512
 };
 
