@@ -170,7 +170,7 @@ __configMEM1_16MB:
 	isync
 
 	mfmsr	r3
-	ori		r3,r3,MSR_DR|MSR_IR
+	ori		r3,r3,MSR_IR|MSR_DR
 	mtsrr1	r3
 	mflr	r3
 	mtsrr0	r3
@@ -228,7 +228,7 @@ __configMEM1_24MB:
 	isync
 
 	mfmsr	r3
-	ori		r3,r3,MSR_DR|MSR_IR
+	ori		r3,r3,MSR_IR|MSR_DR
 	mtsrr1	r3
 	mflr	r3
 	mtsrr0	r3
@@ -263,7 +263,7 @@ __configMEM1_32MB:
 	isync
 
 	mfmsr	r3
-	ori		r3,r3,MSR_DR|MSR_IR
+	ori		r3,r3,MSR_IR|MSR_DR
 	mtsrr1	r3
 	mflr	r3
 	mtsrr0	r3
@@ -321,7 +321,7 @@ __configMEM1_48MB:
 	isync
 
 	mfmsr	r3
-	ori		r3,r3,MSR_DR|MSR_IR
+	ori		r3,r3,MSR_IR|MSR_DR
 	mtsrr1	r3
 	mflr	r3
 	mtsrr0	r3
@@ -358,7 +358,7 @@ __configMEM2_64MB:
 	isync
 
 	mfmsr	r3
-	ori		r3,r3,MSR_DR|MSR_IR
+	ori		r3,r3,MSR_IR|MSR_DR
 	mtsrr1	r3
 	mflr	r3
 	mtsrr0	r3
@@ -394,7 +394,7 @@ __configMEM2_128MB:
 	isync
 
 	mfmsr	r3
-	ori		r3,r3,MSR_DR|MSR_IR
+	ori		r3,r3,MSR_IR|MSR_DR
 	mtsrr1	r3
 	mflr	r3
 	mtsrr0	r3
