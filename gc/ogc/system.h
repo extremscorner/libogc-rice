@@ -335,7 +335,11 @@ void SYS_DumpPMC();
 u32 SYS_GetBusFrequency();
 f32 SYS_GetCoreMultiplier();
 u32 SYS_GetCoreFrequency();
+#if defined(HW_DOL)
 s8 SYS_GetCoreTemperature();
+s8 SYS_GetTAUCalibration();
+void SYS_SetTAUCalibration(s8 calib);
+#endif
 
 
 /*! \fn s32 SYS_CreateAlarm(syswd_t *thealarm)
