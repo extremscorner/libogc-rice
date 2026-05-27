@@ -36,10 +36,14 @@ typedef struct _keyinput {
 	u32 chan;
 } keyinput;
 
-typedef void (*SPECCallback)(u32,u32*,PADStatus*);
+typedef void (*SPECCallback)(u32 chan,u32 *data,PADStatus *status);
 
+static void SPEC0_MakeStatus(u32 chan,u32 *data,PADStatus *status);
+static void SPEC1_MakeStatus(u32 chan,u32 *data,PADStatus *status);
+static void SPEC2_MakeStatus(u32 chan,u32 *data,PADStatus *status);
+
+static SPECCallback __pad_makestatus = SPEC2_MakeStatus;
 static sampling_callback __pad_samplingcallback = NULL;
-static SPECCallback __pad_makestatus = NULL;
 static u32 __pad_initialized = 0;
 static u32 __pad_enabledbits = 0;
 static u32 __pad_resettingbits = 0;
@@ -525,12 +529,14 @@ u32 PAD_Init()
 {
 	u32 chan;
 	u16 prodpads = PAD_PRODPADS;
+	u8 *spec = (u8*)0x800030e9;
 #ifdef _PAD_DEBUG
 	printf("PAD_Init()\n");
 #endif
 	if(__pad_initialized) return 1;
 
-	if(__pad_spec) PAD_SetSpec(__pad_spec);
+	if(*spec) PAD_SetSpec(*spec);
+	__pad_initialized = 1;
 
 	memset(__pad_keys,0,sizeof(keyinput)*PAD_CHANMAX);
 
@@ -546,7 +552,6 @@ u32 PAD_Init()
 	SI_RefreshSamplingRate();
 	SYS_RegisterResetFunc(&pad_resetinfo);
 
-	__pad_initialized = 1;
 	return PAD_Reset(0xf0000000);
 }
 
@@ -752,10 +757,10 @@ void PAD_SetSpec(u32 spec)
 {
 	if(__pad_initialized) return;
 
-	__pad_spec = 0;
+	*(u8*)0x800030e9 = spec;
 	if(spec==0) __pad_makestatus = SPEC0_MakeStatus;
 	else if(spec==1) __pad_makestatus = SPEC1_MakeStatus;
-	else if(spec<6) __pad_makestatus = SPEC2_MakeStatus;
+	else if(spec<=5) __pad_makestatus = SPEC2_MakeStatus;
 
 	__pad_spec = spec;
 }
