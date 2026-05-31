@@ -2,7 +2,7 @@
 
 video.h -- VIDEO subsystem
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -53,7 +53,7 @@ distribution.
  */
 typedef void (*VIRetraceCallback)(u32 retraceCount);
 
-typedef void (*VIPositionCallback)(u32 posX,u32 posY);
+typedef void (*VIPositionCallback)(s16 posX,s16 posY);
 
 void* VIDEO_GetNextFramebuffer();
 void* VIDEO_GetCurrentFramebuffer();
@@ -93,7 +93,7 @@ void VIDEO_SetStereo(bool stereo);
  * \fn u32 VIDEO_GetRetraceCount()
  * \brief Get current retrace count
  *
- * \return retracecount
+ * \return retrace count
  */
 u32 VIDEO_GetRetraceCount();
 
@@ -112,7 +112,7 @@ u32 VIDEO_GetNextField();
  * \fn u32 VIDEO_GetCurrentLine()
  * \brief Get current video line
  *
- * \return linenumber
+ * \return line number
  */
 u32 VIDEO_GetCurrentLine();
 
@@ -145,7 +145,7 @@ u32 VIDEO_GetCurrentViMode();
  */
 void VIDEO_Configure(GXRModeObj *rmode);
 
-void VIDEO_ConfigurePan(u16 xOrg, u16 yOrg, u16 width, u16 height);
+void VIDEO_ConfigurePan(u16 xOrg,u16 yOrg,u16 width,u16 height);
 
 void VIDEO_GetFrameBufferPan(u16 *xOrg,u16 *yOrg,u16 *width,u16 *height,u16 *stride);
 
@@ -177,7 +177,7 @@ void VIDEO_WaitVSync(void);
  * \fn u32 VIDEO_WaitForRetrace(u32 count)
  * \brief Wait until the specified retrace count
  *
- * \return retracecount
+ * \return retrace count
  */
 u32 VIDEO_WaitForRetrace(u32 count);
 
@@ -233,8 +233,8 @@ u32 VIDEO_HaveComponentCable(void);
 
 GXRModeObj * VIDEO_GetPreferredMode(GXRModeObj *mode);
 
-void VIDEO_SetAdjustingValues(s16 hor,s16 ver);
-void VIDEO_GetAdjustingValues(s16 *hor,s16 *ver);
+void VIDEO_SetAdjustingValues(s16 posX,s16 posY);
+void VIDEO_GetAdjustingValues(s16 *posX,s16 *posY);
 
 #ifdef HW_RVL
 void VIDEO_SetTrapFilter(bool filter);

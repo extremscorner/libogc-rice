@@ -1,273 +1,246 @@
-#include "processor.h"
-#include "lwp.h"
-#include "system.h"
-#include "si.h"
-#include "n64.h"
+/*-------------------------------------------------------------
 
-typedef void (*N64TransferCallback)(s32 chan);
+n64.c -- N64 controller subsystem
 
-typedef struct _n64 {
+Copyright (C) 2019 - 2026 Extrems' Corner.org
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any
+damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any
+purpose, including commercial applications, and to alter it and
+redistribute it freely, subject to the following restrictions:
+
+1.	The origin of this software must not be misrepresented; you
+must not claim that you wrote the original software. If you use
+this software in a product, an acknowledgment in the product
+documentation would be appreciated but is not required.
+
+2.	Altered source versions must be plainly marked as such, and
+must not be misrepresented as being the original software.
+
+3.	This notice may not be removed or altered from any source
+distribution.
+
+-------------------------------------------------------------*/
+
+#include <gctypes.h>
+#include <ogc/irq.h>
+#include <ogc/lwp.h>
+#include <ogc/n64.h>
+#include <ogc/si.h>
+#include <ogc/system.h>
+
+typedef struct {
+	s32 result;
 	u8 out[35];
 	u8 in[33];
-	u32 out_len;
-	u32 in_len;
-	u8 *stat;
-	N64Status *status;
-	N64SyncCallback sync_cb;
-	s32 err;
-	lwpq_t sync_queue;
-	N64TransferCallback xfer_cb;
-} N64;
+	u32 outLen;
+	u32 inLen;
+	u8 *status;
+	void *ptr;
+	N64Callback proc;
+	N64Callback callback;
+	lwpq_t syncQueue;
+} N64ControlBlock;
 
-static N64 __N64[SI_MAX_CHAN];
-static u32 __N64Reset;
+static N64ControlBlock __N64[SI_MAX_CHAN];
+static bool Reset;
 
-static void __N64SyncCallback(s32 chan,s32 err);
-static s32 __N64Sync(s32 chan);
-static s32 __N64Transfer(s32 chan,u32 out_len,u32 in_len,N64TransferCallback cb);
+static s32 OnReset(s32 final)
+{
+	Reset = true;
+	return TRUE;
+}
 
-static s32 __n64_onreset(s32 final);
-
-static sys_resetinfo __n64_resetinfo = {
-	{},
-	__n64_onreset,
-	127
+static sys_resetinfo ResetInfo = {
+	.func = OnReset,
+	.prio = 127
 };
 
-void N64_Init()
+static void __attribute__((constructor)) __N64_Init(void)
 {
-	s32 chan;
-	static u32 initialized;
+	for (s32 chan = SI_CHAN0; chan < SI_MAX_CHAN; chan++)
+		LWP_InitQueue(&__N64[chan].syncQueue);
 
-	if(initialized) return;
-	initialized = 1;
+	SYS_RegisterResetFunc(&ResetInfo);
+}
 
-	chan = 0;
-	while(chan<SI_MAX_CHAN) {
-		LWP_InitQueue(&__N64[chan].sync_queue);
-		chan++;
+static void __N64_SyncCallback(s32 chan, s32 result)
+{
+	LWP_ThreadBroadcast(__N64[chan].syncQueue);
+}
+
+static s32 N64_Sync(s32 chan)
+{
+	s32 result;
+	u32 level = IRQ_Disable();
+
+	while (__N64[chan].callback)
+		if (LWP_ThreadSleep(__N64[chan].syncQueue)) break;
+
+	result = __N64[chan].result;
+
+	IRQ_Restore(level);
+	return result;
+}
+
+static void __N64_Handler(s32 chan, u32 type)
+{
+	N64ControlBlock *cb = &__N64[chan];
+	N64Callback callback, proc;
+
+	if (Reset)
+		return;
+	else if (type & SI_ERROR_NO_RESPONSE)
+		cb->result = N64_ERR_NO_CONTROLLER;
+	else if (type & (SI_ERROR_COLLISION | SI_ERROR_OVER_RUN | SI_ERROR_UNDER_RUN))
+		cb->result = N64_ERR_TRANSFER;
+	else
+		cb->result = N64_ERR_READY;
+
+	if (cb->proc) {
+		proc = cb->proc;
+		cb->proc = NULL;
+		proc(chan, cb->result);
 	}
 
-	__N64Reset = 0;
-	SYS_RegisterResetFunc(&__n64_resetinfo);
+	if (cb->callback) {
+		callback = cb->callback;
+		cb->callback = NULL;
+		callback(chan, cb->result);
+	}
 }
 
-static void __N64DefaultCallback(s32 chan,s32 err)
+static void TypeCallback(s32 chan, u32 type)
+{
+	N64ControlBlock *cb = &__N64[chan];
+	N64Callback callback, proc;
+
+	if (Reset)
+		return;
+	else if (SI_DecodeType(type) != SI_N64_CONTROLLER)
+		cb->result = N64_ERR_NO_CONTROLLER;
+	else if (!SI_Transfer(chan, cb->out, cb->outLen, cb->in, cb->inLen, __N64_Handler, 0))
+		cb->result = N64_ERR_BUSY;
+	else
+		return;
+
+	if (cb->proc) {
+		proc = cb->proc;
+		cb->proc = NULL;
+		proc(chan, cb->result);
+	}
+
+	if (cb->callback) {
+		callback = cb->callback;
+		cb->callback = NULL;
+		callback(chan, cb->result);
+	}
+}
+
+static s32 N64_Transfer(s32 chan, u32 outLen, u32 inLen, N64Callback proc)
+{
+	u32 level = IRQ_Disable();
+
+	__N64[chan].outLen = outLen;
+	__N64[chan].inLen = inLen;
+	__N64[chan].proc = proc;
+	SI_GetTypeAsync(chan, TypeCallback);
+
+	IRQ_Restore(level);
+	return N64_ERR_READY;
+}
+
+static void DefaultCallback(s32 chan, s32 result)
 {
 }
 
-static void __N64GetStatusCallback(s32 chan)
+static void ShortCommandProc(s32 chan, s32 result)
 {
-	if(__N64[chan].err==N64_ERR_NONE) {
-		if(__N64[chan].in[0]!=0x05 || __N64[chan].in[1]!=0x00) {
-			__N64[chan].err = N64_ERR_NO_CONTROLLER;
+	N64ControlBlock *cb = &__N64[chan];
+
+	if (result == N64_ERR_READY) {
+		if (cb->in[0] != 0x05 || cb->in[1] != 0x00) {
+			cb->result = N64_ERR_NO_CONTROLLER;
 			return;
 		}
-		*__N64[chan].stat = __N64[chan].in[2];
+
+		*cb->status = cb->in[2];
 	}
 }
 
-s32 N64_GetStatusAsync(s32 chan,u8 *stat,N64SyncCallback cb)
+s32 N64_GetStatusAsync(s32 chan, u8 *status, N64Callback callback)
 {
-	s32 ret;
-	u32 level;
+	N64ControlBlock *cb = &__N64[chan];
 
-	_CPU_ISR_Disable(level);
+	if (cb->callback)
+		return N64_ERR_BUSY;
 
-	if(!__N64[chan].sync_cb) {
-		__N64[chan].sync_cb = (cb==NULL) ? __N64DefaultCallback : cb;
-		ret = N64_ERR_NONE;
-	} else {
-		ret = N64_ERR_NOT_READY;
+	cb->out[0] = 0x00;
+	cb->status = status;
+	cb->callback = callback ? : DefaultCallback;
+	return N64_Transfer(chan, 1, 3, ShortCommandProc);
+}
+
+s32 N64_GetStatus(s32 chan, u8 *status)
+{
+	s32 result = N64_GetStatusAsync(chan, status, __N64_SyncCallback);
+	if (result == N64_ERR_READY) return N64_Sync(chan);
+	return result;
+}
+
+s32 N64_ResetAsync(s32 chan, u8 *status, N64Callback callback)
+{
+	N64ControlBlock *cb = &__N64[chan];
+
+	if (cb->callback)
+		return N64_ERR_BUSY;
+
+	cb->out[0] = 0xFF;
+	cb->status = status;
+	cb->callback = callback ? : DefaultCallback;
+	return N64_Transfer(chan, 1, 3, ShortCommandProc);
+}
+
+s32 N64_Reset(s32 chan, u8 *status)
+{
+	s32 result = N64_ResetAsync(chan, status, __N64_SyncCallback);
+	if (result == N64_ERR_READY) return N64_Sync(chan);
+	return result;
+}
+
+static void ReadProc(s32 chan, s32 result)
+{
+	N64ControlBlock *cb = &__N64[chan];
+	N64Status *status = (N64Status *)cb->ptr;
+
+	if (result == N64_ERR_READY) {
+		status->button = cb->in[1] << 8 | cb->in[0];
+		status->stickX = cb->in[2];
+		status->stickY = cb->in[3];
 	}
 
-	_CPU_ISR_Restore(level);
-
-	if(ret==N64_ERR_NONE) {
-		__N64[chan].out[0] = 0x00;
-		__N64[chan].stat = stat;
-		ret = __N64Transfer(chan,1,3,__N64GetStatusCallback);
-	}
-	return ret;
+	status->err = result;
 }
 
-s32 N64_GetStatus(s32 chan,u8 *stat)
+s32 N64_ReadAsync(s32 chan, N64Status *status, N64Callback callback)
 {
-	s32 ret;
+	N64ControlBlock *cb = &__N64[chan];
 
-	ret = N64_GetStatusAsync(chan,stat,__N64SyncCallback);
-	if(ret==N64_ERR_NONE) ret = __N64Sync(chan);
-	return ret;
+	if (cb->callback)
+		return N64_ERR_BUSY;
+
+	cb->out[0] = 0x01;
+	cb->ptr = status;
+	cb->callback = callback ? : DefaultCallback;
+	return N64_Transfer(chan, 1, 4, ReadProc);
 }
 
-s32 N64_ResetAsync(s32 chan,u8 *stat,N64SyncCallback cb)
+s32 N64_Read(s32 chan, N64Status *status)
 {
-	s32 ret;
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
-	if(!__N64[chan].sync_cb) {
-		__N64[chan].sync_cb = (cb==NULL) ? __N64DefaultCallback : cb;
-		ret = N64_ERR_NONE;
-	} else {
-		ret = N64_ERR_NOT_READY;
-	}
-
-	_CPU_ISR_Restore(level);
-
-	if(ret==N64_ERR_NONE) {
-		__N64[chan].out[0] = 0xff;
-		__N64[chan].stat = stat;
-		ret = __N64Transfer(chan,1,3,__N64GetStatusCallback);
-	}
-	return ret;
-}
-
-s32 N64_Reset(s32 chan,u8 *stat)
-{
-	s32 ret;
-
-	ret = N64_ResetAsync(chan,stat,__N64SyncCallback);
-	if(ret==N64_ERR_NONE) ret = __N64Sync(chan);
-	return ret;
-}
-
-static s32 __n64_onreset(s32 final)
-{
-	__N64Reset = 1;
-	return 1;
-}
-
-static void __N64ReadCallback(s32 chan)
-{
-	N64Status *status = __N64[chan].status;
-
-	if(__N64[chan].err==N64_ERR_NONE) {
-		status->button = (u16)((__N64[chan].in[1]<<8)|__N64[chan].in[0]);
-		status->stickX = (s8)(__N64[chan].in[2]);
-		status->stickY = (s8)(__N64[chan].in[3]);
-	}
-	status->err = __N64[chan].err;
-}
-
-s32 N64_ReadAsync(s32 chan,N64Status *status,N64SyncCallback cb)
-{
-	s32 ret;
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
-	if(!__N64[chan].sync_cb) {
-		__N64[chan].sync_cb = (cb==NULL) ? __N64DefaultCallback : cb;
-		ret = N64_ERR_NONE;
-	} else {
-		ret = N64_ERR_NOT_READY;
-	}
-
-	_CPU_ISR_Restore(level);
-
-	if(ret==N64_ERR_NONE) {
-		__N64[chan].out[0] = 0x01;
-		__N64[chan].status = status;
-		ret = __N64Transfer(chan,1,4,__N64ReadCallback);
-	}
-	return ret;
-}
-
-s32 N64_Read(s32 chan,N64Status *status)
-{
-	s32 ret;
-
-	ret = N64_ReadAsync(chan,status,__N64SyncCallback);
-	if(ret==N64_ERR_NONE) ret = __N64Sync(chan);
-	return ret;
-}
-
-static void __N64Callback(s32 chan,u32 type)
-{
-	N64TransferCallback xfer_cb;
-	N64SyncCallback sync_cb;
-
-	if(__N64Reset) return;
-
-	if(type&SI_ERROR_NO_RESPONSE) __N64[chan].err = N64_ERR_NO_CONTROLLER;
-	else if(type&0x0f) __N64[chan].err = N64_ERR_TRANSFER;
-	else __N64[chan].err = N64_ERR_NONE;
-
-	xfer_cb = __N64[chan].xfer_cb;
-	if(xfer_cb) {
-		__N64[chan].xfer_cb = NULL;
-		xfer_cb(chan);
-	}
-
-	sync_cb = __N64[chan].sync_cb;
-	if(sync_cb) {
-		__N64[chan].sync_cb = NULL;
-		sync_cb(chan,__N64[chan].err);
-	}
-}
-
-static void __N64SyncCallback(s32 chan,s32 err)
-{
-	LWP_ThreadBroadcast(__N64[chan].sync_queue);
-}
-
-static s32 __N64Sync(s32 chan)
-{
-	s32 ret;
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
-	while(__N64[chan].sync_cb)
-		LWP_ThreadSleep(__N64[chan].sync_queue);
-	ret = __N64[chan].err;
-
-	_CPU_ISR_Restore(level);
-
-	return ret;
-}
-
-static void __N64TypeCallback(s32 chan,u32 type)
-{
-	N64TransferCallback xfer_cb;
-	N64SyncCallback sync_cb;
-
-	if(__N64Reset) return;
-
-	type &= ~0xff00;
-	if(type==SI_N64_CONTROLLER) {
-		if(SI_Transfer(chan,__N64[chan].out,__N64[chan].out_len,__N64[chan].in,__N64[chan].in_len,__N64Callback,0)) return;
-		else __N64[chan].err = N64_ERR_NOT_READY;
-	} else __N64[chan].err = N64_ERR_NO_CONTROLLER;
-
-	xfer_cb = __N64[chan].xfer_cb;
-	if(xfer_cb) {
-		__N64[chan].xfer_cb = NULL;
-		xfer_cb(chan);
-	}
-
-	sync_cb = __N64[chan].sync_cb;
-	if(sync_cb) {
-		__N64[chan].sync_cb = NULL;
-		sync_cb(chan,__N64[chan].err);
-	}
-}
-
-static s32 __N64Transfer(s32 chan,u32 out_len,u32 in_len,N64TransferCallback cb)
-{
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
-	__N64[chan].xfer_cb = cb;
-	__N64[chan].out_len = out_len;
-	__N64[chan].in_len = in_len;
-
-	SI_GetTypeAsync(chan,__N64TypeCallback);
-
-	_CPU_ISR_Restore(level);
-
-	return N64_ERR_NONE;
+	s32 result = N64_ReadAsync(chan, status, __N64_SyncCallback);
+	if (result == N64_ERR_READY) return N64_Sync(chan);
+	return result;
 }
