@@ -744,7 +744,7 @@ char *SI_GetTypeString(u32 type)
 		case SI_GC_KEYBOARD:
 			return "Keyboard";
 		case SI_GC_STEERING:
-			return "Steering";
+			return "Steering wheel";
 		default:
 			return "Unknown";
 	}

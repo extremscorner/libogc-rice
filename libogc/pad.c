@@ -106,7 +106,7 @@ static void SPEC0_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 	if(data[0]&0x00200000) status->button |= PAD_BUTTON_B;
 	if(data[0]&0x01000000) status->button |= PAD_BUTTON_X;
 	if(data[0]&0x00010000) status->button |= PAD_BUTTON_Y;
-	if(data[0]&0x00100000) status->button |= PAD_BUTTON_START;
+	if(data[0]&0x00100000) status->button |= PAD_BUTTON_MENU;
 
 	status->stickX = (s8)(data[1]>>16);
 	status->stickY = (s8)(data[1]>>24);
@@ -134,7 +134,7 @@ static void SPEC1_MakeStatus(u32 chan,u32 *data,PADStatus *status)
 	if(data[0]&0x01000000) status->button |= PAD_BUTTON_B;
 	if(data[0]&0x00200000) status->button |= PAD_BUTTON_X;
 	if(data[0]&0x00100000) status->button |= PAD_BUTTON_Y;
-	if(data[0]&0x02000000) status->button |= PAD_BUTTON_START;
+	if(data[0]&0x02000000) status->button |= PAD_BUTTON_MENU;
 
 	status->stickX = (s8)(data[1]>>16);
 	status->stickY = (s8)(data[1]>>24);
@@ -979,23 +979,24 @@ u32 PAD_ScanPads()
 				break;
 
 			case SI_GC_STEERING:
+				SI_InitSteering();
 				SI_ReadSteering(i,&steering);
 
 				switch(steering.err) {
-				case SI_STEERING_ERR_NONE:
+				case SI_STEERING_ERR_READY:
 					state					= steering.button;
-					__pad_keys[i].stickX	= steering.wheel;
-					__pad_keys[i].triggerL	= steering.paddleL;
-					__pad_keys[i].triggerR	= steering.paddleR;
-					__pad_keys[i].analogA	= steering.pedalL;
-					__pad_keys[i].analogB	= steering.pedalR;
+					__pad_keys[i].stickX	= steering.steering;
+					__pad_keys[i].triggerL	= steering.left;
+					__pad_keys[i].triggerR	= steering.right;
+					__pad_keys[i].analogA	= steering.gas;
+					__pad_keys[i].analogB	= steering.brake;
 
-					if(steering.wheel<-25)	state |= PAD_WHEEL_LEFT;
-					if(steering.wheel>+25)	state |= PAD_WHEEL_RIGHT;
-					if(steering.paddleL>50)	state |= PAD_PADDLE_L;
-					if(steering.paddleR>50)	state |= PAD_PADDLE_R;
-					if(steering.pedalL>50)	state |= PAD_PEDAL_L;
-					if(steering.pedalR>50)	state |= PAD_PEDAL_R;
+					if(steering.steering<-25)	state |= PAD_STEERING_LEFT;
+					if(steering.steering>+25)	state |= PAD_STEERING_RIGHT;
+					if(steering.left>50)		state |= PAD_PADDLE_LEFT;
+					if(steering.right>50)		state |= PAD_PADDLE_RIGHT;
+					if(steering.gas>50)			state |= PAD_PEDAL_GAS;
+					if(steering.brake>50)		state |= PAD_PEDAL_BRAKE;
 
 					oldstate				= __pad_keys[i].state;
 					__pad_keys[i].up		= ~state & oldstate;

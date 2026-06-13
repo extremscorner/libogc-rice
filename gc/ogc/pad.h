@@ -35,6 +35,7 @@
 #define PAD_BUTTON_B				0x0200
 #define PAD_BUTTON_X				0x0400
 #define PAD_BUTTON_Y				0x0800
+#define PAD_BUTTON_MENU				0x1000
 #define PAD_BUTTON_START			0x1000
 
 #define PAD_STICK_LEFT				(0x0001<<16)
@@ -50,18 +51,12 @@
 #define PAD_ANALOG_A				(0x0400<<16)
 #define PAD_ANALOG_B				(0x0800<<16)
 
-#define PAD_WHEEL_LEFT				PAD_STICK_LEFT
-#define PAD_WHEEL_RIGHT				PAD_STICK_RIGHT
-#define PAD_PADDLE_L				PAD_TRIGGER_L
-#define PAD_PADDLE_R				PAD_TRIGGER_R
-#define PAD_PEDAL_L					PAD_ANALOG_A
-#define PAD_PEDAL_R					PAD_ANALOG_B
-
-#define PAD_Wheel					PAD_StickX
-#define PAD_PaddleL					PAD_TriggerL
-#define PAD_PaddleR					PAD_TriggerR
-#define PAD_PedalL					PAD_AnalogA
-#define PAD_PedalR					PAD_AnalogB
+#define PAD_STEERING_LEFT			PAD_STICK_LEFT
+#define PAD_STEERING_RIGHT			PAD_STICK_RIGHT
+#define PAD_PEDAL_GAS				PAD_ANALOG_A
+#define PAD_PEDAL_BRAKE				PAD_ANALOG_B
+#define PAD_PADDLE_LEFT				PAD_TRIGGER_L
+#define PAD_PADDLE_RIGHT			PAD_TRIGGER_R
 /*+----------------------------------------------------------------------------------------------+*/
 /*+----------------------------------------------------------------------------------------------+*/
 /*+----------------------------------------------------------------------------------------------+*/
@@ -120,6 +115,14 @@ u8 PAD_TriggerR(s32 chan);
 
 u8 PAD_AnalogA(s32 chan);
 u8 PAD_AnalogB(s32 chan);
+
+#define PAD_Steering				PAD_StickX
+
+#define PAD_PedalGas				PAD_AnalogA
+#define PAD_PedalBrake				PAD_AnalogB
+
+#define PAD_PaddleLeft				PAD_TriggerL
+#define PAD_PaddleRight				PAD_TriggerR
 
 sampling_callback PAD_SetSamplingCallback(sampling_callback cb);
 

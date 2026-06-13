@@ -1,316 +1,307 @@
-#include "processor.h"
-#include "lwp.h"
-#include "system.h"
-#include "video.h"
-#include "si.h"
-#include "si_steering.h"
+/*-------------------------------------------------------------
 
-typedef void (*SISteeringTransferCallback)(s32 chan);
+si_steering.c -- Steering wheel support
 
-typedef struct _sisteering {
+Copyright (C) 2017 - 2026 Extrems' Corner.org
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any
+damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any
+purpose, including commercial applications, and to alter it and
+redistribute it freely, subject to the following restrictions:
+
+1.	The origin of this software must not be misrepresented; you
+must not claim that you wrote the original software. If you use
+this software in a product, an acknowledgment in the product
+documentation would be appreciated but is not required.
+
+2.	Altered source versions must be plainly marked as such, and
+must not be misrepresented as being the original software.
+
+3.	This notice may not be removed or altered from any source
+distribution.
+
+-------------------------------------------------------------*/
+
+#include <gctypes.h>
+#include <ogc/irq.h>
+#include <ogc/lwp.h>
+#include <ogc/machine/processor.h>
+#include <ogc/si.h>
+#include <ogc/si_steering.h>
+#include <ogc/system.h>
+#include <ogc/video.h>
+
+typedef struct {
+	s32 result;
 	u8 out[3];
 	u8 in[8];
-	u32 out_len;
-	u32 in_len;
-	SISteeringSyncCallback sync_cb;
-	s32 err;
-	lwpq_t sync_queue;
-	SISteeringTransferCallback xfer_cb;
-} SISteering;
+	u32 outLen;
+	u32 inLen;
+	SISteeringCallback proc;
+	SISteeringCallback callback;
+	lwpq_t syncQueue;
+} SISteeringControlBlock;
 
-static SISteering __SISteering[SI_MAX_CHAN];
-static u32 __SIResetSteering;
-static u32 __SISteeringEnableBits;
-static SISteeringSamplingCallback __SISteeringSamplingCallback;
+static SISteeringControlBlock __Steering[SI_MAX_CHAN];
+static SISteeringSamplingCallback SamplingCallback;
+static u32 EnabledBits;
+static bool Reset;
 
-static void __SISteeringSyncCallback(s32 chan,s32 err);
-static s32 __SISteeringSync(s32 chan);
-static s32 __SISteeringTransfer(s32 chan,u32 out_len,u32 in_len,SISteeringTransferCallback cb);
-static void __SISteeringEnable(s32 chan);
-static void __SISteeringDisable(s32 chan);
+static s32 OnReset(s32 final);
 
-static s32 __sisteering_onreset(s32 final);
-
-static sys_resetinfo __sisteering_resetinfo = {
-	{},
-	__sisteering_onreset,
-	127
+static sys_resetinfo ResetInfo = {
+	.func = OnReset,
+	.prio = 127
 };
 
-void SI_InitSteering()
+void SI_InitSteering(void)
 {
-	s32 chan;
-	static u32 initialized;
+	static bool initialized;
 
-	if(initialized) return;
-	initialized = 1;
+	if (initialized) return;
+	initialized = true;
 
-	chan = 0;
-	while(chan<SI_MAX_CHAN) {
-		__SISteering[chan].err = SI_STEERING_ERR_NONE;
-		LWP_InitQueue(&__SISteering[chan].sync_queue);
-		chan++;
-	}
+	for (s32 chan = SI_CHAN0; chan < SI_MAX_CHAN; chan++)
+		LWP_InitQueue(&__Steering[chan].syncQueue);
 
 	SI_RefreshSamplingRate();
-	__SIResetSteering = 0;
-	SYS_RegisterResetFunc(&__sisteering_resetinfo);
+	SYS_RegisterResetFunc(&ResetInfo);
 }
 
-static void __SISteeringDefaultCallback(s32 chan,s32 err)
+static void __SI_SteeringSyncCallback(s32 chan, s32 result)
 {
+	LWP_ThreadBroadcast(__Steering[chan].syncQueue);
 }
 
-static void __SISteeringResetCallback(s32 chan)
+static s32 SI_SteeringSync(s32 chan)
 {
-	if(__SISteering[chan].err==SI_STEERING_ERR_NONE) {
-		if(!__SIResetSteering)
-			__SISteeringEnable(chan);
+	s32 result;
+	u32 level = IRQ_Disable();
+
+	while (__Steering[chan].callback)
+		if (LWP_ThreadSleep(__Steering[chan].syncQueue)) break;
+
+	result = __Steering[chan].result;
+
+	IRQ_Restore(level);
+	return result;
+}
+
+static void __SI_SteeringHandler(s32 chan, u32 type)
+{
+	SISteeringControlBlock *cb = &__Steering[chan];
+	SISteeringCallback callback, proc;
+
+	if (Reset)
+		return;
+	else if (type & SI_ERROR_NO_RESPONSE)
+		cb->result = SI_STEERING_ERR_NO_CONTROLLER;
+	else if (type & (SI_ERROR_COLLISION | SI_ERROR_OVER_RUN | SI_ERROR_UNDER_RUN))
+		cb->result = SI_STEERING_ERR_TRANSFER;
+	else
+		cb->result = SI_STEERING_ERR_READY;
+
+	if (cb->proc) {
+		proc = cb->proc;
+		cb->proc = NULL;
+		proc(chan, cb->result);
+	}
+
+	if (cb->callback) {
+		callback = cb->callback;
+		cb->callback = NULL;
+		callback(chan, cb->result);
 	}
 }
 
-s32 SI_ResetSteeringAsync(s32 chan,SISteeringSyncCallback cb)
+static void TypeCallback(s32 chan, u32 type)
 {
-	s32 ret;
-	u32 level;
+	SISteeringControlBlock *cb = &__Steering[chan];
+	SISteeringCallback callback, proc;
 
-	_CPU_ISR_Disable(level);
+	if (Reset)
+		return;
+	else if (SI_DecodeType(type) != SI_GC_STEERING)
+		cb->result = SI_STEERING_ERR_NO_CONTROLLER;
+	else if (!SI_Transfer(chan, cb->out, cb->outLen, cb->in, cb->inLen, __SI_SteeringHandler, 0))
+		cb->result = SI_STEERING_ERR_BUSY;
+	else
+		return;
 
-	if(!__SISteering[chan].sync_cb) {
-		__SISteering[chan].sync_cb = (cb==NULL) ? __SISteeringDefaultCallback : cb;
-		ret = SI_STEERING_ERR_NONE;
-	} else {
-		ret = SI_STEERING_ERR_NOT_READY;
+	if (cb->proc) {
+		proc = cb->proc;
+		cb->proc = NULL;
+		proc(chan, cb->result);
 	}
 
-	_CPU_ISR_Restore(level);
-
-	if(ret==SI_STEERING_ERR_NONE) {
-		__SISteering[chan].out[0] = 0xff;
-		ret = __SISteeringTransfer(chan,1,3,__SISteeringResetCallback);
+	if (cb->callback) {
+		callback = cb->callback;
+		cb->callback = NULL;
+		callback(chan, cb->result);
 	}
-	return ret;
+}
+
+static s32 SI_SteeringTransfer(s32 chan, u32 outLen, u32 inLen, SISteeringCallback proc)
+{
+	u32 level = IRQ_Disable();
+
+	__Steering[chan].outLen = outLen;
+	__Steering[chan].inLen = inLen;
+	__Steering[chan].proc = proc;
+	SI_GetTypeAsync(chan, TypeCallback);
+
+	IRQ_Restore(level);
+	return SI_STEERING_ERR_READY;
+}
+
+static void SI_SteeringEnable(s32 chan)
+{
+	u32 mask = SI_CHAN_BIT(chan);
+	u8 buf[8];
+
+	if (!(EnabledBits & mask)) {
+		EnabledBits |= mask;
+		SI_GetResponse(chan, buf);
+		SI_SetCommand(chan, 0x300680);
+		SI_EnablePolling(EnabledBits);
+	}
+}
+
+static void SI_SteeringDisable(s32 chan)
+{
+	u32 mask = SI_CHAN_BIT(chan);
+	SI_DisablePolling(mask);
+	EnabledBits &= ~mask;
+}
+
+static void DefaultCallback(s32 chan, s32 result)
+{
+}
+
+static void ResetProc(s32 chan, s32 result)
+{
+	if (result == SI_STEERING_ERR_READY && !Reset)
+		SI_SteeringEnable(chan);
+}
+
+s32 SI_ResetSteeringAsync(s32 chan, SISteeringCallback callback)
+{
+	SISteeringControlBlock *cb = &__Steering[chan];
+
+	if (cb->callback)
+		return SI_STEERING_ERR_BUSY;
+
+	cb->out[0] = 0xFF;
+	cb->callback = callback ? : DefaultCallback;
+	return SI_SteeringTransfer(chan, 1, 3, ResetProc);
 }
 
 s32 SI_ResetSteering(s32 chan)
 {
-	s32 ret;
-
-	ret = SI_ResetSteeringAsync(chan,__SISteeringSyncCallback);
-	if(ret==SI_STEERING_ERR_NONE) ret = __SISteeringSync(chan);
-	return ret;
+	s32 result = SI_ResetSteeringAsync(chan, __SI_SteeringSyncCallback);
+	if (result == SI_STEERING_ERR_READY) return SI_SteeringSync(chan);
+	return result;
 }
 
-static s32 __sisteering_onreset(s32 final)
+static s32 OnReset(s32 final)
 {
-	s32 chan;
-	static u32 count;
+	static u32 retraceCount;
 
-	if(!__SIResetSteering) {
-		__SIResetSteering = 1;
+	if (SamplingCallback)
+		SI_SetSteeringSamplingCallback(NULL);
 
-		chan = 0;
-		while(chan<SI_MAX_CHAN) {
-			SI_ControlSteering(chan,SI_STEERING_FORCE_OFF,0);
-			chan++;
+	if (!Reset) {
+		Reset = true;
+
+		for (s32 chan = SI_CHAN0; chan < SI_MAX_CHAN; chan++)
+			SI_ControlSteering(chan, SI_STEERING_CONTROL_DRIVE, 0);
+
+		retraceCount = VIDEO_GetRetraceCount();
+	}
+
+	if ((s32)(VIDEO_GetRetraceCount() - retraceCount) > 2) {
+		while (EnabledBits) {
+			s32 chan = cntlzw(EnabledBits);
+			SI_SteeringDisable(chan);
 		}
-		count = VIDEO_GetRetraceCount();
 	}
 
-	if(VIDEO_GetRetraceCount()-count>2) {
-		while(__SISteeringEnableBits) {
-			chan = cntlzw(__SISteeringEnableBits);
-			__SISteeringDisable(chan);
-		}
-		return 1;
-	}
-	return 0;
+	return !EnabledBits;
 }
 
-static void __SISteeringCallback(s32 chan,u32 type)
+s32 SI_ReadSteering(s32 chan, SISteeringStatus *status)
 {
-	SISteeringTransferCallback xfer_cb;
-	SISteeringSyncCallback sync_cb;
+	s32 result;
+	u32 level = IRQ_Disable();
+	u8 buf[8];
 
-	if(__SIResetSteering) return;
-
-	if(type&SI_ERROR_NO_RESPONSE) __SISteering[chan].err = SI_STEERING_ERR_NO_CONTROLLER;
-	else if(type&0x0f) __SISteering[chan].err = SI_STEERING_ERR_TRANSFER;
-	else __SISteering[chan].err = SI_STEERING_ERR_NONE;
-
-	xfer_cb = __SISteering[chan].xfer_cb;
-	if(xfer_cb) {
-		__SISteering[chan].xfer_cb = NULL;
-		xfer_cb(chan);
-	}
-
-	sync_cb = __SISteering[chan].sync_cb;
-	if(sync_cb) {
-		__SISteering[chan].sync_cb = NULL;
-		sync_cb(chan,__SISteering[chan].err);
-	}
-}
-
-static void __SISteeringSyncCallback(s32 chan,s32 err)
-{
-	LWP_ThreadBroadcast(__SISteering[chan].sync_queue);
-}
-
-static s32 __SISteeringSync(s32 chan)
-{
-	s32 ret;
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
-	while(__SISteering[chan].sync_cb)
-		LWP_ThreadSleep(__SISteering[chan].sync_queue);
-	ret = __SISteering[chan].err;
-
-	_CPU_ISR_Restore(level);
-
-	return ret;
-}
-
-static void __SISteeringTypeCallback(s32 chan,u32 type)
-{
-	SISteeringTransferCallback xfer_cb;
-	SISteeringSyncCallback sync_cb;
-
-	if(__SIResetSteering) return;
-
-	type &= ~0xffff;
-	if(type==SI_GC_STEERING) {
-		if(SI_Transfer(chan,__SISteering[chan].out,__SISteering[chan].out_len,__SISteering[chan].in,__SISteering[chan].in_len,__SISteeringCallback,0)) return;
-		else __SISteering[chan].err = SI_STEERING_ERR_NOT_READY;
-	} else __SISteering[chan].err = SI_STEERING_ERR_NO_CONTROLLER;
-
-	xfer_cb = __SISteering[chan].xfer_cb;
-	if(xfer_cb) {
-		__SISteering[chan].xfer_cb = NULL;
-		xfer_cb(chan);
-	}
-
-	sync_cb = __SISteering[chan].sync_cb;
-	if(sync_cb) {
-		__SISteering[chan].sync_cb = NULL;
-		sync_cb(chan,__SISteering[chan].err);
-	}
-}
-
-static s32 __SISteeringTransfer(s32 chan,u32 out_len,u32 in_len,SISteeringTransferCallback cb)
-{
-	u32 level;
-
-	_CPU_ISR_Disable(level);
-
-	__SISteering[chan].xfer_cb = cb;
-	__SISteering[chan].out_len = out_len;
-	__SISteering[chan].in_len = in_len;
-
-	SI_GetTypeAsync(chan,__SISteeringTypeCallback);
-
-	_CPU_ISR_Restore(level);
-
-	return SI_STEERING_ERR_NONE;
-}
-
-static void __SISteeringEnable(s32 chan)
-{
-	u32 mask;
-	u32 buf[2];
-
-	mask = SI_CHAN_BIT(chan);
-	if(!(__SISteeringEnableBits&mask)) {
-		__SISteeringEnableBits |= mask;
-		SI_GetResponse(chan,buf);
-		SI_SetCommand(chan,0x00300680);
-		SI_EnablePolling(__SISteeringEnableBits);
-	}
-}
-
-static void __SISteeringDisable(s32 chan)
-{
-	u32 mask;
-
-	mask = SI_CHAN_BIT(chan);
-	SI_DisablePolling(mask);
-	__SISteeringEnableBits &= ~mask;
-}
-
-s32 SI_ReadSteering(s32 chan,SISteeringStatus *status)
-{
-	s32 ret;
-	u32 level;
-	u32 buf[2];
-
-	_CPU_ISR_Disable(level);
-
-	if(SI_IsChanBusy(chan)) {
-		__SISteering[chan].err = SI_STEERING_ERR_NOT_READY;
-	} else if(!(__SISteeringEnableBits&SI_CHAN_BIT(chan))) {
-		__SISteering[chan].err = SI_STEERING_ERR_NO_CONTROLLER;
-	} else if(SI_GetStatus(chan)&SI_ERROR_NO_RESPONSE) {
-		SI_GetResponse(chan,buf);
-		__SISteeringDisable(chan);
-		__SISteering[chan].err = SI_STEERING_ERR_NO_CONTROLLER;
-	} else if(!SI_GetResponse(chan,buf) || buf[0]&0x80000000) {
-		__SISteering[chan].err = SI_STEERING_ERR_TRANSFER;
+	if (SI_IsChanBusy(chan)) {
+		result = SI_STEERING_ERR_BUSY;
+	} else if (!(EnabledBits & SI_CHAN_BIT(chan))) {
+		result = SI_STEERING_ERR_NO_CONTROLLER;
+	} else if (SI_GetStatus(chan) & SI_ERROR_NO_RESPONSE) {
+		SI_GetResponse(chan, buf);
+		SI_SteeringDisable(chan);
+		result = SI_STEERING_ERR_NO_CONTROLLER;
+	} else if (!SI_GetResponse(chan, buf) || (((u32 *)buf)[0] & 0x80000000)) {
+		result = SI_STEERING_ERR_TRANSFER;
 	} else {
-		__SISteering[chan].err = SI_STEERING_ERR_NONE;
-		if(status) {
-			status->button = (buf[0]>>16)&0xffff;
-			status->flag = (buf[0]>>8)&0xff;
-			status->wheel = (buf[0]&0xff)-128;
-			status->pedalL = (buf[1]>>24)&0xff;
-			status->pedalR = (buf[1]>>16)&0xff;
-			status->paddleL = (buf[1]>>8)&0xff;
-			status->paddleR = (buf[1]&0xff);
+		result = SI_STEERING_ERR_READY;
+
+		if (status) {
+			status->button   = buf[0] << 8 | buf[1];
+			status->status   = buf[2];
+			status->steering = buf[3] - 128;
+			status->gas      = buf[4];
+			status->brake    = buf[5];
+			status->left     = buf[6];
+			status->right    = buf[7];
 		}
 	}
 
-	if(status) status->err = __SISteering[chan].err;
-	ret = __SISteering[chan].err;
+	if (status) status->err = result;
+	__Steering[chan].result = result;
 
-	_CPU_ISR_Restore(level);
-
-	return ret;
+	IRQ_Restore(level);
+	return result;
 }
 
-static void __SISteeringSamplingHandler(u32 irq,void *ctx)
+static void SamplingHandler(u32 irq, void *ctx)
 {
-	if(__SISteeringSamplingCallback)
-		__SISteeringSamplingCallback();
+	if (SamplingCallback)
+		SamplingCallback();
 }
 
-SISteeringSamplingCallback SI_SetSteeringSamplingCallback(SISteeringSamplingCallback cb)
+SISteeringSamplingCallback SI_SetSteeringSamplingCallback(SISteeringSamplingCallback callback)
 {
-	SISteeringSamplingCallback ret;
+	SISteeringSamplingCallback old;
 
-	ret = __SISteeringSamplingCallback;
-	__SISteeringSamplingCallback = cb;
+	old = SamplingCallback;
+	SamplingCallback = callback;
 
-	if(cb) SI_RegisterPollingHandler(__SISteeringSamplingHandler);
-	else SI_UnregisterPollingHandler(__SISteeringSamplingHandler);
+	if (callback)
+		SI_RegisterPollingHandler(SamplingHandler);
+	else
+		SI_UnregisterPollingHandler(SamplingHandler);
 
-	return ret;
+	return old;
 }
 
-void SI_ControlSteering(s32 chan,u32 cmd,s32 force)
+void SI_ControlSteering(s32 chan, u32 control, s32 steering)
 {
-	u32 level;
+	if (steering < -128) steering = -128;
+	if (steering > +128) steering = +128;
 
-	if(force<-128) force = 0;
-	else if(force>128) force = 256;
-	else force += 128;
+	u32 level = IRQ_Disable();
 
-	_CPU_ISR_Disable(level);
-
-	if(__SISteeringEnableBits&SI_CHAN_BIT(chan)) {
-		cmd = 0x00300000|(cmd&0x0600)|(force&0x01ff);
-		SI_SetCommand(chan,cmd);
+	if (EnabledBits & SI_CHAN_BIT(chan)) {
+		u32 cmd = 0x300000 | (control & 0x600) | ((steering + 128) & 0x1FF);
+		SI_SetCommand(chan, cmd);
 		SI_TransferCommands();
 	}
 
-	_CPU_ISR_Restore(level);
+	IRQ_Restore(level);
 }

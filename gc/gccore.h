@@ -51,7 +51,6 @@ distribution.
 #include "ogc/gu.h"
 #include "ogc/gx.h"
 #include "ogc/si.h"
-#include "ogc/si_steering.h"
 #include "ogc/gx_struct.h"
 #include "ogc/irq.h"
 #include "ogc/lwp.h"
