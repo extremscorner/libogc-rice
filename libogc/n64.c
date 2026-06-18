@@ -122,7 +122,7 @@ static void TypeCallback(s32 chan, u32 type)
 		return;
 	else if (SI_DecodeType(type) != SI_N64_CONTROLLER)
 		cb->result = N64_ERR_NO_CONTROLLER;
-	else if (!SI_Transfer(chan, cb->out, cb->outLen, cb->in, cb->inLen, __N64_Handler, 0))
+	else if (!SI_Transfer(chan, cb->out, cb->outLen, cb->in, cb->inLen, __N64_Handler, 65))
 		cb->result = N64_ERR_BUSY;
 	else
 		return;
@@ -162,12 +162,10 @@ static void ShortCommandProc(s32 chan, s32 result)
 	N64ControlBlock *cb = &__N64[chan];
 
 	if (result == N64_ERR_READY) {
-		if (cb->in[0] != 0x05 || cb->in[1] != 0x00) {
+		if (cb->in[0] != 0x05 || cb->in[1] != 0x00)
 			cb->result = N64_ERR_NO_CONTROLLER;
-			return;
-		}
-
-		*cb->status = cb->in[2];
+		else if (cb->status)
+			*cb->status = cb->in[2];
 	}
 }
 
