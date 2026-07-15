@@ -895,7 +895,7 @@ u32 PAD_ScanPads()
 
 		switch(padstatus[i].err) {
 		case PAD_ERR_NONE:
-			state					= padstatus[i].button;
+			state					= padstatus[i].button & PAD_BUTTON_ALL;
 			__pad_keys[i].stickX	= padstatus[i].stickX;
 			__pad_keys[i].stickY	= padstatus[i].stickY;
 			__pad_keys[i].substickX	= padstatus[i].substickX;
@@ -1005,7 +1005,7 @@ u32 PAD_ScanPads()
 
 				switch(steering.err) {
 				case SI_STEERING_ERR_READY:
-					state					= steering.button;
+					state					= steering.button & SI_STEERING_BUTTON_ALL;
 					__pad_keys[i].stickX	= steering.steering;
 					__pad_keys[i].triggerL	= steering.left;
 					__pad_keys[i].triggerR	= steering.right;
