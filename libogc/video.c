@@ -3797,7 +3797,7 @@ void* VIDEO_GetCurrentFramebuffer()
 
 void VIDEO_Init()
 {
-	u32 level,vimode = 0;
+	u32 level,vimode;
 	u32 *tvInBootrom = (u32*)0x800000cc;
 
 	if(video_initialized) return;
@@ -3837,10 +3837,14 @@ void VIDEO_Init()
 
 	HorVer.nonInter = (_viReg[1]&(VI_STEREO|VI_NON_INTERLACE))|((_viReg[0]&0x0f)>=7?VI_ENHANCED:VI_STANDARD)|(_viReg[54]&VI_CLOCK_54MHZ);
 	HorVer.tv = _SHIFTR(_viReg[1],8,2);
-	if(HorVer.tv==VI_NTSC && (*tvInBootrom==VI_PAL || *tvInBootrom==VI_EURGB60)) HorVer.tv = VI_EURGB60;
+	if(HorVer.tv==VI_NTSC) {
+		if(*tvInBootrom==VI_PAL) HorVer.tv = VI_EURGB60;
+		else if(*tvInBootrom==VI_DEBUG_PAL) HorVer.tv = VI_DEBUG_PAL;
+		else if(*tvInBootrom==VI_EURGB60) HorVer.tv = VI_EURGB60;
+	}
 
-	vimode = HorVer.nonInter;
-	if(HorVer.tv!=VI_DEBUG) vimode |= (HorVer.tv<<4);
+	if(HorVer.tv==VI_DEBUG) vimode = VI_TVMODE(VI_NTSC,HorVer.nonInter);
+	else vimode = VI_TVMODE(HorVer.tv,HorVer.nonInter);
 	currTiming = __gettiming(vimode);
 	currViMode = HorVer.nonInter;
 	currTvMode = HorVer.tv;
