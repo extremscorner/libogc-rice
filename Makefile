@@ -123,7 +123,7 @@ OGCOBJ		:=	\
 			message.o card.o aram.o depackrnc.o depackrnc1.o dsp.o si.o tpl.o ipc.o \
 			console_font_8x16.o timesupp.o lock_supp.o newlibc.o usbgecko.o usbmouse.o \
 			sbrk.o kprintf.o stm.o ios.o es.o isfs.o usb.o network_common.o \
-			sdgecko_io.o sdgecko_buf.o gcsd.o argv.o network_wii.o wiisd.o conf.o usbstorage.o \
+			sdgecko.o gcsd.o argv.o network_wii.o wiisd.o conf.o usbstorage.o \
 			texconv.o wiilaunch.o mic.o si_steering.o system_alarm.o system_report.o mmce.o n64.o
 
 #---------------------------------------------------------------------------------
