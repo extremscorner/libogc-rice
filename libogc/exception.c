@@ -2,7 +2,7 @@
 
 exception.c -- PPC exception handling support
 
-Copyright (C) 2004 - 2025
+Copyright (C) 2004 - 2026
 Michael Wiedenbauer (shagkur)
 Dave Murphy (WinterMute)
 Extrems' Corner.org
@@ -74,11 +74,11 @@ extern void default_exceptionhandler();
 extern void __dsp_shutdown();
 extern void __reload();
 
-extern s8 exceptionhandler_start[],exceptionhandler_patch[],exceptionhandler_end[];
+extern const u8 exceptionhandler_start[],exceptionhandler_patch[],exceptionhandler_end[];
 
 void (*exceptionhandler_table[NUM_EXCEPTIONS])(frame_context*);
 
-static u32 exception_location[NUM_EXCEPTIONS] = {
+static const u32 exception_location[NUM_EXCEPTIONS] = {
 		0x00000100, 0x00000200, 0x00000300, 0x00000400,
 		0x00000500, 0x00000600, 0x00000700, 0x00000800,
 		0x00000900, 0x00000C00, 0x00000D00, 0x00000F00,
@@ -90,13 +90,13 @@ static const char *exception_name[NUM_EXCEPTIONS] = {
 		"Decrementer", "System Call", "Trace", "Performance",
 		"IABR", "Reserved", "Thermal"};
 
-static u8 exception_signal[NUM_EXCEPTIONS] = {
+static const u8 exception_signal[NUM_EXCEPTIONS] = {
 		SIGHUP, SIGSEGV, SIGSEGV, SIGBUS,
 		SIGINT, SIGBUS, SIGTRAP, SIGFPE,
 		SIGALRM, SIGSYS, SIGTRAP, SIGILL,
 		SIGTRAP, SIGFPE, SIGHUP };
 
-void __exception_load(u32 nExcept,void *data,u32 len,void *patch)
+void __exception_load(u32 nExcept,const void *data,u32 len,const void *patch)
 {
 	void *pAddr = (void*)(0x80000000|exception_location[nExcept]);
 	memcpy(pAddr,data,len);
