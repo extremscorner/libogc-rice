@@ -4242,6 +4242,7 @@ void VIDEO_Configure(GXRModeObj *rmode)
 {
 	u16 dcr;
 	u32 nonint,vimode,level;
+	u32 *tvInBootrom = (u32*)0x800000cc;
 	const struct _timing *curtiming;
 #ifdef _VIDEO_DEBUG
 	if(rmode->viHeight&0x0001) printf("VIDEO_Configure(): Odd number(%d) is specified to viHeight\n",rmode->viHeight);
@@ -4257,6 +4258,8 @@ void VIDEO_Configure(GXRModeObj *rmode)
 		HorVer.nonInter = nonint;
 	}
 	HorVer.tv = (rmode->viTVMode>>4);
+	if(HorVer.tv==VI_PAL && *tvInBootrom==VI_DEBUG_PAL) HorVer.tv = VI_DEBUG_PAL;
+
 	HorVer.dispPosX = rmode->viXOrigin;
 	HorVer.dispPosY = rmode->viYOrigin;
 	HorVer.dispSizeX = rmode->viWidth;
